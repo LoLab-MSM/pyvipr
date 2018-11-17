@@ -1,0 +1,6 @@
+.cytoscape-widget {
+    height: 500px;
+    background: #FFFFFF;
+    overflow: hidden;
+    flex: 1;
+}
