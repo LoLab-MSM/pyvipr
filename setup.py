@@ -22,7 +22,7 @@ log.set_verbosity(log.DEBUG)
 log.info('setup.py entered')
 log.info('$PATH=%s' % os.environ['PATH'])
 
-LONG_DESCRIPTION = 'Cytoscape.js network visualization widget for Jupyter Notebook'
+LONG_DESCRIPTION = 'Dynamic and static visualizations of PySB models using cytoscape.js'
 
 def js_prerelease(command, strict=False):
     """decorator for building minified js/css prior to another command"""
@@ -66,8 +66,8 @@ class NPM(Command):
     node_modules = os.path.join(node_root, 'node_modules')
 
     targets = [
-        os.path.join(here, 'cyjupyter', 'static', 'extension.js'),
-        os.path.join(here, 'cyjupyter', 'static', 'index.js')
+        os.path.join(here, 'pysbjupyter', 'static', 'extension.js'),
+        os.path.join(here, 'pysbjupyter', 'static', 'index.js')
     ]
 
     def initialize_options(self):
@@ -121,25 +121,32 @@ class NPM(Command):
         update_package_data(self.distribution)
 
 version_ns = {}
-with open(os.path.join(here, 'cyjupyter', '_version.py')) as f:
+with open(os.path.join(here, 'pysbjupyter', '_version.py')) as f:
     exec(f.read(), {}, version_ns)
 
 setup_args = {
-    'name': 'cyjupyter',
+    'name': 'pysbjupyter',
     'version': version_ns['__version__'],
     'description': 'Cytoscape.js widget for Jupyter Notebook',
     'long_description': LONG_DESCRIPTION,
     'include_package_data': True,
     'data_files': [
         ('share/jupyter/nbextensions/cytoscape-jupyter-widget', [
-            'cyjupyter/static/extension.js',
-            'cyjupyter/static/index.js',
-            'cyjupyter/static/index.js.map',
+            'pysbjupyter/static/extension.js',
+            'pysbjupyter/static/index.js',
+            'pysbjupyter/static/index.js.map',
         ],),
         ('etc/jupyter/nbconfig/notebook.d/' ,['cytoscape-jupyter-widget.json'])
     ],
     'install_requires': [
         'ipywidgets>=7.0.0',
+        'networkx>=2.2',
+        'numpy>=1.15.4',
+        'pysb>=1.8.0',
+        'sympy>=1.3',
+        'matplotlib>=3.0.2'
+
+
     ],
     'packages': find_packages(),
     'zip_safe': False,
@@ -150,13 +157,15 @@ setup_args = {
         'jsdeps': NPM,
     },
 
-    'author': 'Keiichiro Ono',
-    'author_email': 'kono@ucsd.edu',
-    'url': 'https://github.com/idekerlab/cytoscape-jupyter-widget',
+    'author': 'Oscar Ortega',
+    'author_email': 'oscar.ortega@vanderbilt.edu',
+    'url': 'https://github.com/LoLab-VU/viz-pysb-widget',
     'keywords': [
         'ipython',
         'jupyter',
         'widgets',
+        'pysb',
+        'systems biology',
         'cytoscape',
         'graph',
         'visualization'
