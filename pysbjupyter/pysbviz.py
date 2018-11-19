@@ -1,4 +1,5 @@
 import ipywidgets as widgets
+from pysbjupyter.model_simresult_to_json import data_to_json
 
 from traitlets import (
     Any,
@@ -7,7 +8,7 @@ from traitlets import (
 )
 
 @widgets.register
-class Cytoscape(widgets.DOMWidget):
+class pysbViz(widgets.DOMWidget):
     """Cytoscape.js widget for simple network visualization."""
     _view_name = Unicode('CytoscapeView').tag(sync=True)
     _model_name = Unicode('CytoscapeModel').tag(sync=True)
@@ -17,7 +18,7 @@ class Cytoscape(widgets.DOMWidget):
     _model_module_version = Unicode('^0.1.0').tag(sync=True)
 
      # Cytoscape options
-    data = Any().tag(sync=True)
+    data = Any().tag(sync=True, to_json=data_to_json)
     visual_style = Any().tag(sync=True, o=True)
     format = Unicode('cyjs').tag(sync=True, o=True)
     layout_name = Unicode().tag(sync=True, o=True)
