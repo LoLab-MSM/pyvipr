@@ -270,58 +270,57 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         });
         that.el.parentElement.appendChild(fitButton);
 
-        // Defining player buttons
-        let playButton = document.createElement("BUTTON");
-        playButton.innerHTML = '<i class="fa fa-play"></i>';
-        playButton.style.position='absolute';
-        playButton.style.width='4%';
-        playButton.style.height='5%';
-        playButton.style.top='490px';
-        playButton.style.left='150px';
-        playButton.style.border='none';
-        playButton.style.background='#fffffff7';
-        that.el.parentElement.appendChild(playButton);
-
-        let slider = document.createElement('input');
-        slider.id = 'sliderid';
-        slider.type = 'range';
-        slider.min = 0;
-        slider.max = 50;
-        slider.value = 0;
-        slider.step = 1;
-        slider.style.width = '80%';
-        slider.style.height = '25px';
-        slider.style.top = '470px';
-        slider.style.left = '150px';
-        slider.style.position = 'absolute';
-        slider.style.border = 'none';
-        that.el.parentElement.appendChild(slider);
-
-        let slider_text = document.createElement('input');
-        slider_text.id = 'textid';
-        slider_text.type = 'text';
-        slider_text.size = 400;
-        slider_text.value = 0;
-        slider_text.style.width = '7%';
-        slider_text.style.height = '4%';
-        slider_text.style.top = '490px';
-        slider_text.style.left = '220px';
-        slider_text.style.position = 'absolute';
-        slider_text.style.border = 'none';
-        that.el.parentElement.appendChild(slider_text);
-
-        let resetButton = document.createElement("BUTTON");
-        resetButton.innerHTML = '<i class="fa fa-refresh"></i>';
-        resetButton.style.width = '4%';
-        resetButton.style.height = '4%';
-        resetButton.style.position = 'absolute';
-        resetButton.style.top = '490px';
-        resetButton.style.left = '180px';
-        resetButton.style.border = 'none';
-        that.el.parentElement.appendChild(resetButton);
-
-
         let dynamics_vis = function(){
+
+            // Defining player buttons
+            let playButton = document.createElement("BUTTON");
+            playButton.innerHTML = '<i class="fa fa-play"></i>';
+            playButton.style.position='absolute';
+            playButton.style.width='30px';
+            playButton.style.height='25px';
+            playButton.style.top='490px';
+            playButton.style.left='100px';
+            playButton.style.border='none';
+            playButton.style.background='#fffffff7';
+            that.el.parentElement.appendChild(playButton);
+
+            let slider = document.createElement('input');
+            slider.id = 'sliderid';
+            slider.type = 'range';
+            slider.min = 0;
+            slider.max = 50;
+            slider.value = 0;
+            slider.step = 1;
+            slider.style.width = '80%';
+            slider.style.height = '25px';
+            slider.style.top = '470px';
+            // slider.style.left = '150px';
+            slider.style.position = 'absolute';
+            slider.style.border = 'none';
+            that.el.parentElement.appendChild(slider);
+
+            let slider_text = document.createElement('input');
+            slider_text.id = 'textid';
+            slider_text.type = 'text';
+            slider_text.size = 400;
+            slider_text.value = 0;
+            slider_text.style.width = '50px';
+            slider_text.style.height = '25px';
+            slider_text.style.top = '490px';
+            slider_text.style.left = '170px';
+            slider_text.style.position = 'absolute';
+            slider_text.style.border = 'none';
+            that.el.parentElement.appendChild(slider_text);
+
+            let resetButton = document.createElement("BUTTON");
+            resetButton.innerHTML = '<i class="fa fa-refresh"></i>';
+            resetButton.style.width = '30px';
+            resetButton.style.height = '25px';
+            resetButton.style.position = 'absolute';
+            resetButton.style.top = '490px';
+            resetButton.style.left = '130px';
+            resetButton.style.border = 'none';
+            that.el.parentElement.appendChild(resetButton);
 
             let tspan = network.data.tspan;
             // let text = $('#{{textid}}')[0];
@@ -454,7 +453,9 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
 
             };
         };
-        dynamics_vis()
+        if(network.data.view === 'dynamic'){
+            dynamics_vis()
+        }
 
     }
 
