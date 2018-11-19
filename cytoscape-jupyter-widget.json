@@ -1,5 +1,5 @@
 {
   "load_extensions": {
-    "cytoscape-jupyter-widget/extension": true
+    "viz-pysb-widget/extension": true
   }
 }

@@ -1,2 +1,2 @@
-recursive-include cyjupyter/static *.*
-include cytoscape-jupyter-widget.json
+recursive-include pysbjupyter/static *.*
+include viz-pysb-widget.json
