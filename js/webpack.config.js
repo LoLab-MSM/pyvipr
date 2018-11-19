@@ -42,7 +42,7 @@ module.exports = [
         },
         externals: ['@jupyter-widgets/base']
     },
-    {// Embeddable cytoscape-jupyter-widget bundle
+    {// Embeddable viz-pysb-widget bundle
      //
      // This bundle is generally almost identical to the notebook bundle
      // containing the custom widget views and models.
@@ -61,7 +61,7 @@ module.exports = [
             filename: 'index.js',
             path: path.resolve(__dirname, 'dist'),
             libraryTarget: 'amd',
-            publicPath: 'https://unpkg.com/cytoscape-jupyter-widget@' + version + '/dist/'
+            publicPath: 'https://unpkg.com/viz-pysb-widget@' + version + '/dist/'
         },
         devtool: 'source-map',
         module: {

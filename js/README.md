@@ -7,5 +7,5 @@ Package Install
 - [node](http://nodejs.org/)
 
 ```bash
-npm install --save cytoscape-jupyter-widget
+npm install --save viz-pysb-widget
 ```
