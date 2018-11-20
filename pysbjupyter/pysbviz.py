@@ -12,8 +12,8 @@ class pysbViz(widgets.DOMWidget):
     """Cytoscape.js widget for simple network visualization."""
     _view_name = Unicode('CytoscapeView').tag(sync=True)
     _model_name = Unicode('CytoscapeModel').tag(sync=True)
-    _view_module = Unicode('cytoscape-jupyter-widget').tag(sync=True)
-    _model_module = Unicode('cytoscape-jupyter-widget').tag(sync=True)
+    _view_module = Unicode('viz-pysb-widget').tag(sync=True)
+    _model_module = Unicode('viz-pysb-widget').tag(sync=True)
     _view_module_version = Unicode('^0.1.0').tag(sync=True)
     _model_module_version = Unicode('^0.1.0').tag(sync=True)
 

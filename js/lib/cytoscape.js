@@ -60,8 +60,8 @@ var CytoscapeModel = widgets.DOMWidgetModel.extend({
     defaults: _.extend(widgets.DOMWidgetModel.prototype.defaults(), {
         _model_name: 'CytoscapeModel',
         _view_name: 'CytoscapeView',
-        _model_module: 'cytoscape-jupyter-widget',
-        _view_module: 'cytoscape-jupyter-widget',
+        _model_module: 'viz-pysb-widget',
+        _view_module: 'viz-pysb-widget',
         _model_module_version: '0.3.0',
         _view_module_version: '0.3.0'
     })
@@ -249,7 +249,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         fitButton.style.width='3em';
         fitButton.style.margin='0.5em';
         fitButton.style.top='0';
-        fitButton.style.right='10px';
+        fitButton.style.right='15px';
 
         let allNodes;
         let layoutPadding = 30;
@@ -278,11 +278,11 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             playButton.style.position='absolute';
             playButton.style.width='30px';
             playButton.style.height='25px';
-            playButton.style.top='490px';
-            playButton.style.left='100px';
+            playButton.style.bottom='0%';
+            // playButton.style.left='100px';
             playButton.style.border='none';
             playButton.style.background='#fffffff7';
-            that.el.parentElement.appendChild(playButton);
+            // that.el.parentElement.appendChild(playButton);
 
             let slider = document.createElement('input');
             slider.id = 'sliderid';
@@ -291,13 +291,13 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             slider.max = 50;
             slider.value = 0;
             slider.step = 1;
-            slider.style.width = '80%';
+            slider.style.width = '100%';
             slider.style.height = '25px';
-            slider.style.top = '470px';
+            slider.style.top = '0%';
             // slider.style.left = '150px';
             slider.style.position = 'absolute';
             slider.style.border = 'none';
-            that.el.parentElement.appendChild(slider);
+            // that.el.parentElement.appendChild(slider);
 
             let slider_text = document.createElement('input');
             slider_text.id = 'textid';
@@ -306,21 +306,33 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             slider_text.value = 0;
             slider_text.style.width = '50px';
             slider_text.style.height = '25px';
-            slider_text.style.top = '490px';
-            slider_text.style.left = '170px';
+            slider_text.style.bottom = '0%';
+            slider_text.style.left = '100px';
             slider_text.style.position = 'absolute';
             slider_text.style.border = 'none';
-            that.el.parentElement.appendChild(slider_text);
+            // that.el.parentElement.appendChild(slider_text);
 
             let resetButton = document.createElement("BUTTON");
             resetButton.innerHTML = '<i class="fa fa-refresh"></i>';
             resetButton.style.width = '30px';
             resetButton.style.height = '25px';
             resetButton.style.position = 'absolute';
-            resetButton.style.top = '490px';
-            resetButton.style.left = '130px';
+            resetButton.style.bottom = '0%';
+            resetButton.style.left = '50px';
             resetButton.style.border = 'none';
-            that.el.parentElement.appendChild(resetButton);
+            // that.el.parentElement.appendChild(resetButton);
+
+            let playerSection = document.createElement('div');
+            playerSection.style.width = '100%';
+            playerSection.style.height = '50px';
+            playerSection.style.bottom = '0%';
+            playerSection.style.position = 'relative';
+            // playerSection.style.boxSizing = 'border-box';
+            playerSection.appendChild(playButton);
+            playerSection.appendChild(slider);
+            playerSection.appendChild(slider_text);
+            playerSection.appendChild(resetButton);
+            that.el.parentElement.appendChild(playerSection);
 
             let tspan = network.data.tspan;
             // let text = $('#{{textid}}')[0];

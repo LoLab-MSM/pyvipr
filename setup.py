@@ -131,12 +131,12 @@ setup_args = {
     'long_description': LONG_DESCRIPTION,
     'include_package_data': True,
     'data_files': [
-        ('share/jupyter/nbextensions/cytoscape-jupyter-widget', [
+        ('share/jupyter/nbextensions/viz-pysb-widget', [
             'pysbjupyter/static/extension.js',
             'pysbjupyter/static/index.js',
             'pysbjupyter/static/index.js.map',
         ],),
-        ('etc/jupyter/nbconfig/notebook.d/' ,['cytoscape-jupyter-widget.json'])
+        ('etc/jupyter/nbconfig/notebook.d/' ,['viz-pysb-widget.json'])
     ],
     'install_requires': [
         'ipywidgets>=7.0.0',

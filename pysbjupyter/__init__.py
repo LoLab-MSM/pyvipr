@@ -6,6 +6,6 @@ def _jupyter_nbextension_paths():
     return [{
         'section': 'notebook',
         'src': 'static',
-        'dest': 'cytoscape-jupyter-widget',
-        'require': 'cytoscape-jupyter-widget/extension'
+        'dest': 'viz-pysb-widget',
+        'require': 'viz-pysb-widget/extension'
     }]

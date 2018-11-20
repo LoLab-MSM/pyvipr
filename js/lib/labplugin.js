@@ -1,14 +1,14 @@
-var cytoscape-jupyter-widget = require('./index');
+var viz-pysb-widget = require('./index');
 var base = require('@jupyter-widgets/base');
 
 module.exports = {
-  id: 'cytoscape-jupyter-widget',
+  id: 'viz-pysb-widget',
   requires: [base.IJupyterWidgetRegistry],
   activate: function(app, widgets) {
       widgets.registerWidget({
-          name: 'cytoscape-jupyter-widget',
-          version: cytoscape-jupyter-widget.version,
-          exports: cytoscape-jupyter-widget
+          name: 'viz-pysb-widget',
+          version: viz-pysb-widget.version,
+          exports: viz-pysb-widget
       });
   },
   autoStart: true
