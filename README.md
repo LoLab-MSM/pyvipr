@@ -38,9 +38,8 @@ pysbViz(data=model, type_of_viz='species_view')
 2) Dynamic visualizations. This type of visualization requires the results of a simulation 
 (a PySB SimulationResult object). This visualization encodes the reaction rate values in the size and color 
 of the edges between the species nodes, and molecular species concentrations relative to the maximum
-concentration attained across all time points are  represented with pie charts. Full pie chart represent 
-the maximum concentration attained across all time points. Clicking on edges and nodes shows the
- absolute value of the reaction rates and the concentrations
+concentration attained across all time points are  represented with pie charts. Clicking on edges and 
+nodes shows the absolute value of the reaction rates and the concentrations
 
 ```python
 from pysbjupyter import pysbViz
