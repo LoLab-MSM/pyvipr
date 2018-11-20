@@ -49,8 +49,9 @@ class StaticViz(object):
         attr_dict and **attr are defined as in `G.add_node`.
         """
         G.add_node(new_node, **attr)  # Add the 'merged' node
+        newG = G.copy()
 
-        for n1, n2, data in G.edges(data=True):
+        for n1, n2, data in newG.edges(data=True):
             # For all edges related to one of the nodes to merge,
             # make an edge going to or coming from the `new gene`.
             if n1 in nodes:
@@ -121,7 +122,7 @@ class StaticViz(object):
 
     def sp_rxns_view(self):
         """
-        Generates a dicionary with the info of a bipartite graph where one set of nodes is the model species
+        Generates a dictionary with the info of a bipartite graph where one set of nodes is the model species
         and the other set is the unidirectional reactions
         Returns
         -------
@@ -172,6 +173,18 @@ class StaticViz(object):
         g_layout = self.dot_layout(projected_graph)
         data = self.graph_to_json(sp_graph=projected_graph, layout=g_layout)
         return data
+
+    def projected_view_species_reactions(self):
+        return self.projections_view('species_reactions')
+
+    def projected_view_reactions(self):
+        return self.projections_view('reactions')
+
+    def projected_view_rules(self):
+        return self.projections_view('rules')
+
+    def projected_view_species_rules(self):
+        return self.projections_view('species_rules')
 
     def species_graph(self, get_passengers=False):
         """

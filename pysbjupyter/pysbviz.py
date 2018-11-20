@@ -19,6 +19,7 @@ class pysbViz(widgets.DOMWidget):
 
      # Cytoscape options
     data = Any().tag(sync=True, to_json=data_to_json)
+    type_of_viz = Unicode('species_view').tag(sync=True, o=True)
     visual_style = Any().tag(sync=True, o=True)
     format = Unicode('cyjs').tag(sync=True, o=True)
     layout_name = Unicode().tag(sync=True, o=True)

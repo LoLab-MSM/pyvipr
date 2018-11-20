@@ -7,7 +7,10 @@ from pysb.simulator.base import SimulationResult
 def data_to_json(_, widget):
     if isinstance(widget.data, Model):
         viz = StaticViz(widget.data)
-        jsondata = viz.species_view()
+        try:
+            jsondata = getattr(viz, widget.type_of_viz)()
+        except AttributeError:
+            raise AttributeError('Type of visualization not defined')
         return jsondata
     elif isinstance(widget.data, SimulationResult):
         viz = ModelVisualization(widget.data)
