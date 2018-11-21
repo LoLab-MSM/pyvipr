@@ -127,7 +127,7 @@ with open(os.path.join(here, 'pysbjupyter', '_version.py')) as f:
 setup_args = {
     'name': 'pysbjupyter',
     'version': version_ns['__version__'],
-    'description': 'Cytoscape.js widget for Jupyter Notebook',
+    'description': 'Widget to visualize PySB models in Jupyter Notebook',
     'long_description': LONG_DESCRIPTION,
     'include_package_data': True,
     'data_files': [
