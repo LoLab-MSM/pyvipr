@@ -3,11 +3,23 @@ Dynamic and static visualizations of [PySB](http://pysb.org/) models using cytos
 [cytoscape-jupyter-widget](https://github.com/idekerlab/cytoscape-jupyter-widget)
 
 ## Installation
+
+### From PyPI
+
+To install this widget, use _pip_:
+
+```bash
+# Install the widget from PyPI repository
+> pip install pysbjupyter
+
+# Enable it
+> jupyter nbextension enable --py --sys-prefix pysbjupyter
+```
+### From git
 ```bash
 $ git clone https://github.com/LoLab-VU/viz-pysb-widget.git
 $ cd viz-pysb-widget
-$ pip install -e .
-$ jupyter nbextension install --py --symlink --sys-prefix pysbjupyter
+$ pip install .
 $ jupyter nbextension enable --py --sys-prefix pysbjupyter
 ```
 
@@ -49,7 +61,7 @@ import numpy as np
 
 tspan = np.linspace(0, 1000, 100)
 sim = ScipyOdeSimulator(model, tspan).run()
-pysbViz(data=model)
+pysbViz(data=sim)
 ```
 
 ![enzymatic_reaction](pysbViz.gif)

@@ -144,9 +144,8 @@ setup_args = {
         'numpy>=1.15.4',
         'pysb>=1.8.0',
         'sympy>=1.3',
-        'matplotlib>=3.0.2'
-
-
+        'matplotlib>=3.0.2',
+        'pydot>=1.3.0'
     ],
     'packages': find_packages(),
     'zip_safe': False,
