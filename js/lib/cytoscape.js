@@ -1,10 +1,11 @@
 var widgets = require('@jupyter-widgets/base');
 var _ = require('lodash');
 var cytoscape = require('cytoscape');
-var cyjs = require('./cytoscape-util');
 var tippy = require('tippy.js');
 var popper = require('cytoscape-popper');
+var coseBilkent = require('cytoscape-cose-bilkent');
 cytoscape.use(popper);
+cytoscape.use(coseBilkent);
 
 const FORMAT = {
     CX: 'cx',
@@ -129,11 +130,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         let network = data;
         let visualStyle = null;
 
-        if (format === FORMAT.CX) {
-            // Convert to CYJS
-            network = cyjs.fromCx(data);
-            visualStyle = network.style
-        }
         const vsParam = that.model.get('visual_style');
         if (vsParam) {
             // Override VS
@@ -157,7 +153,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             container: that.el, // container to render in
             elements: network.elements,
             style: cytoscape.stylesheet()
-                .selector('node')
+                .selector('node[shape="ellipse"]')
                 .style({
                     'label': 'data(label)',
                     'shape': 'data(shape)',
@@ -177,6 +173,11 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                     'source-arrow-shape': 'data(source_arrow_shape)',
                     'source-arrow-fill': 'data(source_arrow_fill)'
                 })
+                .selector(':parent')
+                .style({
+                    'background-opacity': '0.33',
+                    'shape': 'rectangle'
+                })
                 .selector('.faded')
                 .style({
                     'opacity': 0.25,
@@ -188,26 +189,32 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         });
         // Adds feature, that when a node is tapped, it fades off all the
         // nodes that are not in its neighborhood
-        cy.on('tap', 'node', function(e){
+        cy.on('click', 'node', function(e){
             let node = e.target;
-            let neighborhood = node.neighborhood().add(node);
+            if (node.isParent()){
+                cy.stop();
+                cy.animation({
+                    fit: {
+                        eles: node,
+                        padding: layoutPadding
+                    },
+                    duration: aniDur,
+                    easing: easing
+                }).play();
+                let children = node.children().add(node);
+                cy.elements().addClass('faded');
+                children.removeClass('faded')
+            }
+            else {
+                let neighborhood = node.neighborhood().add(node);
 
-            cy.elements().addClass('faded');
-            neighborhood.removeClass('faded')
-        });
-        cy.on('tap', function(e){
-            if (e.target === cy){
-                cy.elements().removeClass('faded')
+                cy.elements().addClass('faded');
+                neighborhood.removeClass('faded')
             }
         });
-
-        // Show tip on tap
-        cy.on('tap', function(evt){
-            let ele = evt.target;
-            if (ele.data()['tip']['state']['visible']){
-                ele.data()['tip'].hide();
-            } else {
-                ele.data()['tip'].show();
+        cy.on('click', function(e){
+            if (e.target === cy){
+                cy.elements().removeClass('faded')
             }
         });
 
@@ -231,15 +238,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             } ).tooltips[0];
         };
 
-        // Adding empty tips to nodes and edges in advanced so they
-        // can be updated later on
-        cy.nodes().forEach(function(n){
-            n.data()['tip'] = makeTippy(n, n.position().x);
-        });
-
-        cy.edges().forEach(function(e){
-            e.data()['tip'] = makeTippy(e, 'test2');
-        });
 
         // Fit button to fit network to cell space
         let fitButton = document.createElement("BUTTON");
@@ -271,6 +269,25 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         that.el.parentElement.appendChild(fitButton);
 
         let dynamics_vis = function(){
+            // Adding empty tips to nodes and edges in advanced so they
+            // can be updated later on
+            cy.nodes().forEach(function(n){
+                n.data()['tip'] = makeTippy(n, n.position().x);
+            });
+
+            cy.edges().forEach(function(e){
+                e.data()['tip'] = makeTippy(e, 'test2');
+            });
+
+            // Show tip on tap
+            cy.on('click', 'node, edge',  function(evt){
+                let ele = evt.target;
+                if (ele.data()['tip']['state']['visible']){
+                    ele.data()['tip'].hide();
+                } else {
+                    ele.data()['tip'].show();
+                }
+            });
 
             // Defining player buttons
             let playButton = document.createElement("BUTTON");
