@@ -8,7 +8,7 @@ import numpy as np
 from pysb.simulator import SimulationResult
 import matplotlib.colors as colors
 import matplotlib.cm as cm
-from pysbjupyter.static_viz import StaticViz
+from pysbjupyter.static_viz import StaticViz, graph_to_json, dot_layout
 
 
 class OrderedGraph(nx.DiGraph):
@@ -83,16 +83,14 @@ class ModelVisualization(object):
         -------
         A Dictionary Object that can be converted into Cytoscape.js JSON
         """
-        # if (colors is None) or (cm is None):
-        #     raise Exception('Please "pip install matplotlib" for this feature')
         self.type_viz = type_viz
-        self.sp_graph = StaticViz(self.model).species_graph(get_passengers=get_passengers)
+        self.sp_graph = StaticViz(self.model).species_graph()
         self.sp_graph.graph['view'] = 'dynamic'
         self.sp_graph.graph['tspan'] = self.tspan.tolist()
         self.sp_graph.graph['name'] = self.model.name
-        g_layout = self.dot_layout(self.sp_graph)
+        g_layout = dot_layout(self.sp_graph)
         self._add_edge_node_dynamics()
-        data = self.graph_to_json(sp_graph=self.sp_graph, layout=g_layout)
+        data = graph_to_json(sp_graph=self.sp_graph, layout=g_layout)
         return data
 
     def _add_edge_node_dynamics(self):
@@ -122,47 +120,6 @@ class ModelVisualization(object):
             node_abs, node_rel = self.node_data()
             nx.set_node_attributes(self.sp_graph, 'abs_value', node_abs)
             nx.set_node_attributes(self.sp_graph, 'rel_value', node_rel)
-
-    @staticmethod
-    def graph_to_json(sp_graph, layout=None, path=''):
-        """
-
-        Parameters
-        ----------
-        sp_graph : nx.Digraph graph
-            A graph to be converted into cytoscapejs json format
-        layout: str or dict
-            Name of the layout algorithm to use for the visualization
-        path: str
-            Path to save the file
-
-        Returns
-        -------
-        A Dictionary Object that can be converted into Cytoscape.js JSON
-        """
-        data = from_networkx(sp_graph, layout=layout, scale=1)
-        if path:
-            with open(path + 'data.json', 'w') as outfile:
-                json.dump(data, outfile)
-        return data
-
-    @staticmethod
-    def dot_layout(sp_graph):
-        """
-
-        Parameters
-        ----------
-        sp_graph : nx.Digraph graph
-            Graph to layout
-
-        Returns
-        -------
-        An OrderedDict containing the node position according to the dot layout
-        """
-
-        pos = nx.nx_pydot.graphviz_layout(sp_graph, prog='dot')
-        ordered_pos = collections.OrderedDict((node, pos[node]) for node in sp_graph.nodes())
-        return ordered_pos
 
     @staticmethod
     def _get_max_rrs(rxns_matrix_sp, diff_par):

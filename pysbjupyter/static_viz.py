@@ -3,11 +3,11 @@ import networkx as nx
 import json
 from .util_networkx import from_networkx
 import collections
-import numpy
 import pysb
 import pysbjupyter.util as hf
 from pysb.bng import generate_equations
 from networkx.algorithms import bipartite
+from community import best_partition
 
 
 class OrderedGraph(nx.DiGraph):
@@ -27,19 +27,16 @@ class StaticViz(object):
     Parameters
     ----------
     model : pysb.Model
-        Model to visualize.
+        PySB Model to visualize.
     """
-    mach_eps = numpy.finfo(float).eps
 
     def __init__(self, model):
         # Need to create a model visualization base and then do independent visualizations: static and dynamic
         self.model = model
         self.graph = None
-        self.passengers = []
         generate_equations(self.model)
 
     # This is a function to merge several nodes into one in a Networkx graph
-
     @staticmethod
     def merge_nodes(G, nodes, new_node, **attr):
         """
@@ -62,16 +59,12 @@ class StaticViz(object):
         for n in nodes:  # remove the merged nodes
             G.remove_node(n)
 
-    def species_view(self, get_passengers=True, cluster_info=None, dom_paths=None):
+    def species_view(self):
         """
-        Generates a dictionary with the model graph data that can be converted in the Cytoscape.js JSON format
+        Generate data to create a species network
 
         Parameters
         ----------
-        get_passengers : bool
-            if True, nodes that only have one incoming or outgoing edge are painted with a different color
-        cluster_info : dict
-            A dictionary with the information of the clusters of mode of signal execution
 
         Examples
         --------
@@ -81,43 +74,50 @@ class StaticViz(object):
 
         Returns
         -------
-        A Dictionary Object that can be converted into Cytoscape.js JSON
+        A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
+        contains all the information (nodes,edges, positions) to generate a cytoscapejs network.
         """
-        graph = self.species_graph(get_passengers=get_passengers)
-        if cluster_info:
-            # TODO check structure of cluster_info
-            if isinstance(cluster_info, list):
-                for c in cluster_info:
-                    self._add_cluster_info(graph, c)
-            elif isinstance(cluster_info, dict):
-                self._add_cluster_info(graph, cluster_info)
-            else:
-                raise TypeError('Object no supported')
-        if dom_paths is not None:
-            graph.graph['paths'] = dom_paths
-        g_layout = self.dot_layout(graph)
-        data = self.graph_to_json(sp_graph=graph, layout=g_layout)
+        graph = self.species_graph()
+        g_layout = dot_layout(graph)
+        data = graph_to_json(sp_graph=graph, layout=g_layout)
         return data
 
-    def sp_rxns_bidirectional_view(self, dom_paths=None):
+    def communities_view(self):
         """
-        Generates a dictionary with the info of a bipartite graph where one set of nodes is the model species
-        and the other set is the model bidirectional reactions
+        Use a community detection algorithm to find groups of nodes that are densely connected.
+        It generates the data to create a network with compound nodes that hold the communities.
+        Returns
+        -------
+        A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
+        contains all the information (nodes,edges, parent nodes, positions) to generate
+        a cytoscapejs network.
+        """
+        graph = self.species_graph()
+        graph_communities = graph.copy().to_undirected()  # Louvain algorithm only deals with undirected graphs
+        communities = best_partition(graph_communities)
+        #compound nodes to add to hold communities
+        cnodes = set(communities.values())
+        nx.set_node_attributes(graph, communities, 'parent')
+        graph.add_nodes_from(cnodes)
+        g_layout = dot_layout(graph)
+        data = graph_to_json(sp_graph=graph, layout=g_layout)
+        return data
+
+    def sp_rxns_bidirectional_view(self):
+        """
+        Generate a dictionary with the info of a bipartite graph where one set of
+        nodes is the model species and the other set is the model bidirectional reactions
 
         Parameters
         ----------
-        dom_paths : list
-            list of dominant paths
 
         Returns
         -------
         A dictionary object with the graph information
         """
         graph = self.sp_rxns_bidirectional_graph()
-        if dom_paths is not None:
-            graph.graph['paths'] = dom_paths
-        g_layout = self.dot_layout(graph)
-        data = self.graph_to_json(sp_graph=graph, layout=g_layout)
+        g_layout = dot_layout(graph)
+        data = graph_to_json(sp_graph=graph, layout=g_layout)
         return data
 
     def sp_rxns_view(self):
@@ -126,11 +126,11 @@ class StaticViz(object):
         and the other set is the unidirectional reactions
         Returns
         -------
-        A dictionary object with the graph information
+        A dictionary object with the graph information.
         """
         graph = self.sp_rxns_graph()
-        g_layout = self.dot_layout(graph)
-        data = self.graph_to_json(sp_graph=graph, layout=g_layout)
+        g_layout = dot_layout(graph)
+        data = graph_to_json(sp_graph=graph, layout=g_layout)
         return data
 
     def sp_rules_view(self):
@@ -143,13 +143,13 @@ class StaticViz(object):
         """
         rules_graph = self.rules_graph()
         rules_graph = self.graph_merged_pair_edges(rules_graph)
-        g_layout = self.dot_layout(rules_graph)
-        data = self.graph_to_json(sp_graph=rules_graph, layout=g_layout)
+        g_layout = dot_layout(rules_graph)
+        data = graph_to_json(sp_graph=rules_graph, layout=g_layout)
         return data
 
     def projections_view(self, project_to='species_reactions'):
         """
-        Generates a dictionary wit the info of a graph repesenting the PySB model.
+        Generates a dictionary with the info of a graph representing the PySB model.
 
         Parameters
         ----------
@@ -170,8 +170,8 @@ class StaticViz(object):
             raise ValueError('Projection not valid')
 
         projected_graph = self.projected_graph(bipartite_graph, project_to)
-        g_layout = self.dot_layout(projected_graph)
-        data = self.graph_to_json(sp_graph=projected_graph, layout=g_layout)
+        g_layout = dot_layout(projected_graph)
+        data = graph_to_json(sp_graph=projected_graph, layout=g_layout)
         return data
 
     def projected_view_species_reactions(self):
@@ -186,7 +186,7 @@ class StaticViz(object):
     def projected_view_species_rules(self):
         return self.projections_view('species_rules')
 
-    def species_graph(self, get_passengers=False):
+    def species_graph(self):
         """
         Creates a nx.DiGraph graph of the model species
 
@@ -195,8 +195,6 @@ class StaticViz(object):
         A :class: nx.Digraph graph that has the information for the visualization of the model
         """
         sp_graph = OrderedGraph(name=self.model.name, graph={'rankdir':'LR'}, paths=[])
-        if get_passengers:
-            self.passengers = hf.find_nonimportant_nodes(self.model)
 
         # TODO: there are reactions that generate parallel edges that are not taken into account because netowrkx
         # digraph only allows one edge between two nodes
@@ -204,13 +202,9 @@ class StaticViz(object):
         for idx in range(len(self.model.species)):
             species_node = 's%d' % idx
             # Setting the information about the node
-            node_data = {'label': hf.parse_name(self.model.species[idx])}
-            if idx in self.passengers:
-                node_data['background_color'] = "#162899"
-            else:
-                node_data['background_color'] = "#2b913a"
-            node_data['shape'] = 'ellipse'
-
+            node_data = dict(label=hf.parse_name(self.model.species[idx]),
+                             background_color="#2b913a",
+                             shape='ellipse')
             sp_graph.add_node(species_node, **node_data)
 
         for reaction in self.model.reactions_bidirectional:
@@ -271,8 +265,8 @@ class StaticViz(object):
                            shape="ellipse",
                            background_color=color,
                            bipartite=0)
-        for i, reaction in enumerate(self.model.reactions_bidirectional):
-            reaction_node = 'r%d' % i
+        for j, reaction in enumerate(self.model.reactions_bidirectional):
+            reaction_node = 'r%d' % j
             graph.add_node(reaction_node,
                            label=reaction_node,
                            shape="roundrectangle",
@@ -287,12 +281,12 @@ class StaticViz(object):
                                'source_arrow_fill': 'hollow'} if reaction['reversible'] \
                                 else {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle', 'source_arrow_fill': 'filled'}
             for s in reactants:
-                self._r_link_bipartite(graph, s, i, **attr_reversible)
+                self._r_link_bipartite(graph, s, j, **attr_reversible)
             for s in products:
-                self._r_link_bipartite(graph, s, i, _flip=True, **attr_reversible)
+                self._r_link_bipartite(graph, s, j, _flip=True, **attr_reversible)
             for s in modifiers:
                 attr_modifiers = {'target_arrow_shape':'diamond'}
-                self._r_link_bipartite(graph, s, i, **attr_modifiers)
+                self._r_link_bipartite(graph, s, j, **attr_modifiers)
         return graph
 
     def sp_rxns_graph(self):
@@ -349,6 +343,7 @@ class StaticViz(object):
         A :class: nx.Digraph graph that has the information for the visualization of the model
         """
         graph = self.sp_rxns_graph()
+        # Merge reactions into the rules that they come from
         nodes2merge = self.merge_reactions2rules()
         node_attrs = {'shape': 'roundrectangle', 'background_color': '#ff4c4c', 'bipartite':1}
         for rule, rxns in nodes2merge.items():
@@ -357,6 +352,20 @@ class StaticViz(object):
         return graph
 
     def projected_graph(self, graph, project_to='species'):
+        """
+        Project a bipartite graph into one of the sets of nodes
+        Parameters
+        ----------
+        graph: nx.DiGraph
+            a networkx bipartite graph
+        project_to: str
+            One of the following options: `species_reactions`, `species_rules`,
+            `reactions`, `rules`
+
+        Returns
+        -------
+        a nx.DiGraph
+        """
         if project_to == 'species_reactions' or project_to == 'species_rules':
             nodes = {n for n, d in graph.nodes(data=True) if d['bipartite']==0}
         elif project_to == 'reactions' or project_to == 'rules':
@@ -414,7 +423,6 @@ class StaticViz(object):
             rxn_per_rule[rule.name] = rxns
         return rxn_per_rule
 
-
     @staticmethod
     def _r_link_bipartite(graph, s, r, **attrs):
         """
@@ -440,83 +448,43 @@ class StaticViz(object):
         attrs.setdefault('arrowhead', 'normal')
         graph.add_edge(*nodes, **attrs)
 
-    @staticmethod
-    def graph_to_json(sp_graph, layout=None, path=''):
-        """
 
-        Parameters
-        ----------
-        sp_graph : nx.Digraph graph
-            A graph to be converted into cytoscapejs json format
-        layout: str or dict
-            Name of the layout algorithm to use for the visualization
-        path: str
-            Path to save the file
+def graph_to_json(sp_graph, layout=None, path=''):
+    """
 
-        Returns
-        -------
-        A Dictionary Object that can be converted into Cytoscape.js JSON
-        """
-        data = from_networkx(sp_graph, layout=layout, scale=1)
-        if path:
-            with open(path + 'data.json', 'w') as outfile:
-                json.dump(data, outfile)
-        return data
+    Parameters
+    ----------
+    sp_graph : nx.Digraph graph
+        A graph to be converted into cytoscapejs json format
+    layout: str or dict
+        Name of the layout algorithm to use for the visualization
+    path: str
+        Path to save the file
 
-    @staticmethod
-    def dot_layout(sp_graph):
-        """
+    Returns
+    -------
+    A Dictionary Object that can be converted into Cytoscape.js JSON
+    """
+    data = from_networkx(sp_graph, layout=layout, scale=1)
+    if path:
+        with open(path + 'data.json', 'w') as outfile:
+            json.dump(data, outfile)
+    return data
 
-        Parameters
-        ----------
-        sp_graph : nx.Digraph graph
-            Graph to layout
 
-        Returns
-        -------
-        An OrderedDict containing the node position according to the dot layout
-        """
+def dot_layout(sp_graph):
+    """
 
-        pos = nx.nx_pydot.graphviz_layout(sp_graph, prog='dot')
-        ordered_pos = collections.OrderedDict((node, pos[node]) for node in sp_graph.nodes())
-        return ordered_pos
+    Parameters
+    ----------
+    sp_graph : nx.Digraph graph
+        Graph to layout
 
-    @staticmethod
-    def _add_cluster_info(graph, cluster_info):
-        node_backgrounds = {}
-        node_percentages = {}
-        node_repres = {}
-        node_clus_scores = {}
-        for sp_info in cluster_info['cluster_info']:
-            sp = [idx for idx in sp_info.keys() if isinstance(idx, int)]
-            sp = sp[0]
-            percs = []
-            bgs = []
-            repres = []
-            scores = []
-            for perc in sp_info[sp].values():
-                if perc[0] < 1:
-                    perc_r = perc[0] * 100
-                else:
-                    perc_r = perc[0]
-                percs.append(perc_r)
-                bgs.append(perc[1])
-                repres.append(perc[2].tolist())
-                scores.append(sp_info['best_silh'])
-            node_percentages['s{}'.format(sp)] = percs
-            node_backgrounds['s{}'.format(sp)] = bgs
-            node_repres['s{}'.format(sp)] = repres
-            node_clus_scores['s{}'.format(sp)] = scores
+    Returns
+    -------
+    An OrderedDict containing the node position according to the dot layout
+    """
 
-        rxns_type = cluster_info['rxns_type']
-        if float(nx.__version__) >= 2:
-            nx.set_node_attributes(graph, node_backgrounds, 'clus_colors_' + rxns_type)
-            nx.set_node_attributes(graph, node_percentages, 'clus_perc_' + rxns_type)
-            nx.set_node_attributes(graph, node_repres, 'clus_repres_' + rxns_type)
-            nx.set_node_attributes(graph, node_clus_scores, 'clus_scores_' + rxns_type)
-        else:
-            nx.set_node_attributes(graph, 'clus_colors_' + rxns_type, node_backgrounds)
-            nx.set_node_attributes(graph, 'clus_perc_' + rxns_type, node_percentages)
-            nx.set_node_attributes(graph, 'clus_repres_' + rxns_type, node_repres)
-            nx.set_node_attributes(graph, 'clus_scores_' + rxns_type, node_clus_scores)
-        return
+    pos = nx.nx_pydot.graphviz_layout(sp_graph, prog='dot')
+    ordered_pos = collections.OrderedDict((node, pos[node]) for node in sp_graph.nodes())
+    return ordered_pos
