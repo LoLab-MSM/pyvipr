@@ -153,7 +153,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             container: that.el, // container to render in
             elements: network.elements,
             style: cytoscape.stylesheet()
-                .selector('node[shape="ellipse"]')
+                .selector('node[shape]')
                 .style({
                     'label': 'data(label)',
                     'shape': 'data(shape)',
