@@ -147,6 +147,85 @@ class StaticViz(object):
         data = graph_to_json(sp_graph=rules_graph, layout=g_layout)
         return data
 
+    def sp_rules_functions_view(self):
+        """
+        Generates a dictionary with the info of a bipartite graph where one set of nodes is the model species
+        and the other set is the model rules. Additionally, it adds information of the functions from which
+        the rules come from.
+        Returns
+        -------
+
+        """
+        rules_graph = self.rules_graph()
+        rules_graph = self.graph_merged_pair_edges(rules_graph)
+        rule_functions = {rule.name: rule._function for rule in self.model.rules}
+        unique_functions = set(rule_functions.values())
+        nx.set_node_attributes(rules_graph, rule_functions, 'parent')
+        rules_graph.add_nodes_from(unique_functions)
+        g_layout = dot_layout(rules_graph)
+        data = graph_to_json(sp_graph=rules_graph, layout=g_layout)
+        return data
+
+    def sp_rules_modules_view(self):
+        """
+        Generates a dictionary with the info of a bipartite graph where one set of nodes is the model species
+        and the other set is the model rules. Additionally, it adds information of the modules from which
+        the rules come from.
+        Returns
+        -------
+
+        """
+        rules_graph = self.rules_graph()
+        rules_graph = self.graph_merged_pair_edges(rules_graph)
+
+        # Unique modules used in the model
+        unique_modules = [m for m in self.model.modules if not m.startswith('_')]
+        # Remove outer model file to not look further modules that are not related to
+        # the model
+        unique_modules.remove(self.model.name)
+        module_parents = {}
+        # pysb components have a modules list that starts from the inner frame
+        # to the outer frame.
+        for module in unique_modules:
+            total_parents = []
+            for rule in self.model.rules:
+                mods = rule._modules
+                try:
+                    mod_idx = mods.index(module)
+                    module_parent = mods[mod_idx + 1]
+                except (ValueError, IndexError):
+                    continue
+                total_parents.append(module_parent)
+
+            total_parents = list(set(total_parents))
+            if module in total_parents:
+                total_parents.remove(module)
+
+            if len(total_parents) >= 2:
+                for idx, p in enumerate(total_parents):
+                    module_parents[module + str(idx)] = p
+            else:
+                module_parents[module] = total_parents[0]
+
+        rules_module = {}
+        for rule in self.model.rules:
+            m = rule._modules[0]
+            if m not in module_parents.keys():
+                m_parent = rule._modules[1]
+                m_parent_child = list(module_parents.keys())[list(module_parents.values()).index(m_parent)]
+                rules_module[rule.name] = m_parent_child
+            else:
+                rules_module[rule.name] = m
+
+        module_parent_nodes = list(module_parents.keys())
+        module_parent_nodes.append(self.model.name)
+        rules_graph.add_nodes_from(module_parent_nodes)
+        nx.set_node_attributes(rules_graph, module_parents, 'parent')
+        nx.set_node_attributes(rules_graph, rules_module, 'parent')
+        g_layout = dot_layout(rules_graph)
+        data = graph_to_json(sp_graph=rules_graph, layout=g_layout)
+        return data
+
     def projections_view(self, project_to='species_reactions'):
         """
         Generates a dictionary with the info of a graph representing the PySB model.
@@ -345,7 +424,7 @@ class StaticViz(object):
         graph = self.sp_rxns_graph()
         # Merge reactions into the rules that they come from
         nodes2merge = self.merge_reactions2rules()
-        node_attrs = {'shape': 'roundrectangle', 'background_color': '#ff4c4c', 'bipartite':1}
+        node_attrs = {'shape': 'roundrectangle', 'background_color': '#ff4c4c', 'bipartite': 1}
         for rule, rxns in nodes2merge.items():
             node_attrs['label'] = rule
             self.merge_nodes(graph, rxns, rule, **node_attrs)

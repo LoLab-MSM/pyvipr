@@ -176,7 +176,8 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 .selector(':parent')
                 .style({
                     'background-opacity': '0.33',
-                    'shape': 'rectangle'
+                    'shape': 'rectangle',
+                    'label': 'data(id)'
                 })
                 .selector('.faded')
                 .style({
@@ -184,7 +185,8 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                     'text-opacity': 0
                 }),
             layout: {
-                name: layoutName
+                name: layoutName,
+                nodeDimensionsIncludeLabels: true
             }
         });
         // Adds feature, that when a node is tapped, it fades off all the
@@ -193,6 +195,13 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             let node = e.target;
             if (node.isParent()){
                 cy.stop();
+                // let layout = node.children().layout({
+                //     name: 'grid',
+                //     fit: 'false',
+                //     boundingBox: node.parent().boundingBox(),
+                //     nodeDimensionsIncludeLabels: true
+                // });
+                // layout.run();
                 cy.animation({
                     fit: {
                         eles: node,
@@ -201,13 +210,12 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                     duration: aniDur,
                     easing: easing
                 }).play();
-                let children = node.children().add(node);
+                let children = node.children().add(node).add(node.ancestors());
                 cy.elements().addClass('faded');
                 children.removeClass('faded')
             }
             else {
                 let neighborhood = node.neighborhood().add(node);
-
                 cy.elements().addClass('faded');
                 neighborhood.removeClass('faded')
             }
@@ -257,6 +265,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         fitButton.addEventListener('click', function(){
             allNodes.unselect();
             cy.stop();
+            cy.elements().removeClass('faded');
             cy.animation({
                 fit: {
                     eles: cy.elements(),
