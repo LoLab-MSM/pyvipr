@@ -4,6 +4,8 @@ var cytoscape = require('cytoscape');
 var tippy = require('tippy.js');
 var popper = require('cytoscape-popper');
 var coseBilkent = require('cytoscape-cose-bilkent');
+var typeahead = require('typeahead.js');
+var $ = require('jquery');
 cytoscape.use(popper);
 cytoscape.use(coseBilkent);
 
@@ -215,7 +217,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 children.removeClass('faded')
             }
             else {
-                let neighborhood = node.neighborhood().add(node);
+                let neighborhood = node.neighborhood().add(node).add(node.ancestors());
                 cy.elements().addClass('faded');
                 neighborhood.removeClass('faded')
             }
@@ -249,19 +251,14 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
 
         // Fit button to fit network to cell space
         let fitButton = document.createElement("BUTTON");
+        fitButton.id = 'fitbuttonid';
         fitButton.innerHTML = '<i class=\"fa fa-arrows-h\"></i>';
         // fitButton.setAttribute("type", "button");
-        fitButton.style.position='absolute';
-        fitButton.style.width='3em';
-        fitButton.style.margin='0.5em';
-        fitButton.style.top='0';
-        fitButton.style.right='15px';
 
-        let allNodes;
+        let allNodes = cy.nodes();
         let layoutPadding = 30;
         let aniDur = 500;
         let easing = 'linear';
-        allNodes = cy.nodes();
         fitButton.addEventListener('click', function(){
             allNodes.unselect();
             cy.stop();
@@ -277,15 +274,172 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         });
         that.el.parentElement.appendChild(fitButton);
 
+        that.$search = $("<input type=\"text\" class=\"form-control\" id=\"search\" placeholder=\"Search..\">")
+            .css('width', '14em')
+            .css('font-family', 'inherit');
+
+        that.$search_wrapper = $("<div id='bla'></div>")
+            .css('position', 'absolute')
+            .css('left', '100px')
+            .css('top', '0')
+            .css('z-index', '9999')
+            .css('margin', '0.5em')
+            .css('width', '14em')
+            .append(that.$search)
+            .appendTo(that.el.parentElement);
+
+        that.$info = $("<div id='info'></div>")
+            .css('position', 'absolute')
+            .css('left', '100px')
+            .css('top', '3em')
+            .css('margin', '0.5em')
+            .css('background', '#fff')
+            .css('width', '14em')
+            .css('border', '1px solid #ccc')
+            .css('box-shadow', 'inset 0 0 0 0.25em rgba(187, 219, 247, 0.9)')
+            .css('display', 'none')
+            .css('overflow', 'auto')
+            .appendTo(that.el.parentElement);
+        // info.id = 'infoid';
+        // that.el.parentElement.appendChild(info);
+
+        let infoTemplate = function(data){
+            return '<p><strong>' + data.label + '</strong></p>';
+        };
+
+        function showNodeInfo( node ){
+            that.$info.html( infoTemplate( node.data() ) ).show();
+            console.log(that.$info);
+        }
+
+        function hideNodeInfo(){
+            that.$info.hide();
+        }
+
+        cy.on('tap', function(){
+            that.$search.blur();
+        });
+
+        cy.on('select unselect', 'node', _.debounce( function(e){
+            let node = cy.$('node:selected');
+
+            if( node.nonempty() ){
+                showNodeInfo( node );
+
+                Promise.resolve().then(function(){
+                    return highlight( node );
+                });
+            } else {
+                hideNodeInfo();
+                // clear();
+            }
+
+        }, 100 ) );
+
+        function highlight(node){
+            cy.animation({
+                fit: {
+                    eles: node,
+                    padding: layoutPadding
+                },
+                duration: aniDur,
+                easing: easing
+            }).play();
+        }
+
+        let lastSearch = '';
+        let create_id = function makeid() {
+            var text = "";
+            var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+            for (var i = 0; i < 5; i++)
+                text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+            return text;
+        };
+
+        that.$search.typeahead({
+                minLength: 2,
+                highlight: true,
+            },
+            {
+                display: 'label',
+                name: 'search-dataset'+create_id(),
+                limit: 10,
+                source: function( query, cb ){
+                    function matches( str, q ){
+                        str = (str || '').toLowerCase();
+                        q = (q || '').toLowerCase();
+
+                        return str.match( q );
+                    }
+
+                    var fields = ['label', 'id'];
+
+                    function anyFieldMatches( n ){
+                        for( var i = 0; i < fields.length; i++ ){
+                            var f = fields[i];
+
+                            if( matches( n.data(f), query ) ){
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    }
+
+                    function getData(n){
+                        let data = n.data();
+
+                        return data;
+                    }
+
+                    function sortByName(n1, n2){
+                        if( n1.data('name') < n2.data('name') ){
+                            return -1;
+                        } else if( n1.data('name') > n2.data('name') ){
+                            return 1;
+                        }
+
+                        return 0;
+                    }
+
+                    var res = allNodes.stdFilter( anyFieldMatches ).sort( sortByName ).map( getData );
+
+                    cb( res );
+                },
+                templates: {
+                    suggestion: infoTemplate
+                }
+            }).on('typeahead:selected', function(e, entry, dataset){
+            var n = cy.getElementById(entry.id);
+
+            cy.batch(function(){
+                allNodes.unselect();
+
+                n.select();
+            });
+
+            showNodeInfo( n );
+        }).on('keydown keypress keyup change', _.debounce(function(e){
+            var thisSearch = that.$search.val();
+
+            if( thisSearch !== lastSearch ){
+                $('.tt-dropdown-menu').scrollTop(0);
+
+                lastSearch = thisSearch;
+            }
+        }, 50));
+
         let dynamics_vis = function(){
             // Adding empty tips to nodes and edges in advanced so they
             // can be updated later on
             cy.nodes().forEach(function(n){
-                n.data()['tip'] = makeTippy(n, n.position().x);
+                n.data()['tip'] = makeTippy(n, '');
             });
 
             cy.edges().forEach(function(e){
-                e.data()['tip'] = makeTippy(e, 'test2');
+                e.data()['tip'] = makeTippy(e, '');
             });
 
             // Show tip on tap
@@ -364,16 +518,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             // let text = $('#{{textid}}')[0];
             // let rangeInput = $('#{{rangeid}}')[0];
             slider.max = tspan.length - 1;
-
-            // Adding empty tips to nodes and edges in advanced so they
-            // can be updated later on
-            cy.nodes().forEach(function(n){
-                n.data()['tip'] = makeTippy(n, '');
-            });
-
-            cy.edges().forEach(function(e){
-                e.data()['tip'] = makeTippy(e, 'bla');
-            });
 
             function animateAll(ele){
                 let animationDuration = 1000;

@@ -37,7 +37,9 @@
         "lodash": "^4.17.4",
         "tippy.js": "^2.3.0",
         "cytoscape-popper": "^1.0.2",
-        "cytoscape-cose-bilkent": "^4.0.0"
+        "cytoscape-cose-bilkent": "^4.0.0",
+        "jquery": "^3.3.1",
+        "typeahead.js": "^0.11.1"
     },
     "jupyterlab": {
         "extension": "lib/labplugin"
