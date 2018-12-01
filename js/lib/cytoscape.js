@@ -193,10 +193,8 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         });
         // Adds feature, that when a node is tapped, it fades off all the
         // nodes that are not in its neighborhood
-        cy.on('click', 'node', function(e){
-            let node = e.target;
+        function highlight(node){
             if (node.isParent()){
-                cy.stop();
                 // let layout = node.children().layout({
                 //     name: 'grid',
                 //     fit: 'false',
@@ -204,6 +202,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 //     nodeDimensionsIncludeLabels: true
                 // });
                 // layout.run();
+                cy.stop();
                 cy.animation({
                     fit: {
                         eles: node,
@@ -217,10 +216,25 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 children.removeClass('faded')
             }
             else {
-                let neighborhood = node.neighborhood().add(node).add(node.ancestors());
+                cy.stop();
+                cy.animation({
+                    fit: {
+                        eles: node.neighborhood(),
+                        padding: layoutPadding
+                    },
+                    duration: aniDur,
+                    easing: easing
+                }).play();
+                let neighborhood = node.closedNeighborhood().ancestors().add(node.closedNeighborhood());
                 cy.elements().addClass('faded');
                 neighborhood.removeClass('faded')
             }
+        }
+
+        cy.on('click', 'node', function(e){
+            let node = e.target;
+            highlight(node)
+
         });
         cy.on('click', function(e){
             if (e.target === cy){
@@ -304,12 +318,21 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         // that.el.parentElement.appendChild(info);
 
         let infoTemplate = function(data){
-            return '<p><strong>' + data.label + '</strong></p>';
+            let name;
+            if (data.label){
+                name = data.label
+            }
+            else{
+                name = data.id
+            }
+            let aaa = ['<div class="tt-suggest-page"><p><strong>' + name + '</strong></p>',
+                    '<p><strong>' + data.NodeType + '</strong></p><div>'].join('');
+            console.log(aaa);
+            return aaa;
         };
 
         function showNodeInfo( node ){
             that.$info.html( infoTemplate( node.data() ) ).show();
-            console.log(that.$info);
         }
 
         function hideNodeInfo(){
@@ -336,17 +359,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
 
         }, 100 ) );
 
-        function highlight(node){
-            cy.animation({
-                fit: {
-                    eles: node,
-                    padding: layoutPadding
-                },
-                duration: aniDur,
-                easing: easing
-            }).play();
-        }
-
         let lastSearch = '';
         let create_id = function makeid() {
             var text = "";
@@ -359,7 +371,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         };
 
         that.$search.typeahead({
-                minLength: 2,
+                minLength: 1,
                 highlight: true,
             },
             {
@@ -374,7 +386,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                         return str.match( q );
                     }
 
-                    var fields = ['label', 'id'];
+                    var fields = ['label', 'id', 'NodeType'];
 
                     function anyFieldMatches( n ){
                         for( var i = 0; i < fields.length; i++ ){

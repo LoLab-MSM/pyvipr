@@ -95,10 +95,10 @@ class StaticViz(object):
         graph = self.species_graph()
         graph_communities = graph.copy().to_undirected()  # Louvain algorithm only deals with undirected graphs
         communities = best_partition(graph_communities)
-        #compound nodes to add to hold communities
+        # compound nodes to add to hold communities
         cnodes = set(communities.values())
+        graph.add_nodes_from(cnodes, NodeType='community')
         nx.set_node_attributes(graph, communities, 'parent')
-        graph.add_nodes_from(cnodes)
         g_layout = dot_layout(graph)
         data = graph_to_json(sp_graph=graph, layout=g_layout)
         return data
@@ -161,7 +161,7 @@ class StaticViz(object):
         rule_functions = {rule.name: rule._function for rule in self.model.rules}
         unique_functions = set(rule_functions.values())
         nx.set_node_attributes(rules_graph, rule_functions, 'parent')
-        rules_graph.add_nodes_from(unique_functions)
+        rules_graph.add_nodes_from(unique_functions, NodeType='function')
         g_layout = dot_layout(rules_graph)
         data = graph_to_json(sp_graph=rules_graph, layout=g_layout)
         return data
@@ -219,7 +219,7 @@ class StaticViz(object):
 
         module_parent_nodes = list(module_parents.keys())
         module_parent_nodes.append(self.model.name)
-        rules_graph.add_nodes_from(module_parent_nodes)
+        rules_graph.add_nodes_from(module_parent_nodes, NodeType='module')
         nx.set_node_attributes(rules_graph, module_parents, 'parent')
         nx.set_node_attributes(rules_graph, rules_module, 'parent')
         g_layout = dot_layout(rules_graph)
@@ -253,16 +253,16 @@ class StaticViz(object):
         data = graph_to_json(sp_graph=projected_graph, layout=g_layout)
         return data
 
-    def projected_view_species_reactions(self):
+    def projected_species_reactions_view(self):
         return self.projections_view('species_reactions')
 
-    def projected_view_reactions(self):
+    def projected_reactions_view(self):
         return self.projections_view('reactions')
 
-    def projected_view_rules(self):
+    def projected_rules_view(self):
         return self.projections_view('rules')
 
-    def projected_view_species_rules(self):
+    def projected_species_rules_view(self):
         return self.projections_view('species_rules')
 
     def species_graph(self):
@@ -283,7 +283,8 @@ class StaticViz(object):
             # Setting the information about the node
             node_data = dict(label=hf.parse_name(self.model.species[idx]),
                              background_color="#2b913a",
-                             shape='ellipse')
+                             shape='ellipse',
+                             NodeType='species')
             sp_graph.add_node(species_node, **node_data)
 
         for reaction in self.model.reactions_bidirectional:
@@ -343,6 +344,7 @@ class StaticViz(object):
                            label=slabel,
                            shape="ellipse",
                            background_color=color,
+                           NodeType='species',
                            bipartite=0)
         for j, reaction in enumerate(self.model.reactions_bidirectional):
             reaction_node = 'r%d' % j
@@ -350,6 +352,7 @@ class StaticViz(object):
                            label=reaction_node,
                            shape="roundrectangle",
                            background_color="#d3d3d3",
+                           NodeType='reaction',
                            bipartite=1)
             reactants = set(reaction['reactants'])
             products = set(reaction['products'])
@@ -390,6 +393,7 @@ class StaticViz(object):
                            label=slabel,
                            shape="ellipse",
                            background_color=color,
+                           NodeType='species',
                            bipartite=0)
         for i, reaction in enumerate(self.model.reactions):
             reaction_node = 'r%d' % i
@@ -397,6 +401,7 @@ class StaticViz(object):
                            label=reaction_node,
                            shape="roundrectangle",
                            background_color="#d3d3d3",
+                           NodeType='reaction',
                            bipartite=1)
             reactants = set(reaction['reactants'])
             products = set(reaction['products'])
@@ -424,7 +429,8 @@ class StaticViz(object):
         graph = self.sp_rxns_graph()
         # Merge reactions into the rules that they come from
         nodes2merge = self.merge_reactions2rules()
-        node_attrs = {'shape': 'roundrectangle', 'background_color': '#ff4c4c', 'bipartite': 1}
+        node_attrs = {'shape': 'roundrectangle', 'background_color': '#ff4c4c',
+                      'NodeType': 'rule', 'bipartite': 1}
         for rule, rxns in nodes2merge.items():
             node_attrs['label'] = rule
             self.merge_nodes(graph, rxns, rule, **node_attrs)
