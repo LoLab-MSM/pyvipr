@@ -327,7 +327,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             }
             let aaa = ['<div class="tt-suggest-page"><p><strong>' + name + '</strong></p>',
                     '<p><strong>' + data.NodeType + '</strong></p><div>'].join('');
-            console.log(aaa);
             return aaa;
         };
 

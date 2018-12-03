@@ -45,7 +45,7 @@ def sp_rules_functions_view(model, layout_name='cose-bilkent'):
     return pysbViz(data=model, type_of_viz='sp_rules_functions_view', layout_name=layout_name)
 
 
-def sp_rules_modules_view(model, layout_name='cose_bilkent'):
+def sp_rules_modules_view(model, layout_name='cose-bilkent'):
     return pysbViz(data=model, type_of_viz='sp_rules_modules_view', layout_name=layout_name)
 
 
