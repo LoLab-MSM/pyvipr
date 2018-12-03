@@ -82,6 +82,40 @@ class StaticViz(object):
         data = graph_to_json(sp_graph=graph, layout=g_layout)
         return data
 
+    def species_compartments_view(self):
+        """
+        Generate data to create a species networks and their respective compartments
+        Returns
+        -------
+        A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
+        contains all the information (nodes, parent_nodes, edges, positions) to
+         generate a cytoscapejs network.
+        """
+        # Check if model has comparments
+        if not self.model.compartments:
+            raise ValueError('Model has no compartments')
+        graph = self.species_graph()
+        compartment_nodes = []
+        for c in self.model.compartments:
+            if c.parent is not None:
+                compartment_nodes.append((c.name, dict(parent=c.parent.name)))
+            else:
+                compartment_nodes.append(c.name)
+
+        graph.add_nodes_from(compartment_nodes, NodeType='compartment')
+        # Determining compartment node family tree
+        # Determine species compartment
+        sp_compartment = {}
+        for idx, sp in enumerate(self.model.species):
+            monomers = sp.monomer_patterns
+            monomers_comp = {m.compartment.name: m.compartment.size for m in monomers}
+            smallest_comp = min(monomers_comp, key=monomers_comp.get)
+            sp_compartment['s{0}'.format(idx)] = smallest_comp
+        nx.set_node_attributes(graph, sp_compartment, 'parent')
+        g_layout = dot_layout(graph)
+        data = graph_to_json(sp_graph=graph, layout=g_layout)
+        return data
+
     def communities_view(self):
         """
         Use a community detection algorithm to find groups of nodes that are densely connected.

@@ -2,6 +2,7 @@ from .pysbviz import pysbViz
 
 __all__ = [
     'species_view',
+    'species_compartments_view',
     'communities_view',
     'sp_rxns_bidirectional_view',
     'sp_rxns_view',
@@ -18,6 +19,10 @@ __all__ = [
 
 def species_view(model, layout_name='preset'):
     return pysbViz(data=model, type_of_viz='species_view', layout_name=layout_name)
+
+
+def species_compartments_view(model, layout_name='cose-bilkent'):
+    return pysbViz(data=model, type_of_viz='species_compartments_view', layout_name=layout_name)
 
 
 def communities_view(model, layout_name='cose-bilkent'):
