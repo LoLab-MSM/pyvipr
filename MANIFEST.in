@@ -1,2 +1,3 @@
 recursive-include pysbjupyter/static *.*
 include viz-pysb-widget.json
+include  pysbjupyter/pysb_models/organelle_transport.bngl
