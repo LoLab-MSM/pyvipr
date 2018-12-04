@@ -3,8 +3,8 @@ from pysbjupyter.model_simresult_to_json import data_to_json
 
 from traitlets import (
     Any,
-    Float, Unicode, Int, Tuple, List, Instance, Bool, Dict, Enum,
-    link, observe, default, validate, TraitError
+    Unicode
+
 )
 
 @widgets.register

@@ -125,11 +125,11 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         var that = this;
 
         // Extract parameters
-        const data = that.model.get('data');
+        // const data = that.model.get('data');
         const format = that.model.get('format');
         let layoutName = that.model.get('layout_name');
 
-        let network = data;
+        let network = that.model.get('data');
         let visualStyle = null;
 
         const vsParam = that.model.get('visual_style');

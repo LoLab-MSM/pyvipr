@@ -66,4 +66,4 @@ def projected_species_rules_view(model, layout_name='preset'):
 
 
 def species_dynamics_view(simulation, layout_name='preset'):
-    return pysbViz(data=simulation, layout_name=layout_name)
+    return pysbViz(data=simulation, type_of_viz='dynamic_view', layout_name=layout_name)
