@@ -146,6 +146,7 @@ setup_args = {
         'sympy>=1.3',
         'matplotlib>=3.0.2',
         'pydot>=1.3.0'
+        'python-louvain'
     ],
     'packages': find_packages(),
     'zip_safe': False,
