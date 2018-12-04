@@ -10,10 +10,11 @@ pysbjupyter is an ipython widget for interactively visualizing systems biology m
 It supports BioNetGen and SBML models through the pysb importer module.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 4
    :caption: Contents:
 
    installation
+   tutorial.ipynb
    usage.rst
    modules/index
 

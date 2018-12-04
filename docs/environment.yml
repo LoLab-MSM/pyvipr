@@ -9,6 +9,7 @@ dependencies:
   - widgetsnbextension
   - jupyter_sphinx
   - pysb
+  - nbsphinx
   - pip:
       - pysbjupyter
       - python-louvain
