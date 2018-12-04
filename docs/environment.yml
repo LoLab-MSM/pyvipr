@@ -11,3 +11,4 @@ dependencies:
   - pysb
   - pip:
       - pysbjupyter
+      - python-louvain
