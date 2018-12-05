@@ -1,6 +1,6 @@
 {
     "name": "viz-pysb-widget",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "description": "Dynamic and static visualizations of PySB models using cytoscape.js",
     "author": "Oscar Ortega",
     "main": "lib/index.js",
