@@ -15,7 +15,6 @@ It supports BioNetGen and SBML models through the pysb importer module.
 
    installation
    tutorial.ipynb
-   usage.rst
    modules/index
 
 Indices and tables
