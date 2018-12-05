@@ -1,4 +1,4 @@
-Cytoscape.js widget for Jupyter Notebook
+PySB visualization widget, based on cytoscape.js, for Jupyter Notebook
 
 Package Install
 ---------------

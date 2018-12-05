@@ -261,7 +261,10 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 sticky: true
             } ).tooltips[0];
         };
-
+        // I set the that.el.parentElement position to relative so the buttons can be render
+        // relative to it in readthedocs. I don't know if this can have consequences on the notebook rendering.
+        // Ideally we would create a new div where we would embed everything.
+        that.el.parentElement.style.position = 'relative';
 
         // Fit button to fit network to cell space
         let fitButton = document.createElement("BUTTON");
@@ -294,7 +297,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
 
         that.$search_wrapper = $("<div id='bla'></div>")
             .css('position', 'absolute')
-            .css('left', '100px')
+            .css('left', '0')
             .css('top', '0')
             .css('z-index', '9999')
             .css('margin', '0.5em')
@@ -304,7 +307,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
 
         that.$info = $("<div id='info'></div>")
             .css('position', 'absolute')
-            .css('left', '100px')
+            .css('left', '0')
             .css('top', '3em')
             .css('margin', '0.5em')
             .css('background', '#fff')
@@ -359,15 +362,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         }, 100 ) );
 
         let lastSearch = '';
-        let create_id = function makeid() {
-            var text = "";
-            var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
-            for (var i = 0; i < 5; i++)
-                text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-            return text;
-        };
 
         that.$search.typeahead({
                 minLength: 1,
@@ -375,7 +369,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             },
             {
                 display: 'label',
-                name: 'search-dataset'+create_id(),
+                name: 'search-dataset',
                 limit: 10,
                 source: function( query, cb ){
                     function matches( str, q ){
