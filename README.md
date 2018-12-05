@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/viz-pysb-widget/badge/?version=latest)](https://viz-pysb-widget.readthedocs.io/en/latest/?badge=latest)
+
 # viz-pysb-widget
 Dynamic and static visualizations of [PySB](http://pysb.org/) models using cytoscapejs, It is largely based on the 
 [cytoscape-jupyter-widget](https://github.com/idekerlab/cytoscape-jupyter-widget)
