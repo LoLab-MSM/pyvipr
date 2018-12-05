@@ -9,15 +9,19 @@ var $ = require('jquery');
 cytoscape.use(popper);
 cytoscape.use(coseBilkent);
 
+// Load CSS
+require('./cytoscape.css');
+require('./elements_style.css');
+
 const FORMAT = {
     CX: 'cx',
     CYJS: 'cyjs',
     EDGELIST: 'el',
 }
 
-const DEF_BG = '#FFFFFF'
-const DEF_LAYOUT = 'cose'
-const DEF_HEIGHT = '500px'
+const DEF_BG = '#FFFFFF';
+const DEF_LAYOUT = 'cose';
+const DEF_HEIGHT = '500px';
 
 const DEF_STYLE = [{
     selector: 'node',
