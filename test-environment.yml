@@ -11,6 +11,6 @@ dependencies:
   - coveralls
   - pytest
   - nbval
-  -pytest-cov
+  - pytest-cov
   - pip:
       - python-louvain
