@@ -4,9 +4,9 @@ model of MOMP.
 """
 
 from pysb import *
-from earm import shared
-from earm import lopez_modules
-from earm import albeck_modules
+from pysbjupyter.pysb_models import shared
+from pysbjupyter.pysb_models import lopez_modules
+from pysbjupyter.pysb_models import albeck_modules
 
 Model()
 

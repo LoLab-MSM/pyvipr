@@ -25,7 +25,7 @@ models described in Figure 11 of [Albeck2008]_:
 
 from pysb import *
 from pysb.util import alias_model_components
-from earm.shared import *
+from pysbjupyter.pysb_models.shared import *
 from pysb.macros import equilibrate
 
 # Default forward, reverse, and catalytic rates:

@@ -60,7 +60,7 @@ which are contained with the following two functions:
 # We'll need everything from the pysb core, and some macros:
 
 from pysb import *
-from earm.shared import *
+from pysbjupyter.pysb_models.shared import *
 from pysb.macros import equilibrate
 from pysb.util import alias_model_components
 
