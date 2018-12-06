@@ -8,6 +8,7 @@ dependencies:
   - traittypes
   - jupyter
   - pysb
+  - atomizer
   - coveralls
   - pytest
   - nbval
