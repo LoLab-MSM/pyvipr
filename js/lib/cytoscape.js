@@ -274,7 +274,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         let fitButton = document.createElement("BUTTON");
         fitButton.id = 'fitbuttonid';
         fitButton.innerHTML = '<i class=\"fa fa-arrows-h\"></i>';
-        // fitButton.setAttribute("type", "button");
 
         let allNodes = cy.nodes();
         let layoutPadding = 30;
@@ -294,6 +293,21 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             }).play();
         });
         that.el.parentElement.appendChild(fitButton);
+
+        // Download button
+        let downloadButton = document.createElement("BUTTON");
+        downloadButton.id = 'dbutton';
+        downloadButton.innerHTML = '<i class="fa fa-download" aria-hidden="true"></i>';
+        downloadButton.addEventListener('click', function(){
+            let element = document.createElement('a');
+            element.setAttribute('href', cy.png({scale: 5}));
+            element.setAttribute('download', 'graph.png');
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        });
+        that.el.parentElement.append(downloadButton);
 
         that.$search = $("<input type=\"text\" class=\"form-control\" id=\"search\" placeholder=\"Search..\">")
             .css('width', '14em')

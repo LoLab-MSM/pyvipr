@@ -6,6 +6,14 @@
     right: 15px;
 }
 
+#dbutton{
+    position: absolute;
+    width: 3em;
+    margin: 0.5em;
+    top: 0;
+    right: 4em;
+}
+
 .tt-menu {
   background: #fff;
   width: 14em;
