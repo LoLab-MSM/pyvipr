@@ -1,5 +1,6 @@
 import ipywidgets as widgets
 from pysbjupyter.model_simresult_to_json import data_to_json
+from ._version import __frontend_version__
 
 from traitlets import (
     Any,
@@ -14,8 +15,8 @@ class pysbViz(widgets.DOMWidget):
     _model_name = Unicode('CytoscapeModel').tag(sync=True)
     _view_module = Unicode('viz-pysb-widget').tag(sync=True)
     _model_module = Unicode('viz-pysb-widget').tag(sync=True)
-    _view_module_version = Unicode('^0.1.0').tag(sync=True)
-    _model_module_version = Unicode('^0.1.0').tag(sync=True)
+    _view_module_version = Unicode(__frontend_version__).tag(sync=True)
+    _model_module_version = Unicode(__frontend_version__).tag(sync=True)
 
      # Cytoscape options
     data = Any().tag(sync=True, to_json=data_to_json)

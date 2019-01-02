@@ -6,6 +6,7 @@ var popper = require('cytoscape-popper');
 var coseBilkent = require('cytoscape-cose-bilkent');
 var typeahead = require('typeahead.js');
 var $ = require('jquery');
+var semver_range = "^" + require("../package.json").version;
 cytoscape.use(popper);
 cytoscape.use(coseBilkent);
 
@@ -69,8 +70,8 @@ var CytoscapeModel = widgets.DOMWidgetModel.extend({
         _view_name: 'CytoscapeView',
         _model_module: 'viz-pysb-widget',
         _view_module: 'viz-pysb-widget',
-        _model_module_version: '0.3.0',
-        _view_module_version: '0.3.0'
+        _model_module_version: semver_range,
+        _view_module_version: semver_range
     })
 });
 
