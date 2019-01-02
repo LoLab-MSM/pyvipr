@@ -207,41 +207,41 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 //     nodeDimensionsIncludeLabels: true
                 // });
                 // layout.run();
-                cy.stop();
-                cy.animation({
-                    fit: {
-                        eles: node,
-                        padding: layoutPadding
-                    },
-                    duration: aniDur,
-                    easing: easing
-                }).play();
                 let children = node.children().add(node).add(node.ancestors());
                 cy.elements().addClass('faded');
                 children.removeClass('faded')
             }
             else {
-                cy.stop();
-                cy.animation({
-                    fit: {
-                        eles: node.neighborhood(),
-                        padding: layoutPadding
-                    },
-                    duration: aniDur,
-                    easing: easing
-                }).play();
                 let neighborhood = node.closedNeighborhood().ancestors().add(node.closedNeighborhood());
                 cy.elements().addClass('faded');
                 neighborhood.removeClass('faded')
             }
         }
 
-        cy.on('click', 'node', function(e){
+        function zoom(node){
+            let node_to_fit;
+            if (node.isParent()) {
+                node_to_fit = node;
+            } else {
+                node_to_fit = node.neighborhood();
+            }
+            cy.stop();
+            cy.animation({
+                fit: {
+                    eles: node_to_fit,
+                    padding: layoutPadding
+                },
+                duration: aniDur,
+                easing: easing
+            }).play();
+            }
+
+        cy.on('boxselect', 'node', function(e){
             let node = e.target;
-            highlight(node)
+            zoom(node)
 
         });
-        cy.on('click', function(e){
+        cy.on('tap', function(e){
             if (e.target === cy){
                 cy.elements().removeClass('faded')
             }
@@ -364,7 +364,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             that.$search.blur();
         });
 
-        cy.on('select unselect', 'node', _.debounce( function(e){
+        cy.on('select unselect', 'node', _.debounce( function(){
             let node = cy.$('node:selected');
 
             if( node.nonempty() ){
@@ -467,7 +467,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             });
 
             // Show tip on tap
-            cy.on('click', 'node, edge',  function(evt){
+            cy.on('tap', 'node, edge',  function(evt){
                 let ele = evt.target;
                 if (ele.data()['tip']['state']['visible']){
                     ele.data()['tip'].hide();

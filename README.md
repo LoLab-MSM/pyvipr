@@ -47,7 +47,10 @@ objects. pysbjupyter has different functions to visualize PySB models and simula
 | `projected_species_rules_view(model)`    | Shows network of species projected from the <br> bipartite(species, rules) graph |
 | `species_dynamics_view(SimulationResult)`| Shows a species network. Edges size and color are updated <br> according to reaction rate values. Nodes filling <br> are updated according to concentration|
 
-All visualizations have a search button that can be used to find nodes in large networks. This search function displays information about the species label and the type of node (species, reaction, rule, ...). Additionally, there is a fit button to center the nodes into the display area
+All visualizations have a search button that can be used to find nodes in large networks. This search function displays 
+information about the species label and the type of node (species, reaction, rule, ...). Additionally, there is a fit 
+button to center the nodes into the display area. It is possible to zoom in to a node or o collection of nodes
+using box selection (modifier key(command, alt, ctrl) + mousedown then drag)
   
 Static Example:
 ```python
