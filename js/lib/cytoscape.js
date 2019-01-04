@@ -196,6 +196,24 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 nodeDimensionsIncludeLabels: true
             }
         });
+        // console.log(cy.elements().components()); this could be potentially used to find
+        // disjoint subnetworks within a model network
+
+        // Finds nodes with no edges
+        let sp_nodes = cy.nodes().unmerge(cy.nodes().parent()); // cytoscape.js recommends not using unmerge function
+        const nodesWithoutEdges = sp_nodes.filter(node => node.connectedEdges(":visible").size() === 0);
+        if (nodesWithoutEdges.length > 0){
+            let message = "The following species are not connected and will be highlighted in the graph:\n";
+            highlight(nodesWithoutEdges);
+            nodesWithoutEdges.forEach(function(n){
+                n_name = n.data('label');
+                n_id = n.data('id');
+                message += n_id + ": " + n_name + "\n"
+            });
+            alert(message);
+        }
+
+
         // Adds feature, that when a node is tapped, it fades off all the
         // nodes that are not in its neighborhood
         function highlight(node){
@@ -613,6 +631,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                     }
                 };
                 let allEles = cy.elements();
+                allEles.unmerge(cy.nodes().parent());
                 for (let i=0; i < allEles.length; i++){
                     let ele = allEles[i];
                     let animationQueue = animateAll(ele);

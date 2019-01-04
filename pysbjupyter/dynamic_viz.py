@@ -91,6 +91,28 @@ class ModelVisualization(object):
         data = graph_to_json(sp_graph=self.sp_graph, layout=g_layout)
         return data
 
+    def dynamic_compartments_view(self, type_viz='consumption'):
+        self.type_viz = type_viz
+        self.sp_graph = StaticViz(self.model).compartments_data_graph()
+        self.sp_graph.graph['view'] = 'dynamic'
+        self.sp_graph.graph['tspan'] = self.tspan.tolist()
+        self.sp_graph.graph['name'] = self.model.name
+        g_layout = dot_layout(self.sp_graph)
+        self._add_edge_node_dynamics()
+        data = graph_to_json(sp_graph=self.sp_graph, layout=g_layout)
+        return data
+
+    def dynamic_communities_view(self, type_viz='consumption'):
+        self.type_viz = type_viz
+        self.sp_graph = StaticViz(self.model).communities_data_graph()
+        self.sp_graph.graph['view'] = 'dynamic'
+        self.sp_graph.graph['tspan'] = self.tspan.tolist()
+        self.sp_graph.graph['name'] = self.model.name
+        g_layout = dot_layout(self.sp_graph)
+        self._add_edge_node_dynamics()
+        data = graph_to_json(sp_graph=self.sp_graph, layout=g_layout)
+        return data
+
     def _add_edge_node_dynamics(self):
         """
         Add the edge size and color data as well as node color and values data

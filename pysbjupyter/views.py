@@ -13,7 +13,9 @@ __all__ = [
     'projected_reactions_view',
     'projected_rules_view',
     'projected_species_rules_view',
-    'species_dynamics_view'
+    'species_dynamics_view',
+    'sp_compartments_dynamics_view',
+    'sp_communities_dynamics_view'
 ]
 
 
@@ -67,3 +69,11 @@ def projected_species_rules_view(model, layout_name='preset'):
 
 def species_dynamics_view(simulation, layout_name='preset'):
     return pysbViz(data=simulation, type_of_viz='dynamic_view', layout_name=layout_name)
+
+
+def sp_compartments_dynamics_view(simulation, layout_name='cose-bilkent'):
+    return pysbViz(data=simulation, type_of_viz='dynamic_compartments_view', layout_name=layout_name)
+
+
+def sp_communities_dynamics_view(simulation, layout_name='cose-bilkent'):
+    return pysbViz(data=simulation, type_of_viz='dynamic_communities_view', layout_name=layout_name)

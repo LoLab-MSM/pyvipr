@@ -91,6 +91,12 @@ class StaticViz(object):
         contains all the information (nodes, parent_nodes, edges, positions) to
          generate a cytoscapejs network.
         """
+        graph = self.compartments_data_graph()
+        g_layout = dot_layout(graph)
+        data = graph_to_json(sp_graph=graph, layout=g_layout)
+        return data
+
+    def compartments_data_graph(self):
         # Check if model has comparments
         if not self.model.compartments:
             raise ValueError('Model has no compartments')
@@ -112,9 +118,7 @@ class StaticViz(object):
             smallest_comp = min(monomers_comp, key=monomers_comp.get)
             sp_compartment['s{0}'.format(idx)] = smallest_comp
         nx.set_node_attributes(graph, sp_compartment, 'parent')
-        g_layout = dot_layout(graph)
-        data = graph_to_json(sp_graph=graph, layout=g_layout)
-        return data
+        return graph
 
     def communities_view(self):
         """
@@ -126,6 +130,12 @@ class StaticViz(object):
         contains all the information (nodes,edges, parent nodes, positions) to generate
         a cytoscapejs network.
         """
+        graph = self.communities_data_graph()
+        g_layout = dot_layout(graph)
+        data = graph_to_json(sp_graph=graph, layout=g_layout)
+        return data
+
+    def communities_data_graph(self):
         graph = self.species_graph()
         graph_communities = graph.copy().to_undirected()  # Louvain algorithm only deals with undirected graphs
         communities = best_partition(graph_communities)
@@ -133,9 +143,8 @@ class StaticViz(object):
         cnodes = set(communities.values())
         graph.add_nodes_from(cnodes, NodeType='community')
         nx.set_node_attributes(graph, communities, 'parent')
-        g_layout = dot_layout(graph)
-        data = graph_to_json(sp_graph=graph, layout=g_layout)
-        return data
+        return graph
+
 
     def sp_rxns_bidirectional_view(self):
         """
