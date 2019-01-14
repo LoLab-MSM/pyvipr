@@ -474,9 +474,10 @@ class StaticViz(object):
         nodes2merge = self.merge_reactions2rules()
         node_attrs = {'shape': 'roundrectangle', 'background_color': '#ff4c4c',
                       'NodeType': 'rule', 'bipartite': 1}
-        for rule, rxns in nodes2merge.items():
-            node_attrs['label'] = rule
-            self.merge_nodes(graph, rxns, rule, **node_attrs)
+        for rule_info, rxns in nodes2merge.items():
+            node_attrs['label'] = rule_info[0]
+            rule_idx = 'rule' + str(rule_info[1])
+            self.merge_nodes(graph, rxns, rule_idx, **node_attrs)
         return graph
 
     def projected_graph(self, graph, project_to='species'):
@@ -543,12 +544,12 @@ class StaticViz(object):
 
         """
         rxn_per_rule = {}
-        for rule in self.model.rules:
+        for r_idx, rule in enumerate(self.model.rules):
             rxns = []
             for i, rxn in enumerate(self.model.reactions):
                 if rxn['rule'][0] == rule.name:
                     rxns.append('r{0}'.format(i))
-            rxn_per_rule[rule.name] = rxns
+            rxn_per_rule[(rule.name, r_idx)] = rxns
         return rxn_per_rule
 
     @staticmethod

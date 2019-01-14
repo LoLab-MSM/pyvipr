@@ -360,13 +360,14 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         let infoTemplate = function(data){
             let name;
             if (data.label){
-                name = data.label
+                name = data.label;
             }
             else{
-                name = data.id
+                name = data.name;
             }
             let aaa = ['<div class="tt-suggest-page"><p><strong>' + name + '</strong></p>',
-                    '<p><strong>' + data.NodeType + '</strong></p><div>'].join('');
+                    '<p><strong>' + '<i class="fa fa-list-ol"></i>' + ' ' + data.id + '</strong></p><div>',
+                    '<p><strong>' + '<i class="fa fa-info-circle"></i>' + ' ' + data.NodeType + '</strong></p><div>'].join('');
             return aaa;
         };
 
