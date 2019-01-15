@@ -7,6 +7,8 @@ dependencies:
   - jupyter
   - pysb
   - atomizer
+  - graphviz
+  - pydot-ng
   - pip:
       - python-louvain
       - pysbjupyter
