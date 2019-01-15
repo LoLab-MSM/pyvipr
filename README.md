@@ -1,6 +1,6 @@
 [![Documentation Status](https://readthedocs.org/projects/viz-pysb-widget/badge/?version=latest)](https://viz-pysb-widget.readthedocs.io/en/latest/?badge=latest)
 [![Build Status](https://travis-ci.org/LoLab-VU/viz-pysb-widget.svg?branch=master)](https://travis-ci.org/LoLab-VU/viz-pysb-widget)
-
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/LoLab-VU/viz-pysb-widget/master?filepath=docs%2Ftutorial.ipynb)
 # viz-pysb-widget
 Dynamic and static visualizations of [PySB](http://pysb.org/) models using cytoscapejs, It is largely based on the 
 [cytoscape-jupyter-widget](https://github.com/idekerlab/cytoscape-jupyter-widget)
