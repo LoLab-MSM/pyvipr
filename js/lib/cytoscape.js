@@ -359,14 +359,22 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
 
         let infoTemplate = function(data){
             let name;
+            let index;
+            // Double check if this if statement of the name is necessary
             if (data.label){
                 name = data.label;
             }
             else{
                 name = data.name;
             }
+            if (data.index){
+                index = data.index;
+            }
+            else{
+                index = data.id;
+            }
             let aaa = ['<div class="tt-suggest-page"><p><strong>' + name + '</strong></p>',
-                    '<p><strong>' + '<i class="fa fa-list-ol"></i>' + ' ' + data.id + '</strong></p><div>',
+                    '<p><strong>' + '<i class="fa fa-list-ol"></i>' + ' ' + index + '</strong></p><div>',
                     '<p><strong>' + '<i class="fa fa-info-circle"></i>' + ' ' + data.NodeType + '</strong></p><div>'].join('');
             return aaa;
         };

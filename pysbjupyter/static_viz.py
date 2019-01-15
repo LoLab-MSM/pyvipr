@@ -476,8 +476,8 @@ class StaticViz(object):
                       'NodeType': 'rule', 'bipartite': 1}
         for rule_info, rxns in nodes2merge.items():
             node_attrs['label'] = rule_info[0]
-            rule_idx = 'rule' + str(rule_info[1])
-            self.merge_nodes(graph, rxns, rule_idx, **node_attrs)
+            node_attrs['index'] = 'rule' + str(rule_info[1])
+            self.merge_nodes(graph, rxns, rule_info[0], **node_attrs)
         return graph
 
     def projected_graph(self, graph, project_to='species'):
