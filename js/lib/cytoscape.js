@@ -4,11 +4,13 @@ var cytoscape = require('cytoscape');
 var tippy = require('tippy.js');
 var popper = require('cytoscape-popper');
 var coseBilkent = require('cytoscape-cose-bilkent');
+var expandCollapse = require('cytoscape-expand-collapse');
 var typeahead = require('typeahead.js');
 var $ = require('jquery');
 var semver_range = "^" + require("../package.json").version;
 cytoscape.use(popper);
 cytoscape.use(coseBilkent);
+expandCollapse( cytoscape, $ ); // register extension
 
 // Load CSS
 require('./cytoscape.css');
@@ -18,7 +20,7 @@ const FORMAT = {
     CX: 'cx',
     CYJS: 'cyjs',
     EDGELIST: 'el',
-}
+};
 
 const DEF_BG = '#FFFFFF';
 const DEF_LAYOUT = 'cose';
@@ -156,6 +158,9 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             }
         }
 
+        // Doing a deep copy of the node positions to obtain the dot layout
+        let dot_positions = JSON.parse(JSON.stringify(network["elements"]["nodes"].map(x => x.position)));
+
         let cy = cytoscape({
             container: that.el, // container to render in
             elements: network.elements,
@@ -186,6 +191,10 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                     'shape': 'rectangle',
                     'label': 'data(id)'
                 })
+                .selector('node.cy-expand-collapse-collapsed-node')
+                .style({
+                    'background-color': 'darkblue',
+                    'shape': 'rectangle'})
                 .selector('.faded')
                 .style({
                     'opacity': 0.25,
@@ -213,6 +222,18 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             alert(message);
         }
 
+        // Expand collapse compound nodes
+        var api = cy.expandCollapse({
+            layoutBy: {
+                name: "cose-bilkent",
+                animate: "end",
+                randomize: false,
+                fit: true
+            },
+            fisheye: true,
+            animate: true,
+            undoable: false
+        });
 
         // Adds feature, that when a node is tapped, it fades off all the
         // nodes that are not in its neighborhood
@@ -252,7 +273,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 duration: aniDur,
                 easing: easing
             }).play();
-            }
+        }
 
         cy.on('boxselect', 'node', function(e){
             let node = e.target;
@@ -328,6 +349,43 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         });
         that.el.parentElement.append(downloadButton);
 
+        let layouts = ["cose-bilkent", "random", "preset", "grid", "circle", "concentric", "breadthfirst", "cose"];
+        let unusedlayouts = layouts.filter(function(e) {return e !== layoutName});
+
+        that.$layoutDd = $(
+            "<select id=\"myList\" >\n" +
+            "  <option value='"+layoutName+"'>"+layoutName+"</option>\n" +
+            "  <option value='"+unusedlayouts[0]+"'>"+unusedlayouts[0]+"</option>\n" +
+            "  <option value='"+unusedlayouts[1]+"'>"+unusedlayouts[1]+"</option>  \n" +
+            "  <option value='"+unusedlayouts[2]+"'>"+unusedlayouts[2]+"</option>\n" +
+            "  <option value='"+unusedlayouts[3]+"'>"+unusedlayouts[3]+"</option>\n" +
+            "  <option value='"+unusedlayouts[4]+"'>"+unusedlayouts[4]+"</option>\n" +
+            "  <option value='"+unusedlayouts[5]+"'>"+unusedlayouts[5]+"</option>\n" +
+            "  <option value='"+unusedlayouts[6]+"'>"+unusedlayouts[6]+"</option>\n" +
+            "</select>\n")
+            .css('position', 'absolute')
+            .css('width', '6em')
+            .css('margin', '0.5em')
+            .css('top', '0')
+            .css('z-index', '999')
+            .css('right', '7em')
+            .css('height', '1.9em')
+            .appendTo(that.el.parentElement);
+
+        console.log(that.$layoutDd);
+        that.$layoutDd.on('change', function() {
+            let layout = cy.layout({
+                name: this.value,
+                positions: function(node){
+                    let idx = parseInt(node.id().match(/\d+/),10);
+                    return dot_positions[idx];
+                },
+            });
+            layout.run();
+
+        });
+
+
         that.$search = $("<input type=\"text\" class=\"form-control\" id=\"search\" placeholder=\"Search..\">")
             .css('width', '14em')
             .css('font-family', 'inherit');
@@ -374,8 +432,8 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 index = data.id;
             }
             let aaa = ['<div class="tt-suggest-page"><p><strong>' + name + '</strong></p>',
-                    '<p><strong>' + '<i class="fa fa-list-ol"></i>' + ' ' + index + '</strong></p><div>',
-                    '<p><strong>' + '<i class="fa fa-info-circle"></i>' + ' ' + data.NodeType + '</strong></p><div>'].join('');
+                '<p><strong>' + '<i class="fa fa-list-ol"></i>' + ' ' + index + '</strong></p><div>',
+                '<p><strong>' + '<i class="fa fa-info-circle"></i>' + ' ' + data.NodeType + '</strong></p><div>'].join('');
             return aaa;
         };
 

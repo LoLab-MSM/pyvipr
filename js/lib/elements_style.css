@@ -3,6 +3,7 @@
     width: 3em;
     margin: 0.5em;
     top: 0;
+    z-index: 9999;
     right: 15px;
 }
 
@@ -11,6 +12,7 @@
     width: 3em;
     margin: 0.5em;
     top: 0;
+    z-index: 9999;
     right: 4em;
 }
 
