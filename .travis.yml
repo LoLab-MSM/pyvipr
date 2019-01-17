@@ -16,7 +16,13 @@ install:
     - pip install .
 script:
     - pytest --nbval --cov=viz-pysb-widget
-after_success:
-    coveralls
+after_success: coveralls
+deploy:
+  provider: pypi
+  username: ortega2247
+  password:
+    secure: qQbIxRtUH4ZE2fHxKh1FPzQf6ENtGxUO63f+7OH/HvPzfii4BLQ78Uoi3YwRujjERyE/PPk4mTB0ri/0s4vr0/Ky8JjJhXpWR6msgSnHjARLBZGOzMXvTlRe8Jt8Y7jqTMR7tOWZ/as5M2WW6o1kTZNohDx7pB+qBFE6MGRTjXMChXpddysOBE/yQYp6KBGwLTq0DmgkDwbxnYbUELssmwkiFx8COR/0lbmNwWU3NZiUxbkgjg7Ev95E25cQLcgx82Tsn3/4cCuKyqbgH+Bjj3n0JrygoqrPiH8qkwDV12EhDLVTOm1yt+F5Yg+w4mh8r5vq/lKENZLMn/xLuGdlsNWePikoQz7JUsGjhzxyBsxaA8hP5CcmvO0eh7PQbSezi3vspT1M1k8JJK9HH6s7Q1Pum9alPo+HzQMYWYlBL2p5nw8LcRINsGmR1K9y0ptbRFviNFmt1d9x8wrK6z9AH85IwYcIzvq+BqT/frjeCt3/5Ir+LP8BoQXFjhxCfRa4Uk1lI8TfYNaEXIg74AeAPcuMYxPdqxXiWQgWFhs7yE18i7/QHUUXCOh0VmTCEIIyPIJFv2mIeT16KYP1LqM/Zc+phPaeMZYm2yfmxzu94YWWKZ1C+LulHMR1ADI6RoE3rZ8I9cOqah2WEXwrYpx/U5qwWfv18Eo/vcvQK2B/zlg=
+  on:
+      tags: true
 notifications:
   slack: lopezlab:mKQHRW1hyvJVLCX8ZWSgwhRY
