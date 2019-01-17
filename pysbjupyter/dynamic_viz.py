@@ -85,7 +85,6 @@ class ModelVisualization(object):
         self.sp_graph = StaticViz(self.model).species_graph()
         self.sp_graph.graph['view'] = 'dynamic'
         self.sp_graph.graph['tspan'] = self.tspan.tolist()
-        self.sp_graph.graph['name'] = self.model.name
         g_layout = dot_layout(self.sp_graph)
         self._add_edge_node_dynamics()
         data = graph_to_json(sp_graph=self.sp_graph, layout=g_layout)
@@ -96,7 +95,6 @@ class ModelVisualization(object):
         self.sp_graph = StaticViz(self.model).compartments_data_graph()
         self.sp_graph.graph['view'] = 'dynamic'
         self.sp_graph.graph['tspan'] = self.tspan.tolist()
-        self.sp_graph.graph['name'] = self.model.name
         g_layout = dot_layout(self.sp_graph)
         self._add_edge_node_dynamics()
         data = graph_to_json(sp_graph=self.sp_graph, layout=g_layout)
@@ -107,7 +105,6 @@ class ModelVisualization(object):
         self.sp_graph = StaticViz(self.model).communities_data_graph()
         self.sp_graph.graph['view'] = 'dynamic'
         self.sp_graph.graph['tspan'] = self.tspan.tolist()
-        self.sp_graph.graph['name'] = self.model.name
         g_layout = dot_layout(self.sp_graph)
         self._add_edge_node_dynamics()
         data = graph_to_json(sp_graph=self.sp_graph, layout=g_layout)

@@ -208,18 +208,51 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         // console.log(cy.elements().components()); this could be potentially used to find
         // disjoint subnetworks within a model network
 
+        function component_idx(data){
+            let index;
+            if (data.index){
+                index = data.index;
+            }
+            else{
+                index = data.id;
+            }
+            return index;
+        }
+
         // Finds nodes with no edges
         let sp_nodes = cy.nodes().unmerge(cy.nodes().parent()); // cytoscape.js recommends not using unmerge function
         const nodesWithoutEdges = sp_nodes.filter(node => node.connectedEdges(":visible").size() === 0);
         if (nodesWithoutEdges.length > 0){
-            let message = "The following species are not connected and will be highlighted in the graph:\n";
+            let message = "The following components are not connected and will be highlighted in the graph:<br />";
             highlight(nodesWithoutEdges);
+            let n_name;
+            let n_id;
             nodesWithoutEdges.forEach(function(n){
                 n_name = n.data('label');
-                n_id = n.data('id');
-                message += n_id + ": " + n_name + "\n"
+                n_id = component_idx(n.data());
+                message += n_id + ": " + n_name + "<br />"
             });
-            alert(message);
+
+            that.$close = $("<span id='close'>x</span>")
+                .css('float', 'right');
+            that.$message = $("<p class=\"text\">" +
+                "        "+message+" " +
+                "    </p>" );
+
+            that.$popup = $("<div class='fragment'>" +
+                "</div>")
+                .css('border', '1px solid #ccc')
+                .css('background', '#FF7F7F')
+                .append(that.$close)
+                .append(that.$message)
+                .appendTo(that.el.parentElement);
+
+            that.$close.on('click', function () {
+            this.parentNode.parentNode
+                .removeChild(this.parentNode);
+            return false;
+        });
+
         }
 
         // Expand collapse compound nodes
@@ -352,6 +385,24 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         let layouts = ["cose-bilkent", "random", "preset", "grid", "circle", "concentric", "breadthfirst", "cose"];
         let unusedlayouts = layouts.filter(function(e) {return e !== layoutName});
 
+        // pysb adds the file path to the model name. Here we removed the path info to only use the model name
+        let name_spl = network.data.name.split(".");
+        //TODO: put h1 tag within a div and restrict it size to the size of that div
+        that.$model_title = $("  <h1>"+ name_spl[name_spl.length - 1] +"</h1>\n")
+            .css('font-size', '16px')
+            .css('margin-top', '10px');
+        // .css('height', '0.7em');
+
+        that.$title = $("<div id='title'></div>")
+            .css('position', 'absolute')
+            .css('left', '15em')
+            .css('top', '0')
+            .css('width', '30%')
+            .css('z-index', '9999')
+            .css('overflow', 'auto')
+            .append(that.$model_title)
+            .appendTo(that.el.parentElement);
+
         that.$layoutDd = $(
             "<select id=\"myList\" >\n" +
             "  <option value='"+layoutName+"'>"+layoutName+"</option>\n" +
@@ -372,7 +423,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             .css('height', '1.9em')
             .appendTo(that.el.parentElement);
 
-        console.log(that.$layoutDd);
         that.$layoutDd.on('change', function() {
             let layout = cy.layout({
                 name: this.value,
@@ -425,12 +475,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             else{
                 name = data.name;
             }
-            if (data.index){
-                index = data.index;
-            }
-            else{
-                index = data.id;
-            }
+            index = component_idx(data);
             let aaa = ['<div class="tt-suggest-page"><p><strong>' + name + '</strong></p>',
                 '<p><strong>' + '<i class="fa fa-list-ol"></i>' + ' ' + index + '</strong></p><div>',
                 '<p><strong>' + '<i class="fa fa-info-circle"></i>' + ' ' + data.NodeType + '</strong></p><div>'].join('');

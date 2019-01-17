@@ -60,3 +60,20 @@
     display: none;
     overflow: auto;
 }
+
+#close {
+    float:right;
+    display:inline-block;
+    padding:2px 5px;
+    background:#ccc;
+    cursor: pointer;
+}
+
+#close:hover {
+        float:right;
+        display:inline-block;
+        padding:2px 5px;
+        background:#ccc;
+        cursor: pointer;
+    color:#fff;
+    }
