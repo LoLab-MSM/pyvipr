@@ -1,6 +1,6 @@
 {
     "name": "viz-pysb-widget",
-    "version": "0.1.11",
+    "version": "0.1.12",
     "description": "Dynamic and static visualizations of PySB models using cytoscape.js",
     "author": "Oscar Ortega",
     "main": "lib/index.js",
@@ -41,7 +41,8 @@
         "lodash": "^4.17.4",
         "npm": "^6.5.0",
         "tippy.js": "^2.3.0",
-        "typeahead.js": "^0.11.1"
+        "typeahead.js": "^0.11.1",
+        "cytoscape-expand-collapse": "^3.1.2"
     },
     "jupyterlab": {
         "extension": "lib/labplugin"
