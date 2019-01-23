@@ -159,31 +159,31 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         }
 
         // Doing a deep copy of the node positions to obtain the dot layout
-        let dot_positions = JSON.parse(JSON.stringify(network["elements"]["nodes"].map(x => x.position)));
+        // let dot_positions = JSON.parse(JSON.stringify(network["elements"]["nodes"].map(x => x.position)));
 
         let cy = cytoscape({
             container: that.el, // container to render in
             elements: network.elements,
             style: cytoscape.stylesheet()
-                .selector('node[shape]')
+                .selector('node')
                 .style({
-                    'label': 'data(label)',
-                    'shape': 'data(shape)',
+                    'label': 'data(name)',
+                    // 'shape': 'data(shape)',
                     // 'font-size': 24,
-                    'pie-size': '80%',
-                    'pie-1-background-color': 'data(background_color)',
-                    'pie-1-background-size': '100',
-                    'pie-2-background-color': '#dddcd4',
-                    'pie-2-background-size': '100'
+                    // 'pie-size': '80%',
+                    // 'pie-1-background-color': 'data(background_color)',
+                    // 'pie-1-background-size': '100',
+                    // 'pie-2-background-color': '#dddcd4',
+                    // 'pie-2-background-size': '100'
                 })
 
                 .selector('edge')
                 .style({
                     'curve-style': 'bezier',
                     // 'width': 'data(width)',
-                    'target-arrow-shape': 'data(target_arrow_shape)',
-                    'source-arrow-shape': 'data(source_arrow_shape)',
-                    'source-arrow-fill': 'data(source_arrow_fill)'
+                    // 'target-arrow-shape': 'data(target_arrow_shape)',
+                    // 'source-arrow-shape': 'data(source_arrow_shape)',
+                    // 'source-arrow-fill': 'data(source_arrow_fill)'
                 })
                 .selector(':parent')
                 .style({
@@ -386,12 +386,11 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         let unusedlayouts = layouts.filter(function(e) {return e !== layoutName});
 
         // pysb adds the file path to the model name. Here we removed the path info to only use the model name
-        let name_spl = network.data.name.split(".");
+        // let name_spl = network.data.name.split(".");
         //TODO: put h1 tag within a div and restrict it size to the size of that div
-        that.$model_title = $("  <h1>"+ name_spl[name_spl.length - 1] +"</h1>\n")
-            .css('font-size', '16px')
-            .css('margin-top', '10px');
-        // .css('height', '0.7em');
+        // that.$model_title = $("  <h1>"+ name_spl[name_spl.length - 1] +"</h1>\n")
+        //     .css('font-size', '16px')
+        //     .css('margin-top', '10px');
 
         that.$title = $("<div id='title'></div>")
             .css('position', 'absolute')

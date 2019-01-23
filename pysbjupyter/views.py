@@ -15,7 +15,8 @@ __all__ = [
     'projected_species_rules_view',
     'species_dynamics_view',
     'sp_compartments_dynamics_view',
-    'sp_communities_dynamics_view'
+    'sp_communities_dynamics_view',
+    'magine_network'
 ]
 
 
@@ -77,3 +78,7 @@ def sp_compartments_dynamics_view(simulation, layout_name='cose-bilkent'):
 
 def sp_communities_dynamics_view(simulation, layout_name='cose-bilkent'):
     return pysbViz(data=simulation, type_of_viz='dynamic_communities_view', layout_name=layout_name)
+
+
+def magine_network(json_graph, layout_name='cose-bilkent'):
+    return pysbViz(data=json_graph, type_of_viz='magine_graph', layout_name=layout_name)

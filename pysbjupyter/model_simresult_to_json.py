@@ -26,6 +26,9 @@ def data_to_json(_, widget):
     elif isinstance(widget.data, SimulationResult):
         viz = ModelVisualization(widget.data)
 
+    elif isinstance(widget.data, dict):
+        return widget.data
+
     else:
         raise TypeError('Only Model and SimulationResult are supported')
 
