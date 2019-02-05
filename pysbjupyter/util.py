@@ -24,16 +24,18 @@ def parse_name(spec):
     name_counts = OrderedDict()
     parsed_name = ''
     for i in range(len(m)):
-        tmp_1 = str(m[i]).partition('(')
-        tmp_2 = re.findall(r"['\"](.*?)['\"]", str(m[i])) # Matches strings between quotes
-        tmp_2 = [s.lower() for s in tmp_2]
+        sp_name = str(m[i]).partition('(')[0]
+        sp_comp = str(m[i]).partition('** ')[-1]
+        sp_states = re.findall(r"['\"](.*?)['\"]", str(m[i])) # Matches strings between quotes
+        sp_states = [s.lower() for s in sp_states]
         # tmp_2 = re.findall(r"(?<=\').+(?=\')", str(m[i]))
-        if not tmp_2:
-            lis_m.append(tmp_1[0])
+        if not sp_states and not sp_comp:
+            lis_m.append(sp_name)
         else:
-            tmp_2.insert(0, tmp_1[0])
-            tmp_2.reverse()
-            lis_m.append(''.join(tmp_2))
+            sp_states.insert(0, sp_name)
+            sp_states.insert(0, '**' + sp_comp)
+            sp_states.reverse()
+            lis_m.append(''.join(sp_states))
     for name in lis_m:
         name_counts[name] = lis_m.count(name)
 

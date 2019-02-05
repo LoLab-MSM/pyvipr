@@ -18,7 +18,7 @@ To install this widget, use _pip_:
 # Enable it
 > jupyter nbextension enable --py --sys-prefix pysbjupyter
 ```
-### From git
+### From git (requires npm)
 ```bash
 $ git clone https://github.com/LoLab-VU/viz-pysb-widget.git
 $ cd viz-pysb-widget

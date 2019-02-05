@@ -136,7 +136,7 @@ setup_args = {
             'pysbjupyter/static/index.js',
             'pysbjupyter/static/index.js.map',
         ],),
-        ('etc/jupyter/nbconfig/notebook.d/' ,['viz-pysb-widget.json'])
+        ('etc/jupyter/nbconfig/notebook.d' ,['viz-pysb-widget.json'])
     ],
     'install_requires': [
         'ipywidgets>=7.0.0',
