@@ -50,6 +50,13 @@ const DEF_STYLE = [{
             'target-arrow-color': '#37474F',
             'target-arrow-shape': 'triangle'
         }
+    },
+    {
+        selector: '.faded',
+        style: {
+            'opacity': 0.25,
+            'text-opacity': 0
+        }
     }
 ];
 
@@ -188,7 +195,17 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         let visualStyle = null;
 
         if (format === FORMAT.PYSBVIZ){
-            visualStyle = PYSBVIZ_STYLE
+            visualStyle = PYSBVIZ_STYLE;
+            // pysb adds the file path to the model name. Here we removed the path info to only use the model name
+            let name_spl = network.data.name.split(".");
+            // TODO: put h1 tag within a div and restrict it size to the size of that div
+            that.$model_title = $("  <h1>"+ name_spl[name_spl.length - 1] +"</h1>\n")
+                .css('font-size', '16px')
+                .css('margin-top', '10px');
+
+            that.$title = $("<div id='title'></div>")
+                .append(that.$model_title)
+                .appendTo(that.el.parentElement);
         }
         else if (format === FORMAT.MAGINE){
             visualStyle = DEF_STYLE
@@ -268,10 +285,10 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 .appendTo(that.el.parentElement);
 
             that.$close.on('click', function () {
-            this.parentNode.parentNode
-                .removeChild(this.parentNode);
-            return false;
-        });
+                this.parentNode.parentNode
+                    .removeChild(this.parentNode);
+                return false;
+            });
 
         }
 
@@ -402,19 +419,8 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         });
         that.el.parentElement.append(downloadButton);
 
-        let layouts = ["cose-bilkent", "random", "preset", "grid", "circle", "concentric", "breadthfirst", "cose"];
+        let layouts = ["cose-bilkent", "random", "grid", "circle", "concentric", "breadthfirst", "cose"];
         let unusedlayouts = layouts.filter(function(e) {return e !== layoutName});
-
-        // pysb adds the file path to the model name. Here we removed the path info to only use the model name
-        // let name_spl = network.data.name.split(".");
-        //TODO: put h1 tag within a div and restrict it size to the size of that div
-        // that.$model_title = $("  <h1>"+ name_spl[name_spl.length - 1] +"</h1>\n")
-        //     .css('font-size', '16px')
-        //     .css('margin-top', '10px');
-
-        that.$title = $("<div id='title'></div>")
-            .append(that.$model_title)
-            .appendTo(that.el.parentElement);
 
         that.$layoutDd = $(
             "<select id=\"myList\" >\n" +
@@ -425,7 +431,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             "  <option value='"+unusedlayouts[3]+"'>"+unusedlayouts[3]+"</option>\n" +
             "  <option value='"+unusedlayouts[4]+"'>"+unusedlayouts[4]+"</option>\n" +
             "  <option value='"+unusedlayouts[5]+"'>"+unusedlayouts[5]+"</option>\n" +
-            "  <option value='"+unusedlayouts[6]+"'>"+unusedlayouts[6]+"</option>\n" +
+            // "  <option value='"+unusedlayouts[6]+"'>"+unusedlayouts[6]+"</option>\n" +
             "</select>\n")
             .appendTo(that.el.parentElement);
 
@@ -433,10 +439,10 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             let layout = cy.layout({
                 name: this.value,
                 nodeDimensionsIncludeLabels: true,
-                positions: function(node){
-                    let idx = parseInt(node.id().match(/\d+/),10);
-                    return dot_positions[idx];
-                },
+                // positions: function(node){
+                //     let idx = parseInt(node.id().match(/\d+/),10);
+                //     return dot_positions[idx];
+                // },
             });
             layout.run();
 
