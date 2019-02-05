@@ -17,6 +17,8 @@ require('./cytoscape.css');
 require('./elements_style.css');
 
 const FORMAT = {
+    PYSBVIZ: 'pysbviz',
+    MAGINE: 'magine',
     CX: 'cx',
     CYJS: 'cyjs',
     EDGELIST: 'el',
@@ -50,6 +52,52 @@ const DEF_STYLE = [{
         }
     }
 ];
+
+const PYSBVIZ_STYLE = [{
+    selector: 'node[shape]',
+    style: {
+        'label': 'data(label)',
+        'shape': 'data(shape)',
+        'pie-size': '80%',
+        'pie-1-background-color': 'data(background_color)',
+        'pie-1-background-size': '100',
+        'pie-2-background-color': '#dddcd4',
+        'pie-2-background-size': '100'
+
+    }
+},
+    {
+        selector: 'edge',
+        style: {
+            'curve-style': 'bezier',
+            // 'width': 'data(width)',
+            'target-arrow-shape': 'data(target_arrow_shape)',
+            'source-arrow-shape': 'data(source_arrow_shape)',
+            'source-arrow-fill': 'data(source_arrow_fill)'
+        }
+    },
+    {
+        selector: ':parent',
+        style: {
+            'background-opacity': '0.5',
+            'shape': 'rectangle',
+            'label': 'data(id)'
+        }
+    },
+    {
+        selector: 'node.cy-expand-collapse-collapsed-node',
+        style: {
+            'background-color': 'darkblue',
+            'shape': 'rectangle'
+        }
+    },
+    {
+        selector: '.faded',
+        style: {
+            'opacity': 0.25,
+            'text-opacity': 0
+        }
+    }];
 
 // Cytoscape Model. Custom widgets models must at least provide default values
 // for model attributes, including
@@ -139,6 +187,13 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         let network = that.model.get('data');
         let visualStyle = null;
 
+        if (format === FORMAT.PYSBVIZ){
+            visualStyle = PYSBVIZ_STYLE
+        }
+        else if (format === FORMAT.MAGINE){
+            visualStyle = DEF_STYLE
+        }
+
         const vsParam = that.model.get('visual_style');
         if (vsParam) {
             // Override VS
@@ -164,42 +219,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         let cy = cytoscape({
             container: that.el, // container to render in
             elements: network.elements,
-            style: cytoscape.stylesheet()
-                .selector('node')
-                .style({
-                    'label': 'data(name)',
-                    // 'shape': 'data(shape)',
-                    // 'font-size': 24,
-                    // 'pie-size': '80%',
-                    // 'pie-1-background-color': 'data(background_color)',
-                    // 'pie-1-background-size': '100',
-                    // 'pie-2-background-color': '#dddcd4',
-                    // 'pie-2-background-size': '100'
-                })
-
-                .selector('edge')
-                .style({
-                    'curve-style': 'bezier',
-                    // 'width': 'data(width)',
-                    // 'target-arrow-shape': 'data(target_arrow_shape)',
-                    // 'source-arrow-shape': 'data(source_arrow_shape)',
-                    // 'source-arrow-fill': 'data(source_arrow_fill)'
-                })
-                .selector(':parent')
-                .style({
-                    'background-opacity': '0.5',
-                    'shape': 'rectangle',
-                    'label': 'data(id)'
-                })
-                .selector('node.cy-expand-collapse-collapsed-node')
-                .style({
-                    'background-color': 'darkblue',
-                    'shape': 'rectangle'})
-                .selector('.faded')
-                .style({
-                    'opacity': 0.25,
-                    'text-opacity': 0
-                }),
+            style: visualStyle,
             layout: {
                 name: layoutName,
                 nodeDimensionsIncludeLabels: true
