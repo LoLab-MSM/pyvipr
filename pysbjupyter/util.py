@@ -25,7 +25,8 @@ def parse_name(spec):
     parsed_name = ''
     for i in range(len(m)):
         sp_name = str(m[i]).partition('(')[0]
-        sp_comp = str(m[i]).partition('** ')[-1]
+        sp_comp = str(m[i]).partition('** ')[-2:]
+        sp_comp = ''.join(sp_comp)
         sp_states = re.findall(r"['\"](.*?)['\"]", str(m[i])) # Matches strings between quotes
         sp_states = [s.lower() for s in sp_states]
         # tmp_2 = re.findall(r"(?<=\').+(?=\')", str(m[i]))
@@ -33,7 +34,7 @@ def parse_name(spec):
             lis_m.append(sp_name)
         else:
             sp_states.insert(0, sp_name)
-            sp_states.insert(0, '**' + sp_comp)
+            sp_states.insert(0, sp_comp)
             sp_states.reverse()
             lis_m.append(''.join(sp_states))
     for name in lis_m:
