@@ -127,8 +127,8 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
 
     renderCy: function() {
         // Remove tippy elements that might be present from previous run
-        const elements = document.getElementsByClassName("tippy-popper");
-        while (elements.length > 0) elements[0].remove();
+        const tippies = document.getElementsByClassName("tippy-popper");
+        while (tippies.length > 0) tippies[0].remove();
         var that = this;
 
         // Extract parameters
@@ -187,7 +187,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 })
                 .selector(':parent')
                 .style({
-                    'background-opacity': '0.33',
+                    'background-opacity': '0.5',
                     'shape': 'rectangle',
                     'label': 'data(id)'
                 })
@@ -373,7 +373,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         downloadButton.innerHTML = '<i class="fa fa-download" aria-hidden="true"></i>';
         downloadButton.addEventListener('click', function(){
             let element = document.createElement('a');
-            element.setAttribute('href', cy.png({scale: 5}));
+            element.setAttribute('href', cy.png({scale: 3}));
             element.setAttribute('download', 'graph.png');
             element.style.display = 'none';
             document.body.appendChild(element);
@@ -394,12 +394,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         // .css('height', '0.7em');
 
         that.$title = $("<div id='title'></div>")
-            .css('position', 'absolute')
-            .css('left', '15em')
-            .css('top', '0')
-            .css('width', '30%')
-            .css('z-index', '9999')
-            .css('overflow', 'auto')
             .append(that.$model_title)
             .appendTo(that.el.parentElement);
 
@@ -414,18 +408,12 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             "  <option value='"+unusedlayouts[5]+"'>"+unusedlayouts[5]+"</option>\n" +
             "  <option value='"+unusedlayouts[6]+"'>"+unusedlayouts[6]+"</option>\n" +
             "</select>\n")
-            .css('position', 'absolute')
-            .css('width', '6em')
-            .css('margin', '0.5em')
-            .css('top', '0')
-            .css('z-index', '999')
-            .css('right', '7em')
-            .css('height', '1.9em')
             .appendTo(that.el.parentElement);
 
         that.$layoutDd.on('change', function() {
             let layout = cy.layout({
                 name: this.value,
+                nodeDimensionsIncludeLabels: true,
                 positions: function(node){
                     let idx = parseInt(node.id().match(/\d+/),10);
                     return dot_positions[idx];
@@ -437,30 +425,12 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
 
 
         that.$search = $("<input type=\"text\" class=\"form-control\" id=\"search\" placeholder=\"Search..\">")
-            .css('width', '14em')
-            .css('font-family', 'inherit');
 
         that.$search_wrapper = $("<div id='bla'></div>")
-            .css('position', 'absolute')
-            .css('left', '0')
-            .css('top', '0')
-            .css('z-index', '9999')
-            .css('margin', '0.5em')
-            .css('width', '14em')
             .append(that.$search)
             .appendTo(that.el.parentElement);
 
         that.$info = $("<div id='info'></div>")
-            .css('position', 'absolute')
-            .css('left', '0')
-            .css('top', '3em')
-            .css('margin', '0.5em')
-            .css('background', '#fff')
-            .css('width', '14em')
-            .css('border', '1px solid #ccc')
-            .css('box-shadow', 'inset 0 0 0 0.25em rgba(187, 219, 247, 0.9)')
-            .css('display', 'none')
-            .css('overflow', 'auto')
             .appendTo(that.el.parentElement);
         // info.id = 'infoid';
         // that.el.parentElement.appendChild(info);
