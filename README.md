@@ -33,19 +33,21 @@ objects. pysbjupyter has different functions to visualize PySB models and simula
 
 | Function                                 | Description                                           |
 |------------------------------------------|-------------------------------------------------------|
-| `species_view(model)`                    | Shows network of interacting species                  |
-| `species_compartments_view(model)`       | Shows network of species in their respective compartments |
-| `communities_view(model)`                | Shows network of species grouped in [communities](https://en.wikipedia.org/wiki/Community_structure) |
+| `sp_view(model)`                    | Shows network of interacting species                  |
+| `sp_comp_view(model)`       | Shows network of species in their respective compartments |
+| `sp_comm_view(model)`                | Shows network of species grouped in [communities](https://en.wikipedia.org/wiki/Community_structure) |
 | `sp_rxns_bidirectional_view(model)`      | Shows bipartite network with species and bidirectional rections nodes |
 | `sp_rxns_view(model)`                    | Shows bipartite network with species and unidirectional rections nodes |
 | `sp_rules_view(model)`                   | Shows bipartite network with species and rules nodes  |
-| `sp_rules_functions_view(model)`         | Shows bipartite network with species and rules nodes.<br> Rules nodes are grouped in the functions they come from |
-| `sp_rules_modules_view(model)`           | Shows bipartite network with species and rules nodes.<br> Rules nodes are grouped in the file modules they come from |
+| `sp_rules_fxns_view(model)`         | Shows bipartite network with species and rules nodes.<br> Rules nodes are grouped in the functions they come from |
+| `sp_rules_mod_view(model)`           | Shows bipartite network with species and rules nodes.<br> Rules nodes are grouped in the file modules they come from |
 | `projected_species_reactions_view(model)`| Shows network of species projected from the <br> bipartite(species, reactions) graph |
 | `projected_reactions_view(model)`        | Shows network of reactions projected from the <br> bipartite(species, reactions) graph |
 | `projected_rules_view(model)`            | Shows network of rules projected from the <br> bipartite(species, rules) graph |
 | `projected_species_rules_view(model)`    | Shows network of species projected from the <br> bipartite(species, rules) graph |
-| `species_dynamics_view(SimulationResult)`| Shows a species network. Edges size and color are updated <br> according to reaction rate values. Nodes filling <br> are updated according to concentration|
+| `sp_dyn_view(SimulationResult)`| Shows a species network. Edges size and color are updated <br> according to reaction rate values. Nodes filling <br> are updated according to concentration|
+| `sp_comp_dyn_view(SimulationResult)` | Same as sp_dyn_view but species nodes are grouped by <br> the compartments on which they are located |
+| `sp_comm_dyn_view(SimulationResult)` | Same as sp_dyn_view but species nodes are grouped by communities |
 
 All visualizations have a search button that can be used to find nodes in large networks. This search function displays 
 information about the species label and the type of node (species, reaction, rule, ...). Additionally, there is a fit 
