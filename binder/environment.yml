@@ -1,0 +1,13 @@
+name: pysbviz
+channels:
+  - conda-forge
+  - alubbock
+dependencies:
+  - python=3.7
+  - jupyter
+  - pysb
+  - atomizer
+  - graphviz
+  - pip:
+      - python-louvain
+      - pysbjupyter
