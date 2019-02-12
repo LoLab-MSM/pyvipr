@@ -304,7 +304,7 @@ class ModelVisualization(object):
         node_absolute = {}
         node_relative = {}
         for sp in range(len(self.model.species)):
-            sp_absolute = self.y['__s{}'.format(sp)]
+            sp_absolute = np.absolute(self.y['__s{}'.format(sp)])
             sp_relative = (sp_absolute / sp_absolute.max()) * 100
             node_absolute['s{0}'.format(sp)] = sp_absolute.tolist()
             node_relative['s{0}'.format(sp)] = sp_relative.tolist()

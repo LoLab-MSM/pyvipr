@@ -4,12 +4,16 @@ var cytoscape = require('cytoscape');
 var tippy = require('tippy.js');
 var popper = require('cytoscape-popper');
 var coseBilkent = require('cytoscape-cose-bilkent');
+var dagre = require('cytoscape-dagre');
+var klay = require('cytoscape-klay');
 var expandCollapse = require('cytoscape-expand-collapse');
 var typeahead = require('typeahead.js');
 var $ = require('jquery');
 var semver_range = "^" + require("../package.json").version;
 cytoscape.use(popper);
 cytoscape.use(coseBilkent);
+cytoscape.use(dagre);
+cytoscape.use(klay);
 expandCollapse( cytoscape, $ ); // register extension
 
 // Load CSS
@@ -382,7 +386,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         });
         that.el.parentElement.append(downloadButton);
 
-        let layouts = ["cose-bilkent", "random", "preset", "grid", "circle", "concentric", "breadthfirst", "cose"];
+        let layouts = ["cose-bilkent", "dagre", "klay", "random", "preset", "grid", "circle", "concentric", "breadthfirst", "cose"];
         let unusedlayouts = layouts.filter(function(e) {return e !== layoutName});
 
         // pysb adds the file path to the model name. Here we removed the path info to only use the model name
@@ -558,16 +562,15 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         let dynamics_vis = function(){
             // Adding empty tips to nodes and edges in advanced so they
             // can be updated later on
-            cy.nodes().forEach(function(n){
-                n.data()['tip'] = makeTippy(n, '');
-            });
-
-            cy.edges().forEach(function(e){
-                e.data()['tip'] = makeTippy(e, '');
+            let allEles = cy.elements();
+            // remove parent elements
+            allEles.unmerge(cy.nodes().parent());
+            allEles.forEach(function(ele){
+                ele.data()['tip'] = makeTippy(ele, '');
             });
 
             // Show tip on tap
-            cy.on('tap', 'node, edge',  function(evt){
+            cy.on('taphold', 'node, edge',  function(evt){
                 let ele = evt.target;
                 if (ele.data()['tip']['state']['visible']){
                     ele.data()['tip'].hide();
@@ -639,8 +642,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             that.el.parentElement.appendChild(playerSection);
 
             let tspan = network.data.tspan;
-            // let text = $('#{{textid}}')[0];
-            // let rangeInput = $('#{{rangeid}}')[0];
             slider.max = tspan.length - 1;
 
             function animateAll(ele){
@@ -712,8 +713,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                         cy.elements().stop(false, false);
                     }
                 };
-                let allEles = cy.elements();
-                allEles.unmerge(cy.nodes().parent());
                 for (let i=0; i < allEles.length; i++){
                     let ele = allEles[i];
                     let animationQueue = animateAll(ele);
@@ -755,10 +754,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
 
             });
 
-            slider.oninput = function(){
-                text.value = tspan[this.value].toFixed(2);
-
-            };
         };
         if(network.data.view === 'dynamic'){
             dynamics_vis()
