@@ -1,12 +1,14 @@
 from __future__ import print_function
+
+import os
+import platform
+import sys
+from subprocess import check_call
+
 from setuptools import setup, find_packages, Command
-from setuptools.command.sdist import sdist
 from setuptools.command.build_py import build_py
 from setuptools.command.egg_info import egg_info
-from subprocess import check_call
-import os
-import sys
-import platform
+from setuptools.command.sdist import sdist
 
 here = os.path.dirname(os.path.abspath(__file__))
 node_root = os.path.join(here, 'js')
@@ -77,14 +79,14 @@ class NPM(Command):
         pass
 
     def get_npm_name(self):
-        npmName = 'npm';
+        npmName = 'npm'
         if platform.system() == 'Windows':
-            npmName = 'npm.cmd';
-            
-        return npmName;
+            npmName = 'npm.cmd'
+
+        return npmName
     
     def has_npm(self):
-        npmName = self.get_npm_name();
+        npmName = self.get_npm_name()
         try:
             check_call([npmName, '--version'])
             return True
@@ -99,14 +101,17 @@ class NPM(Command):
     def run(self):
         has_npm = self.has_npm()
         if not has_npm:
-            log.error("`npm` unavailable.  If you're running this command using sudo, make sure `npm` is available to sudo")
+            log.error("`npm` unavailable.  "
+                      "If you're running this command using sudo,"
+                      " make sure `npm` is available to sudo")
 
         env = os.environ.copy()
         env['PATH'] = npm_path
 
         if self.should_run_npm_install():
-            log.info("Installing build dependencies with npm.  This may take a while...")
-            npmName = self.get_npm_name();
+            log.info("Installing build dependencies with npm. "
+                     " This may take a while...")
+            npmName = self.get_npm_name()
             check_call([npmName, 'install'], cwd=node_root, stdout=sys.stdout, stderr=sys.stderr)
             os.utime(self.node_modules, None)
 
@@ -136,7 +141,7 @@ setup_args = {
             'pysbjupyter/static/index.js',
             'pysbjupyter/static/index.js.map',
         ],),
-        ('etc/jupyter/nbconfig/notebook.d/' ,['viz-pysb-widget.json'])
+        ('etc/jupyter/nbconfig/notebook.d', ['viz-pysb-widget.json'])
     ],
     'install_requires': [
         'ipywidgets>=7.0.0',

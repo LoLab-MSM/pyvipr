@@ -1,6 +1,6 @@
 from ._version import version_info, __version__
-
-from .pysbviz import pysbViz
+from .magine_nb import render_network
+from .pysbviz import pysbViz, networkxViz
 from .views import *
 
 
@@ -13,4 +13,4 @@ def _jupyter_nbextension_paths():
     }]
 
 
-__all__ = ['pysbViz'] + views.__all__
+__all__ = ['pysbViz', 'networkxViz', 'render_network'] + views.__all__

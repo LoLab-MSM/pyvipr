@@ -1,10 +1,12 @@
-from pysbjupyter.static_viz import StaticViz
-from pysbjupyter.dynamic_viz import ModelVisualization
+import os
+
 from pysb.core import Model
-from pysb.simulator.base import SimulationResult
 from pysb.importers.bngl import model_from_bngl
 from pysb.importers.sbml import model_from_sbml, model_from_biomodels
-import os
+from pysb.simulator.base import SimulationResult
+
+from pysbjupyter.dynamic_viz import ModelVisualization
+from pysbjupyter.static_viz import StaticViz
 
 
 def data_to_json(_, widget):
@@ -39,5 +41,8 @@ def data_to_json(_, widget):
     return jsondata
 
 
-
-
+def data_to_json2(_, widget):
+    if isinstance(widget.data, dict):
+        return widget.data
+    else:
+        raise TypeError('Only Model and SimulationResult are supported')

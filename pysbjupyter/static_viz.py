@@ -1,13 +1,11 @@
 from collections import OrderedDict
+
 import networkx as nx
-import json
-from .util_networkx import from_networkx
-import collections
-import pysb
-import pysbjupyter.util as hf
-from pysb.bng import generate_equations
-from networkx.algorithms import bipartite
 from community import best_partition
+from networkx.algorithms import bipartite
+
+from .pysb_utils import parse_name
+from .util import dot_layout, graph_to_json
 
 
 class OrderedGraph(nx.DiGraph):
@@ -31,33 +29,11 @@ class StaticViz(object):
     """
 
     def __init__(self, model):
+        from pysb.bng import generate_equations
         # Need to create a model visualization base and then do independent visualizations: static and dynamic
         self.model = model
         self.graph = None
         generate_equations(self.model)
-
-    # This is a function to merge several nodes into one in a Networkx graph
-    @staticmethod
-    def merge_nodes(G, nodes, new_node, **attr):
-        """
-        Merges the selected `nodes` of the graph G into one `new_node`,
-        meaning that all the edges that pointed to or from one of these
-        `nodes` will point to or from the `new_node`.
-        attr_dict and **attr are defined as in `G.add_node`.
-        """
-        G.add_node(new_node, **attr)  # Add the 'merged' node
-        newG = G.copy()
-
-        for n1, n2, data in newG.edges(data=True):
-            # For all edges related to one of the nodes to merge,
-            # make an edge going to or coming from the `new gene`.
-            if n1 in nodes:
-                G.add_edge(new_node, n2, **data)
-            elif n2 in nodes:
-                G.add_edge(n1, new_node, **data)
-
-        for n in nodes:  # remove the merged nodes
-            G.remove_node(n)
 
     def species_view(self):
         """
@@ -79,8 +55,7 @@ class StaticViz(object):
         """
         graph = self.species_graph()
         g_layout = dot_layout(graph)
-        data = graph_to_json(sp_graph=graph, layout=g_layout)
-        return data
+        return graph_to_json(sp_graph=graph, layout=g_layout)
 
     def species_compartments_view(self):
         """
@@ -93,8 +68,7 @@ class StaticViz(object):
         """
         graph = self.compartments_data_graph()
         g_layout = dot_layout(graph)
-        data = graph_to_json(sp_graph=graph, layout=g_layout)
-        return data
+        return graph_to_json(sp_graph=graph, layout=g_layout)
 
     def compartments_data_graph(self):
         # Check if model has comparments
@@ -114,7 +88,8 @@ class StaticViz(object):
         sp_compartment = {}
         for idx, sp in enumerate(self.model.species):
             monomers = sp.monomer_patterns
-            monomers_comp = {m.compartment.name: m.compartment.size for m in monomers}
+            monomers_comp = {m.compartment.name: m.compartment.size for m in
+                             monomers}
             smallest_comp = min(monomers_comp, key=monomers_comp.get)
             sp_compartment['s{0}'.format(idx)] = smallest_comp
         nx.set_node_attributes(graph, sp_compartment, 'parent')
@@ -132,8 +107,7 @@ class StaticViz(object):
         """
         graph = self.communities_data_graph()
         g_layout = dot_layout(graph)
-        data = graph_to_json(sp_graph=graph, layout=g_layout)
-        return data
+        return graph_to_json(sp_graph=graph, layout=g_layout)
 
     def communities_data_graph(self):
         graph = self.species_graph()
@@ -144,7 +118,6 @@ class StaticViz(object):
         graph.add_nodes_from(cnodes, NodeType='community')
         nx.set_node_attributes(graph, communities, 'parent')
         return graph
-
 
     def sp_rxns_bidirectional_view(self):
         """
@@ -160,8 +133,7 @@ class StaticViz(object):
         """
         graph = self.sp_rxns_bidirectional_graph()
         g_layout = dot_layout(graph)
-        data = graph_to_json(sp_graph=graph, layout=g_layout)
-        return data
+        return graph_to_json(sp_graph=graph, layout=g_layout)
 
     def sp_rxns_view(self):
         """
@@ -173,8 +145,7 @@ class StaticViz(object):
         """
         graph = self.sp_rxns_graph()
         g_layout = dot_layout(graph)
-        data = graph_to_json(sp_graph=graph, layout=g_layout)
-        return data
+        return graph_to_json(sp_graph=graph, layout=g_layout)
 
     def sp_rules_view(self):
         """
@@ -187,8 +158,7 @@ class StaticViz(object):
         rules_graph = self.rules_graph()
         rules_graph = self.graph_merged_pair_edges(rules_graph)
         g_layout = dot_layout(rules_graph)
-        data = graph_to_json(sp_graph=rules_graph, layout=g_layout)
-        return data
+        return graph_to_json(sp_graph=rules_graph, layout=g_layout)
 
     def sp_rules_functions_view(self):
         """
@@ -201,13 +171,13 @@ class StaticViz(object):
         """
         rules_graph = self.rules_graph()
         rules_graph = self.graph_merged_pair_edges(rules_graph)
-        rule_functions = {rule.name: rule._function for rule in self.model.rules}
+        rule_functions = {rule.name: rule._function for rule in
+                          self.model.rules}
         unique_functions = set(rule_functions.values())
         nx.set_node_attributes(rules_graph, rule_functions, 'parent')
         rules_graph.add_nodes_from(unique_functions, NodeType='function')
         g_layout = dot_layout(rules_graph)
-        data = graph_to_json(sp_graph=rules_graph, layout=g_layout)
-        return data
+        return graph_to_json(sp_graph=rules_graph, layout=g_layout)
 
     def sp_rules_modules_view(self):
         """
@@ -222,7 +192,8 @@ class StaticViz(object):
         rules_graph = self.graph_merged_pair_edges(rules_graph)
 
         # Unique modules used in the model
-        unique_modules = [m for m in self.model.modules if not m.startswith('_')]
+        unique_modules = [m for m in self.model.modules if
+                          not m.startswith('_')]
         # Remove outer model file to not look further modules that are not related to
         # the model
         unique_modules.remove(self.model.name)
@@ -255,7 +226,8 @@ class StaticViz(object):
             m = rule._modules[0]
             if m not in module_parents.keys():
                 m_parent = rule._modules[1]
-                m_parent_child = list(module_parents.keys())[list(module_parents.values()).index(m_parent)]
+                m_parent_child = list(module_parents.keys())[
+                    list(module_parents.values()).index(m_parent)]
                 rules_module[rule.name] = m_parent_child
             else:
                 rules_module[rule.name] = m
@@ -266,8 +238,7 @@ class StaticViz(object):
         nx.set_node_attributes(rules_graph, module_parents, 'parent')
         nx.set_node_attributes(rules_graph, rules_module, 'parent')
         g_layout = dot_layout(rules_graph)
-        data = graph_to_json(sp_graph=rules_graph, layout=g_layout)
-        return data
+        return graph_to_json(sp_graph=rules_graph, layout=g_layout)
 
     def projections_view(self, project_to='species_reactions'):
         """
@@ -293,8 +264,7 @@ class StaticViz(object):
 
         projected_graph = self.projected_graph(bipartite_graph, project_to)
         g_layout = dot_layout(projected_graph)
-        data = graph_to_json(sp_graph=projected_graph, layout=g_layout)
-        return data
+        return graph_to_json(sp_graph=projected_graph, layout=g_layout)
 
     def projected_species_reactions_view(self):
         return self.projections_view('species_reactions')
@@ -316,53 +286,35 @@ class StaticViz(object):
         -------
         A :class: nx.Digraph graph that has the information for the visualization of the model
         """
-        sp_graph = OrderedGraph(name=self.model.name, graph={'rankdir':'LR'}, paths=[])
+        sp_graph = OrderedGraph(name=self.model.name, graph={'rankdir': 'LR'},
+                                paths=[])
 
-        # TODO: there are reactions that generate parallel edges that are not taken into account because netowrkx
-        # digraph only allows one edge between two nodes
+        # TODO: there are reactions that generate parallel edges that are not
+        #  taken into account because netowrkx digraph only allows one edge
+        #  between two nodes
 
         for idx in range(len(self.model.species)):
             species_node = 's%d' % idx
             # Setting the information about the node
-            node_data = dict(label=hf.parse_name(self.model.species[idx]),
+            node_data = dict(label=parse_name(self.model.species[idx]),
                              background_color="#2b913a",
                              shape='ellipse',
                              NodeType='species')
             sp_graph.add_node(species_node, **node_data)
-
+        rev_edges = {'source_arrow_shape': 'diamond',
+                     'target_arrow_shape': 'triangle',
+                     'source_arrow_fill': 'hollow'}
+        edges = {'source_arrow_shape': 'none',
+                 'target_arrow_shape': 'triangle',
+                 'source_arrow_fill': 'filled'}
         for reaction in self.model.reactions_bidirectional:
             reactants = set(reaction['reactants'])
             products = set(reaction['products'])
-            attr_reversible = {'source_arrow_shape': 'diamond', 'target_arrow_shape': 'triangle',
-                               'source_arrow_fill': 'hollow'} if reaction['reversible'] \
-                                else {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle',
-                                      'source_arrow_fill': 'filled'}
+            attr_reversible = rev_edges if reaction['reversible'] else edges
             for s in reactants:
                 for p in products:
                     self._r_link_species(sp_graph, s, p, **attr_reversible)
         return sp_graph
-
-    @staticmethod
-    def _r_link_species(graph, s, r, **attrs):
-        """
-        Links two nodes in a species graph
-        Parameters
-        ----------
-        s : int
-            Source node
-        r: int
-            Target node
-        attrs: dict
-            Other attributes for edges
-
-        Returns
-        -------
-
-        """
-
-        nodes = ('s{0}'.format(s), 's{0}'.format(r))
-        attrs.setdefault('arrowhead', 'normal')
-        graph.add_edge(*nodes, **attrs)
 
     def sp_rxns_bidirectional_graph(self):
         """
@@ -374,11 +326,11 @@ class StaticViz(object):
         A :class: nx.Digraph graph that has the information for the visualization of the model
         """
 
-        graph = OrderedGraph(name=self.model.name, graph={'rankdir':'LR'})
+        graph = OrderedGraph(name=self.model.name, graph={'rankdir': 'LR'})
         ic_species = [cp for cp, parameter in self.model.initial_conditions]
         for i, cp in enumerate(self.model.species):
             species_node = 's%d' % i
-            slabel = hf.parse_name(self.model.species[i])
+            slabel = parse_name(self.model.species[i])
             color = "#ccffcc"
             # color species with an initial condition differently
             if len([s for s in ic_species if s.is_equivalent_to(cp)]):
@@ -402,15 +354,20 @@ class StaticViz(object):
             modifiers = reactants & products
             reactants = reactants - modifiers
             products = products - modifiers
-            attr_reversible = {'source_arrow_shape': 'triangle', 'target_arrow_shape': 'triangle',
-                               'source_arrow_fill': 'hollow'} if reaction['reversible'] \
-                                else {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle', 'source_arrow_fill': 'filled'}
+            attr_reversible = {'source_arrow_shape': 'triangle',
+                               'target_arrow_shape': 'triangle',
+                               'source_arrow_fill': 'hollow'} if reaction[
+                'reversible'] \
+                else {'source_arrow_shape': 'none',
+                      'target_arrow_shape': 'triangle',
+                      'source_arrow_fill': 'filled'}
             for s in reactants:
                 self._r_link_bipartite(graph, s, j, **attr_reversible)
             for s in products:
-                self._r_link_bipartite(graph, s, j, _flip=True, **attr_reversible)
+                self._r_link_bipartite(graph, s, j, _flip=True,
+                                       **attr_reversible)
             for s in modifiers:
-                attr_modifiers = {'target_arrow_shape':'diamond'}
+                attr_modifiers = {'target_arrow_shape': 'diamond'}
                 self._r_link_bipartite(graph, s, j, **attr_modifiers)
         return graph
 
@@ -427,7 +384,7 @@ class StaticViz(object):
         ic_species = [cp for cp, parameter in self.model.initial_conditions]
         for i, cp in enumerate(self.model.species):
             species_node = 's%d' % i
-            slabel = hf.parse_name(self.model.species[i])
+            slabel = parse_name(self.model.species[i])
             color = "#ccffcc"
             # color species with an initial condition differently
             if len([s for s in ic_species if s.is_equivalent_to(cp)]):
@@ -451,7 +408,9 @@ class StaticViz(object):
             modifiers = reactants & products
             reactants = reactants - modifiers
             products = products - modifiers
-            attr_edges = {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle', 'source_arrow_fill': 'filled'}
+            attr_edges = {'source_arrow_shape': 'none',
+                          'target_arrow_shape': 'triangle',
+                          'source_arrow_fill': 'filled'}
             for s in reactants:
                 self._r_link_bipartite(graph, s, i, **attr_edges)
             for s in products:
@@ -496,15 +455,78 @@ class StaticViz(object):
         a nx.DiGraph
         """
         if project_to == 'species_reactions' or project_to == 'species_rules':
-            nodes = {n for n, d in graph.nodes(data=True) if d['bipartite']==0}
+            nodes = {n for n, d in graph.nodes(data=True) if
+                     d['bipartite'] == 0}
         elif project_to == 'reactions' or project_to == 'rules':
-            nodes = {n for n, d in graph.nodes(data=True) if d['bipartite']==1}
+            nodes = {n for n, d in graph.nodes(data=True) if
+                     d['bipartite'] == 1}
         else:
             raise ValueError('Projection not valid')
         projected_graph = bipartite.projected_graph(graph, nodes)
         projected_graph = self.graph_merged_pair_edges(projected_graph)
 
         return projected_graph
+
+    def merge_reactions2rules(self):
+        """
+        Merges the model reactions into each of the rules from which the reactions come form.
+        Returns
+        -------
+
+        """
+        rxn_per_rule = {}
+        for r_idx, rule in enumerate(self.model.rules):
+            rxns = []
+            for i, rxn in enumerate(self.model.reactions):
+                if rxn['rule'][0] == rule.name:
+                    rxns.append('r{0}'.format(i))
+            rxn_per_rule[(rule.name, r_idx)] = rxns
+        return rxn_per_rule
+
+    # This is a function to merge several nodes into one in a Networkx graph
+    @staticmethod
+    def merge_nodes(G, nodes, new_node, **attr):
+        """
+        Merges the selected `nodes` of the graph G into one `new_node`,
+        meaning that all the edges that pointed to or from one of these
+        `nodes` will point to or from the `new_node`.
+        attr_dict and **attr are defined as in `G.add_node`.
+        """
+        G.add_node(new_node, **attr)  # Add the 'merged' node
+        newG = G.copy()
+
+        for n1, n2, data in newG.edges(data=True):
+            # For all edges related to one of the nodes to merge,
+            # make an edge going to or coming from the `new gene`.
+            if n1 in nodes:
+                G.add_edge(new_node, n2, **data)
+            elif n2 in nodes:
+                G.add_edge(n1, new_node, **data)
+
+        for n in nodes:  # remove the merged nodes
+            G.remove_node(n)
+
+    @staticmethod
+    def _r_link_species(graph, s, r, **attrs):
+        """
+        Links two nodes in a species graph
+        Parameters
+        ----------
+        s : int
+            Source node
+        r: int
+            Target node
+        attrs: dict
+            Other attributes for edges
+
+        Returns
+        -------
+
+        """
+
+        nodes = ('s{0}'.format(s), 's{0}'.format(r))
+        attrs.setdefault('arrowhead', 'normal')
+        graph.add_edge(*nodes, **attrs)
 
     @staticmethod
     def graph_merged_pair_edges(graph):
@@ -524,33 +546,19 @@ class StaticViz(object):
             if edge in edges_to_delete:
                 continue
             if graph.has_edge(*edge[::-1]):
-                attr_reversible = {'source_arrow_shape': 'triangle', 'target_arrow_shape': 'triangle',
-                               'source_arrow_fill': 'hollow'}
+                attr_reversible = {'source_arrow_shape': 'triangle',
+                                   'target_arrow_shape': 'triangle',
+                                   'source_arrow_fill': 'hollow'}
                 edges_attributes[edge] = attr_reversible
                 edges_to_delete.append(edge[::-1])
             else:
-                attr_irreversible = {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle',
+                attr_irreversible = {'source_arrow_shape': 'none',
+                                     'target_arrow_shape': 'triangle',
                                      'source_arrow_fill': 'filled'}
                 edges_attributes[edge] = attr_irreversible
         graph.remove_edges_from(edges_to_delete)
         nx.set_edge_attributes(graph, edges_attributes)
         return graph
-
-    def merge_reactions2rules(self):
-        """
-        Merges the model reactions into each of the rules from which the reactions come form.
-        Returns
-        -------
-
-        """
-        rxn_per_rule = {}
-        for r_idx, rule in enumerate(self.model.rules):
-            rxns = []
-            for i, rxn in enumerate(self.model.reactions):
-                if rxn['rule'][0] == rule.name:
-                    rxns.append('r{0}'.format(i))
-            rxn_per_rule[(rule.name, r_idx)] = rxns
-        return rxn_per_rule
 
     @staticmethod
     def _r_link_bipartite(graph, s, r, **attrs):
@@ -576,44 +584,3 @@ class StaticViz(object):
             nodes = nodes[::-1]
         attrs.setdefault('arrowhead', 'normal')
         graph.add_edge(*nodes, **attrs)
-
-
-def graph_to_json(sp_graph, layout=None, path=''):
-    """
-
-    Parameters
-    ----------
-    sp_graph : nx.Digraph graph
-        A graph to be converted into cytoscapejs json format
-    layout: str or dict
-        Name of the layout algorithm to use for the visualization
-    path: str
-        Path to save the file
-
-    Returns
-    -------
-    A Dictionary Object that can be converted into Cytoscape.js JSON
-    """
-    data = from_networkx(sp_graph, layout=layout, scale=1)
-    if path:
-        with open(path + 'data.json', 'w') as outfile:
-            json.dump(data, outfile)
-    return data
-
-
-def dot_layout(sp_graph):
-    """
-
-    Parameters
-    ----------
-    sp_graph : nx.Digraph graph
-        Graph to layout
-
-    Returns
-    -------
-    An OrderedDict containing the node position according to the dot layout
-    """
-
-    pos = nx.nx_pydot.graphviz_layout(sp_graph, prog='dot')
-    ordered_pos = collections.OrderedDict((node, pos[node]) for node in sp_graph.nodes())
-    return ordered_pos

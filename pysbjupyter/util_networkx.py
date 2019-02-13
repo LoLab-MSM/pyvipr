@@ -87,8 +87,8 @@ def from_networkx(g, layout=None, scale=DEF_SCALE):
 
     if layout is not None:
         pos = list(map(lambda position:
-                  {'x': position[0]*scale, 'y': position[1]*scale},
-                  layout.values()))
+                       {'x': position[0] * scale, 'y': position[1] * scale},
+                       layout.values()))
 
     nodes = g.nodes()
     if isinstance(g, nx.MultiDiGraph) or isinstance(g, nx.MultiGraph):
