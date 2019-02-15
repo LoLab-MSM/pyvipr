@@ -2,11 +2,8 @@ import ipywidgets as widgets
 from pysbjupyter.model_simresult_to_json import data_to_json
 from ._version import __frontend_version__
 
-from traitlets import (
-    Any,
-    Unicode
+from traitlets import Any, Unicode, Int
 
-)
 
 @widgets.register
 class pysbViz(widgets.DOMWidget):

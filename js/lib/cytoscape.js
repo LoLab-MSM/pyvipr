@@ -224,7 +224,11 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         }
 
         // Finds nodes with no edges
-        let sp_nodes = cy.nodes().unmerge(cy.nodes().parent()); // cytoscape.js recommends not using unmerge function
+        let sp_nodes = cy.nodes().filter(function(ele){
+            let n;
+            n = !(ele.isParent());
+            return n
+        });
         const nodesWithoutEdges = sp_nodes.filter(node => node.connectedEdges(":visible").size() === 0);
         if (nodesWithoutEdges.length > 0){
             let message = "The following components are not connected and will be highlighted in the graph:<br />";
@@ -267,7 +271,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 randomize: false,
                 fit: true
             },
-            fisheye: true,
+            fisheye: false,  // Fisheye doesn't work for expanding nodes when there is an animation playing
             animate: true,
             undoable: false
         });
@@ -562,9 +566,12 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         let dynamics_vis = function(){
             // Adding empty tips to nodes and edges in advanced so they
             // can be updated later on
-            let allEles = cy.elements();
-            // remove parent elements
-            allEles.unmerge(cy.nodes().parent());
+            let allEles = cy.elements().filter(function(ele){
+                let n;
+                n = !(ele.isParent());
+                return n
+            });
+
             allEles.forEach(function(ele){
                 ele.data()['tip'] = makeTippy(ele, '');
             });
@@ -713,12 +720,26 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                         cy.elements().stop(false, false);
                     }
                 };
-                for (let i=0; i < allEles.length; i++){
-                    let ele = allEles[i];
+                let allEles2 = cy.elements().filter(function(ele){
+                    let n;
+                    n = !(ele.hasClass('cy-expand-collapse-collapsed-node') || ele.isParent());
+                    return n
+                });
+                for (let i=0; i < allEles2.length; i++){
+                    let ele = allEles2[i];
                     let animationQueue = animateAll(ele);
                     playQueue(ele, animationQueue, time)
                 }
             }
+            cy.nodes().on("expandcollapse.beforecollapse", function(event) {
+                console.log('before collapse');
+                pauseSlideshow();
+            });
+
+            cy.nodes().on("expandcollapse.beforeexpand", function(event) {
+                console.log('before expand');
+                pauseSlideshow();
+            });
 
             let playing = false;
             //
