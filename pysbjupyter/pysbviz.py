@@ -22,3 +22,6 @@ class pysbViz(widgets.DOMWidget):
     format = Unicode('cyjs').tag(sync=True, o=True)
     layout_name = Unicode().tag(sync=True, o=True)
     background = Unicode('#FFFFFF').tag(sync=True, o=True)
+    random_state = Int(default_value=None, allow_none=True)  # This is necessary only for viz with communities
+    process = Unicode('consumption')    # This is necessary only for dynamic visualization
+
