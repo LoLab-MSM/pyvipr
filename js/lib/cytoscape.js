@@ -288,8 +288,9 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 // });
                 // layout.run();
                 let children = node.children().add(node).add(node.ancestors());
+                let children_edges = children.add(children.connectedEdges());
                 cy.elements().addClass('faded');
-                children.removeClass('faded')
+                children_edges.removeClass('faded')
             }
             else {
                 let neighborhood = node.closedNeighborhood().ancestors().add(node.closedNeighborhood());
