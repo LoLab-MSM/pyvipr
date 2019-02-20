@@ -120,7 +120,7 @@ class StaticViz(object):
         nx.set_node_attributes(graph, sp_compartment, 'parent')
         return graph
 
-    def communities_view(self):
+    def communities_view(self, random_state=None):
         """
         Use a community detection algorithm to find groups of nodes that are densely connected.
         It generates the data to create a network with compound nodes that hold the communities.
@@ -130,21 +130,20 @@ class StaticViz(object):
         contains all the information (nodes,edges, parent nodes, positions) to generate
         a cytoscapejs network.
         """
-        graph = self.communities_data_graph()
+        graph = self.communities_data_graph(random_state=random_state)
         g_layout = dot_layout(graph)
         data = graph_to_json(sp_graph=graph, layout=g_layout)
         return data
 
-    def communities_data_graph(self):
+    def communities_data_graph(self, random_state=None):
         graph = self.species_graph()
         graph_communities = graph.copy().to_undirected()  # Louvain algorithm only deals with undirected graphs
-        communities = best_partition(graph_communities)
+        communities = best_partition(graph_communities, random_state=random_state)
         # compound nodes to add to hold communities
         cnodes = set(communities.values())
         graph.add_nodes_from(cnodes, NodeType='community')
         nx.set_node_attributes(graph, communities, 'parent')
         return graph
-
 
     def sp_rxns_bidirectional_view(self):
         """
