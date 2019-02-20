@@ -27,8 +27,8 @@ def sp_comp_view(model, layout_name='cose-bilkent'):
     return pysbViz(data=model, type_of_viz='species_compartments_view', layout_name=layout_name)
 
 
-def sp_comm_view(model, layout_name='cose-bilkent'):
-    return pysbViz(data=model, type_of_viz='communities_view', layout_name=layout_name)
+def sp_comm_view(model, random_state=None, layout_name='cose-bilkent'):
+    return pysbViz(data=model, type_of_viz='communities_view', random_state=random_state, layout_name=layout_name)
 
 
 def sp_rxns_bidirectional_view(model, layout_name='preset'):
@@ -67,13 +67,31 @@ def projected_species_rules_view(model, layout_name='preset'):
     return pysbViz(data=model, type_of_viz='projected_species_rules_view', layout_name=layout_name)
 
 
-def sp_dyn_view(simulation, layout_name='preset'):
-    return pysbViz(data=simulation, type_of_viz='dynamic_view', layout_name=layout_name)
+def sp_dyn_view(simulation, process='consumption', layout_name='preset'):
+    """
+
+    Parameters
+    ----------
+    simulation : pysb.SimulationResult
+        Simulation result to visualize
+    process : str
+        Type of the dynamic visualization, it can be 'consumption' or 'production'
+    layout_name : str
+        Layout name to use
+
+    Returns
+    -------
+
+    """
+    return pysbViz(data=simulation, type_of_viz='dynamic_view', layout_name=layout_name,
+                   process=process)
 
 
-def sp_comp_dyn_view(simulation, layout_name='cose-bilkent'):
-    return pysbViz(data=simulation, type_of_viz='dynamic_compartments_view', layout_name=layout_name)
+def sp_comp_dyn_view(simulation, process='consumption', layout_name='cose-bilkent'):
+    return pysbViz(data=simulation, type_of_viz='dynamic_compartments_view', layout_name=layout_name,
+                   process=process)
 
 
-def sp_comm_dyn_view(simulation, layout_name='cose-bilkent'):
-    return pysbViz(data=simulation, type_of_viz='dynamic_communities_view', layout_name=layout_name)
+def sp_comm_dyn_view(simulation, layout_name='cose-bilkent', process='consumption', random_state=None):
+    return pysbViz(data=simulation, type_of_viz='dynamic_communities_view', layout_name=layout_name,
+                   random_state=random_state, process=process)
