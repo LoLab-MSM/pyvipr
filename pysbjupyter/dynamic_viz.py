@@ -36,7 +36,7 @@ class MidpointNormalize(colors.Normalize):
 
 class ModelVisualization(object):
     """
-    Class to visualize PySB models and their dynamics
+    Class to visualize the dynamics of systems biology models defined in BNGL, SBML and PySB format.
 
     Parameters
     ----------
@@ -100,9 +100,23 @@ class ModelVisualization(object):
         data = graph_to_json(sp_graph=self.sp_graph, layout=g_layout)
         return data
 
-    def dynamic_communities_view(self, type_viz='consumption'):
+    def dynamic_communities_view(self, type_viz='consumption', random_state=None):
+        """
+
+        Parameters
+        ----------
+        type_viz: str
+            Type of visualization. It can be `consumption` to see how species are being consumed
+            or `production` to see how the species are being produced.
+        random_state: int
+            Seed used by the random generator in community detection
+
+        Returns
+        -------
+
+        """
         self.type_viz = type_viz
-        self.sp_graph = StaticViz(self.model).communities_data_graph()
+        self.sp_graph = StaticViz(self.model).communities_data_graph(random_state=random_state)
         self.sp_graph.graph['view'] = 'dynamic'
         self.sp_graph.graph['tspan'] = self.tspan.tolist()
         g_layout = dot_layout(self.sp_graph)
@@ -210,12 +224,13 @@ class ModelVisualization(object):
             rxn_val_pos_total = rxn_val_pos.sum(axis=0)
             rxn_val_neg_total = rxn_val_neg.sum(axis=0)
 
-            # The max and min of the group of reaction rates
-            if rxn_val_pos.size != 0:
-                rxn_val_pos_max = np.amax(rxn_val_pos) + self.mach_eps
-
-            if rxn_val_neg.size != 0:
-                rxn_val_neg_max = np.amax(rxn_val_neg) + self.mach_eps
+            # The max and min of the group of reaction rates. It can be used to assign size to edges
+            # based in the max and min of the groups of reaction rates across all time points
+            # if rxn_val_pos.size != 0:
+            #     rxn_val_pos_max = np.amax(rxn_val_pos) + self.mach_eps
+            #
+            # if rxn_val_neg.size != 0:
+            #     rxn_val_neg_max = np.amax(rxn_val_neg) + self.mach_eps
 
             sp_rr_dom = rxns_matrix[rxns_idx_reactant]
             sp_prr_dom = rxns_matrix[rxns_idx_product]
@@ -239,11 +254,11 @@ class ModelVisualization(object):
 
                         if tro_neg_idx.size != 0:
                             react_rate_size[tro_neg_idx] = vals_norm(np.abs(rxn_eps[tro_neg_idx]),
-                                                                     rxn_val_neg_max)
+                                                                     np.amax(np.abs(rxn_eps[tro_neg_idx])))
 
                         if tro_pos_idx.size != 0:
                             react_rate_size[tro_pos_idx] = vals_norm(rxn_eps[tro_pos_idx],
-                                                                     rxn_val_pos_max)
+                                                                     np.amax(rxn_eps[tro_pos_idx]))
 
                         rate_sizes = self.range_normalization(react_rate_size, min_x=0, max_x=1)
                         edges_id = ('s{0}'.format(sp), 's{0}'.format(p))
@@ -268,17 +283,19 @@ class ModelVisualization(object):
 
                         if ptro_neg_idx.size != 0:
                             preact_rate_size[ptro_neg_idx] = vals_norm(np.abs(prxn_eps[ptro_neg_idx]),
-                                                                     rxn_val_pos_max)
+                                                                       np.amax(np.abs(prxn_eps[ptro_neg_idx])))
 
                         if ptro_pos_idx.size != 0:
                             preact_rate_size[ptro_pos_idx] = vals_norm(prxn_eps[ptro_pos_idx],
-                                                                     rxn_val_neg_max)
+                                                                       np.amax(prxn_eps[ptro_pos_idx]))
 
                         prate_sizes = self.range_normalization(preact_rate_size, min_x=0, max_x=1)
                         edges_id = ('s{0}'.format(r), 's{0}'.format(sp))
                         all_rate_colors[edges_id] = prate_colors
                         all_rate_sizes[edges_id] = prate_sizes.tolist()
                         all_rate_abs_val[edges_id] = rxns_matrix[rp].tolist()
+            else:
+                raise ValueError('The type of process can only be `consumption` or `production`')
 
         for sp in self.passengers:
             rxns_idx_reactant = [all_reactants.index(rx) for rx in all_reactants if sp in rx]
