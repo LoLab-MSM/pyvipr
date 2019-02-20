@@ -51,7 +51,7 @@ def data_to_json(value, widget):
 
 
 def dispatch_pysb_files(value):
-    functions = {'str': _handle_model_files, 'model': _handle_pysb_model}
+    functions = {'str': _handle_model_files, 'pysb.core.Model': _handle_pysb_model}
     data_type = str(type(value)).split("'")[1]
     result = functions[data_type](value)
     return result
