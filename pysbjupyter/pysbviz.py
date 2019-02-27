@@ -2,7 +2,7 @@ import ipywidgets as widgets
 from pysbjupyter.model_simresult_to_json import data_to_json
 from ._version import __frontend_version__
 
-from traitlets import Any, Unicode, Int
+from traitlets import Any, Unicode, Int, observe
 
 
 @widgets.register
@@ -23,5 +23,13 @@ class pysbViz(widgets.DOMWidget):
     layout_name = Unicode().tag(sync=True, o=True)
     background = Unicode('#FFFFFF').tag(sync=True, o=True)
     random_state = Int(default_value=None, allow_none=True)  # This is necessary only for viz with communities
-    process = Unicode('consumption')    # This is necessary only for dynamic visualization
+    process = Unicode('consumption') .tag(sync=True, o=True)   # This is necessary only for dynamic visualization
+    sim_idx = Int(0).tag(sync=True, o=True)
 
+    @observe('process')
+    def _observe_process(self, change):
+        self.send_state('data')
+
+    @observe('n_sim')
+    def _observe_n_sim(self, change):
+        self.send_state('data')

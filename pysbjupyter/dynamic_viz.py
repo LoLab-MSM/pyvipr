@@ -42,16 +42,21 @@ class ModelVisualization(object):
     ----------
     simulation : pysb SimulationResult
         A SimulationResult instance of the model that is going to be visualized.
+    sim_idx : Index of simulation to be visualized
     """
     mach_eps = np.finfo(float).eps
 
-    def __init__(self, simulation):
+    def __init__(self, simulation, sim_idx=0):
         if not isinstance(simulation, SimulationResult):
             raise TypeError('Argument must be a pysb SimulationResult object')
         self.model = simulation._model
-        self.tspan = simulation.tout[0]
-        self.y = simulation.all
-        param_values = simulation.param_values[0]
+        self.nsims = simulation.nsims
+        if self.nsims == 1:
+            self.y = simulation.all
+        else:
+            self.y = simulation.all[sim_idx]
+        self.tspan = simulation.tout[sim_idx]
+        param_values = simulation.param_values[sim_idx]
         self.param_dict = dict((p.name, param_values[i]) for i, p in enumerate(self.model.parameters))
         self.sp_graph = None
         self.passengers = []
@@ -84,6 +89,7 @@ class ModelVisualization(object):
         self.type_viz = type_viz
         self.sp_graph = StaticViz(self.model).species_graph()
         self.sp_graph.graph['view'] = 'dynamic'
+        self.sp_graph.graph['nsims'] = self.nsims
         self.sp_graph.graph['tspan'] = self.tspan.tolist()
         g_layout = dot_layout(self.sp_graph)
         self._add_edge_node_dynamics()
@@ -94,6 +100,7 @@ class ModelVisualization(object):
         self.type_viz = type_viz
         self.sp_graph = StaticViz(self.model).compartments_data_graph()
         self.sp_graph.graph['view'] = 'dynamic'
+        self.sp_graph.graph['nsims'] = self.nsims
         self.sp_graph.graph['tspan'] = self.tspan.tolist()
         g_layout = dot_layout(self.sp_graph)
         self._add_edge_node_dynamics()
@@ -118,6 +125,7 @@ class ModelVisualization(object):
         self.type_viz = type_viz
         self.sp_graph = StaticViz(self.model).communities_data_graph(random_state=random_state)
         self.sp_graph.graph['view'] = 'dynamic'
+        self.sp_graph.graph['nsims'] = self.nsims
         self.sp_graph.graph['tspan'] = self.tspan.tolist()
         g_layout = dot_layout(self.sp_graph)
         self._add_edge_node_dynamics()

@@ -67,13 +67,15 @@ def projected_species_rules_view(model, layout_name='preset'):
     return pysbViz(data=model, type_of_viz='projected_species_rules_view', layout_name=layout_name)
 
 
-def sp_dyn_view(simulation, process='consumption', layout_name='preset'):
+def sp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='preset'):
     """
 
     Parameters
     ----------
     simulation : pysb.SimulationResult
         Simulation result to visualize
+    sim_idx : int
+        Index of simulation to be visualized
     process : str
         Type of the dynamic visualization, it can be 'consumption' or 'production'
     layout_name : str
@@ -84,14 +86,14 @@ def sp_dyn_view(simulation, process='consumption', layout_name='preset'):
 
     """
     return pysbViz(data=simulation, type_of_viz='dynamic_view', layout_name=layout_name,
-                   process=process)
+                   process=process, sim_idx=sim_idx)
 
 
-def sp_comp_dyn_view(simulation, process='consumption', layout_name='cose-bilkent'):
+def sp_comp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='cose-bilkent'):
     return pysbViz(data=simulation, type_of_viz='dynamic_compartments_view', layout_name=layout_name,
-                   process=process)
+                   process=process, sim_idx=sim_idx)
 
 
-def sp_comm_dyn_view(simulation, layout_name='cose-bilkent', process='consumption', random_state=None):
+def sp_comm_dyn_view(simulation, sim_idx=0, layout_name='cose-bilkent', process='consumption', random_state=None):
     return pysbViz(data=simulation, type_of_viz='dynamic_communities_view', layout_name=layout_name,
-                   random_state=random_state, process=process)
+                   random_state=random_state, process=process, sim_idx=sim_idx)

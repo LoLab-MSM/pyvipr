@@ -21,7 +21,6 @@ def data_to_json(value, widget):
     -------
 
     """
-
     if isinstance(value, (Model, str)):
         viz = dispatch_pysb_files(value)
         try:
@@ -35,7 +34,7 @@ def data_to_json(value, widget):
         return jsondata
 
     elif isinstance(value, SimulationResult):
-        viz = ModelVisualization(value)
+        viz = ModelVisualization(value, widget.sim_idx)
         process = widget.process
         try:
             if widget.type_of_viz == 'dynamic_communities_view':

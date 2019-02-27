@@ -84,10 +84,28 @@ var CytoscapeModel = widgets.DOMWidgetModel.extend({
 
 // Custom View. Renders the widget model.
 var CytoscapeView = widgets.DOMWidgetView.extend({
+    callback_process:function(formElement){
+        this.model.set({'process':formElement});  // update the JS model with the current view value
+        this.touch()   // sync the JS model with the Python backend
+    },
+
+    callback_sim:function(formElement){
+        this.model.set({'sim_idx':formElement});  // update the JS model with the current view value
+        this.touch()   // sync the JS model with the Python backend
+    },
 
     render: function() {
-        this.value_changed();
-        this.model.on('change:value', this.value_changed, this);
+        let vizType = this.model.get('type_of_viz');
+        if (vizType.startsWith("dynamic") === true) {
+            this.displayed.then(_.bind(this.loadData, this)).then(_.bind(this.renderButtons, this))
+                .then(_.bind(this.value_changed, this)).then(_.bind(this.cyDynamics, this));
+
+            this.model.on('change:data', this.process_sim_changed, this);
+        }
+        else{
+            this.displayed.then(_.bind(this.loadData, this)).then(_.bind(this.renderButtons, this))
+                .then(_.bind(this.value_changed, this));
+        }
     },
 
     value_changed: function() {
@@ -129,6 +147,371 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         }
     },
 
+    renderButtons: function(){
+        var that = this;
+        // Layout options
+        that.$layoutDd = $(
+            "<select id=\"layoutList\" ><optgroup label=\"Layouts available\"></select>")
+            .appendTo(that.el.parentElement);
+
+        let layouts = ["cose-bilkent", "dagre", "klay", "random", "preset", "grid", "circle", "concentric", "breadthfirst", "cose"];
+        $.each(layouts, function(index, value){
+            that.$layoutDd.append($("<option></option>")
+                .attr("value", value)
+                .text(value));
+        });
+        // Model title
+        //TODO: put h1 tag within a div and restrict it size to the size of that div
+        that.$model_title = $("<h1></h1>")
+            .css('font-size', '16px')
+            .css('margin-top', '10px');
+        // .css('height', '0.7em');
+
+        that.$title = $("<div id='title'></div>")
+            .append(that.$model_title)
+            .appendTo(that.el.parentElement);
+
+        // Searchbox elements
+        that.$search = $("<input type=\"text\" class=\"form-control\" id=\"search\" placeholder=\"Search..\">");
+
+        that.$search_wrapper = $("<div id='searchDiv'></div>")
+            .append(that.$search)
+            .appendTo(that.el.parentElement);
+
+        that.$info = $("<div id='info'></div>")
+            .appendTo(that.el.parentElement);
+
+        // Fit button to fit network to cell space
+        that.$fitButton = $("<button id='fitbuttonid'><i class=\"fa fa-arrows-h\"></i></button>")
+            .appendTo(that.el.parentElement);
+
+        // Download button
+        that.$downloadButton = $("<button id='dbutton'><i class=\"fa fa-download\" aria-hidden=\"true\"></i></button>")
+            .appendTo(that.el.parentElement);
+
+        // Add elements for control of dynamic visualization
+        let vizType = that.model.get('type_of_viz');
+        if (vizType.startsWith("dynamic") === true) {
+            that.$nsimb = $(
+                "<select id=\"simLis\" ><optgroup label=\"Simulation #\"></select>")
+                .appendTo(that.el.parentElement);
+
+            let nsims = that.networkData.data.nsims;
+            let sim_idx = that.model.get('sim_idx');
+            for (let idx = 0; idx < nsims; idx++) {
+                that.$nsimb.append($("<option></option>")
+                    .attr("value", idx)
+                    .text(idx));
+            }
+            that.$nsimb.val(sim_idx);
+
+            let process = that.model.get('process');
+            let processes = ['consumption', 'production'];
+            let unusedprocess = processes.filter(function (e) {
+                return e !== process
+            });
+            that.$processid = $(
+                "<select id=\"myprocesses\" >\n" +
+                "<optgroup label=\"Process\">\n" +
+                "  <option value='" + process + "'>" + process + "</option>\n" +
+                "  <option value='" + unusedprocess[0] + "'>" + unusedprocess[0] + "</option>\n" +
+                "</select>\n")
+                .appendTo(that.el.parentElement);
+
+            // Defining player buttons
+            that.$playButton = $("<button id='dbutton'><i class=\"fa fa-play\"></i></button>")
+                .css({
+                    "position": "absolute",
+                    "width": "30px",
+                    "height": "25px",
+                    "top": "25%",
+                    "border": "none",
+                    "background": "#fffffff7",
+                    "left": "0"
+                });
+            // playButton.style.left='100px';
+            // that.el.parentElement.appendChild(playButton);
+
+            that.$slider = $('<input type="range" value="0" min="0" max="50" step="1" id="sliderid">')
+                .css({
+                    "width": "100%",
+                    "height": "25px",
+                    "top": "0%",
+                    "position": "absolute",
+                    "border": "none"
+                });
+
+            // slider.style.left = '150px';
+            // that.el.parentElement.appendChild(slider);
+
+            that.$slider_text = $($('<input type="text" size="400" value="0" id="textid">'))
+                .css({
+                    "width": "50px",
+                    "height": "25px",
+                    "top": "36%",
+                    "left": "110px",
+                    "position": "absolute",
+                    "border": "none"
+                });
+            // that.el.parentElement.appendChild(slider_text);
+
+            that.$resetButton = $("<button id='dbutton'><i class=\"fa fa-refresh\"></i>'</button>")
+                .css({
+                    "width": "30px",
+                    "height": "25px",
+                    "top": "25%",
+                    "left": "50px",
+                    "position": "absolute",
+                    "border": "none"
+                });
+            // that.el.parentElement.appendChild(resetButton);
+
+            that.$playerSection = $("<div id='playerid'></div>")
+                .css({
+                    "width": "100%",
+                    "height": "50px",
+                    "bottom": "0%",
+                    "position": "relative"
+                })
+                .append(that.$playButton)
+                .append(that.$slider)
+                .append(that.$slider_text)
+                .append(that.$resetButton)
+                .appendTo(that.el.parentElement);
+            // playerSection.style.boxSizing = 'border-box';
+        }
+
+    },
+
+    cyObj: null,
+
+    networkData: null,
+
+    loadData: function(){
+        this.networkData = this.model.get('data');
+    },
+
+    process_sim_changed: function(){
+        this.displayed.then(_.bind(this.loadData, this)).then(_.bind(this.cyDynamics, this));
+    },
+
+    cyDynamics: function(){
+        // Adding empty tips to nodes and edges in advanced so they
+        // can be updated later on
+        let that = this;
+        let cy = this.cyObj;
+        let network = this.networkData;
+
+        that.$processid.on('change', function(){
+            that.callback_process(this.value)
+        });
+
+        that.$nsimb.on("change", function(){
+            that.callback_sim(parseInt(this.value))
+        });
+
+        let allEles = cy.elements().filter(function(ele){
+            let n;
+            n = !(ele.isParent());
+            return n
+        });
+
+        // Make tip function
+        let makeTippy = function(target, text){
+            return tippy( target.popperRef(), {
+                html: (function(){
+                    let div = document.createElement('div');
+                    div.innerHTML = text;
+                    return div;
+                })(),
+                // appendTo: that.el,
+//                        offset: '0, 450',
+                trigger: 'manual',
+                arrow: true,
+                placement: 'bottom',
+                hideOnClick: false,
+                interactive: true,
+                multiple: true,
+                sticky: true
+            } ).tooltips[0];
+        };
+
+        allEles.forEach(function(ele){
+            ele.data()['tip'] = makeTippy(ele, '');
+        });
+
+        // Show tip on tap
+        cy.on('taphold', 'node, edge',  function(evt){
+            let ele = evt.target;
+            if (ele.data()['tip']['state']['visible']){
+                ele.data()['tip'].hide();
+            } else {
+                ele.data()['tip'].show();
+            }
+        });
+
+        let tspan = network.data.tspan;
+        that.$slider.attr({"max": tspan.length - 1});
+        // start slider, time text and animation always at 0
+        let currentTime = 0;
+        animateAllEles(currentTime, true);
+
+        function animateAll(ele, data){
+            let animationDuration = 1000;
+            let animationQueue = [];
+            if (ele.isEdge()){
+                let edgeColor = data.edge_color;
+                let edgeSize = data.edge_size;
+                for (let idx = 0; idx < edgeColor.length; idx++){
+                    let color = edgeColor[idx];
+                    let size = edgeSize[idx];
+                    animationQueue.push(ele.animation({
+                        style:{
+                            'line-color': color,
+                            'target-arrow-color': color,
+                            'source-arrow-color': color,
+                            'width': size
+                        },
+                        duration: animationDuration
+                    }));
+                }
+            }
+            else {
+                let nodeRelValue = data.rel_value;
+                for (let idx = 0; idx < nodeRelValue.length; idx++){
+                    let value = nodeRelValue[idx];
+                    animationQueue.push(ele.animation({
+                        style:{
+                            'pie-1-background-size': value
+                        },
+                        duration: animationDuration
+                    }));
+                }
+            }
+
+            return animationQueue;
+        }
+
+        function animateAllEles(time, onetime){
+            let playQueue = function(ele, queue, position){
+                if (position < queue.length){
+                    if (ele.isEdge()){
+                        let qtip = ele.data('edge_qtip')[position];
+                        ele.data()['tip']['popper'].querySelector('.tippy-content').textContent = qtip.toExponential(2).toString();
+
+                    }
+                    else {
+                        let qtip = ele.data('abs_value')[position];
+                        ele.data()['tip']['popper'].querySelector('.tippy-content').textContent = qtip.toExponential(2).toString();
+
+                    }
+                    currentTime = position;
+                    that.$slider.val(currentTime);
+                    that.$slider_text.val(tspan[currentTime].toFixed(2));
+                    if (onetime === true){
+                        queue[position].play().promise('complete').then(() => {
+                            cy.elements().stop(false, false)
+                        })
+                    }
+                    else {
+                        queue[position].play().promise('complete').then(() => {
+                            playQueue(ele, queue, position + 1);
+                        });
+                    }
+
+                } else {
+                    //    stop animation
+                    cy.elements().stop(false, false);
+                }
+            };
+            // let allEles2 = cy.elements().filter(function(ele){
+            //     let n;
+            //     n = !(ele.hasClass('cy-expand-collapse-collapsed-node') || ele.isParent());
+            //     return n
+            // });
+            // for (let i=0; i < allEles2.length; i++){
+            //     let ele = allEles2[i];
+            //     let animationQueue = animateAll(ele);
+            //     playQueue(ele, animationQueue, time)
+            // }
+            network.elements.edges.forEach(function(edge){
+                let source = edge.data.source;
+                let target = edge.data.target;
+                let sNode = cy.filter("node[name=" + "\""+source+"\"" +"]");
+                let tNode = cy.filter("node[name=" + "\""+target+"\"" +"]");
+                if (sNode.length > 0 || tNode.length > 0){
+                    let ele = cy.edges().filter(function(ele){
+                        let gSource;
+                        let gTarget;
+                        if (ele.hasClass('cy-expand-collapse-meta-edge')){
+                            gSource = ele.data('originalEnds').source.data('name');
+                            gTarget = ele.data('originalEnds').target.data('name');
+                        }
+                        else {
+                            gSource = ele.data('source');
+                            gTarget = ele.data('target');
+                        }
+                        return gSource === source && gTarget === target
+                    });
+                    let animationQueue = animateAll(ele, edge.data);
+                    playQueue(ele, animationQueue, time);
+                }
+
+            });
+            network.elements.nodes.forEach(function(node){
+                let dNode = cy.filter("node[name=" + "\""+node.data.name+"\"" +"]");
+                if (node.data.NodeType !== 'community' && dNode.length > 0){
+                    let ele = cy.nodes().filter(function(ele){
+                        return ele.data('name') === node.data.name && ele.isParent() === false
+                    });
+                    let animationQueue = animateAll(ele, node.data);
+                    playQueue(ele, animationQueue, time)}
+            })
+        }
+        cy.nodes().on("expandcollapse.beforecollapse", function(event) {
+            pauseSlideshow();
+        });
+
+        cy.nodes().on("expandcollapse.beforeexpand", function(event) {
+            pauseSlideshow();
+        });
+
+        let playing = false;
+        //
+        function pauseSlideshow(){
+            that.$playButton.html('<i class="fa fa-play"></i>');
+            playing = false;
+            cy.elements().stop(false, false);
+        }
+        //
+        function playSlideshow(){
+            that.$playButton.html('<i class="fa fa-pause"></i>');
+            playing = true;
+            animateAllEles(currentTime, false);
+        }
+        //
+        //
+        that.$resetButton.on('click',function(){
+            currentTime = 0;
+            pauseSlideshow();
+            animateAllEles(currentTime, true);
+
+        });
+
+        that.$playButton.on('click',function(){
+            if(playing){ pauseSlideshow(); }
+            else{ playSlideshow(); }
+        });
+        that.$slider.on('mouseup', function(){
+            currentTime = this.value;
+            currentTime = parseInt(currentTime);
+            pauseSlideshow();
+            animateAllEles(currentTime, true);
+
+        });
+
+    },
+
     renderCy: function() {
         // Remove tippy elements that might be present from previous run
         const tippies = document.getElementsByClassName("tippy-popper");
@@ -140,7 +523,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         const format = that.model.get('format');
         let layoutName = that.model.get('layout_name');
 
-        let network = that.model.get('data');
+        let network = that.networkData;
         let visualStyle = null;
 
         const vsParam = that.model.get('visual_style');
@@ -209,6 +592,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 nodeDimensionsIncludeLabels: true
             }
         });
+        this.cyObj = cy;
         // console.log(cy.elements().components()); this could be potentially used to find
         // disjoint subnetworks within a model network
 
@@ -240,7 +624,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 n_id = component_idx(n.data());
                 message += n_id + ": " + n_name + "<br />"
             });
-
+            // Popup when nodes are not connected
             that.$close = $("<span id='close'>x</span>")
                 .css('float', 'right');
             that.$message = $("<p class=\"text\">" +
@@ -256,13 +640,11 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 .appendTo(that.el.parentElement);
 
             that.$close.on('click', function () {
-            this.parentNode.parentNode
-                .removeChild(this.parentNode);
-            return false;
-        });
-
+                this.parentNode.parentNode
+                    .removeChild(this.parentNode);
+                return false;
+            });
         }
-
         // Expand collapse compound nodes
         var api = cy.expandCollapse({
             layoutBy: {
@@ -327,41 +709,16 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 cy.elements().removeClass('faded')
             }
         });
-
-        // Make tip function
-        let makeTippy = function(target, text){
-            return tippy( target.popperRef(), {
-                html: (function(){
-                    let div = document.createElement('div');
-                    div.innerHTML = text;
-                    return div;
-                })(),
-                // appendTo: that.el,
-//                        offset: '0, 450',
-                trigger: 'manual',
-                arrow: true,
-                placement: 'bottom',
-                hideOnClick: false,
-                interactive: true,
-                multiple: true,
-                sticky: true
-            } ).tooltips[0];
-        };
         // I set the that.el.parentElement position to relative so the buttons can be render
         // relative to it in readthedocs. I don't know if this can have consequences on the notebook rendering.
         // Ideally we would create a new div where we would embed everything.
         that.el.parentElement.style.position = 'relative';
 
-        // Fit button to fit network to cell space
-        let fitButton = document.createElement("BUTTON");
-        fitButton.id = 'fitbuttonid';
-        fitButton.innerHTML = '<i class=\"fa fa-arrows-h\"></i>';
-
         let allNodes = cy.nodes();
         let layoutPadding = 30;
         let aniDur = 500;
         let easing = 'linear';
-        fitButton.addEventListener('click', function(){
+        that.$fitButton.on('click', function(){
             allNodes.unselect();
             cy.stop();
             cy.elements().removeClass('faded');
@@ -374,13 +731,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 easing: easing
             }).play();
         });
-        that.el.parentElement.appendChild(fitButton);
-
-        // Download button
-        let downloadButton = document.createElement("BUTTON");
-        downloadButton.id = 'dbutton';
-        downloadButton.innerHTML = '<i class="fa fa-download" aria-hidden="true"></i>';
-        downloadButton.addEventListener('click', function(){
+        that.$downloadButton.on('click', function(){
             let element = document.createElement('a');
             element.setAttribute('href', cy.png({scale: 3}));
             element.setAttribute('download', 'graph.png');
@@ -389,36 +740,8 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             element.click();
             document.body.removeChild(element);
         });
-        that.el.parentElement.append(downloadButton);
 
-        let layouts = ["cose-bilkent", "dagre", "klay", "random", "preset", "grid", "circle", "concentric", "breadthfirst", "cose"];
-        let unusedlayouts = layouts.filter(function(e) {return e !== layoutName});
-
-        // pysb adds the file path to the model name. Here we removed the path info to only use the model name
-        let name_spl = network.data.name.split(".");
-        //TODO: put h1 tag within a div and restrict it size to the size of that div
-        that.$model_title = $("  <h1>"+ name_spl[name_spl.length - 1] +"</h1>\n")
-            .css('font-size', '16px')
-            .css('margin-top', '10px');
-        // .css('height', '0.7em');
-
-        that.$title = $("<div id='title'></div>")
-            .append(that.$model_title)
-            .appendTo(that.el.parentElement);
-
-        that.$layoutDd = $(
-            "<select id=\"myList\" >\n" +
-            "  <option value='"+layoutName+"'>"+layoutName+"</option>\n" +
-            "  <option value='"+unusedlayouts[0]+"'>"+unusedlayouts[0]+"</option>\n" +
-            "  <option value='"+unusedlayouts[1]+"'>"+unusedlayouts[1]+"</option>  \n" +
-            "  <option value='"+unusedlayouts[2]+"'>"+unusedlayouts[2]+"</option>\n" +
-            "  <option value='"+unusedlayouts[3]+"'>"+unusedlayouts[3]+"</option>\n" +
-            "  <option value='"+unusedlayouts[4]+"'>"+unusedlayouts[4]+"</option>\n" +
-            "  <option value='"+unusedlayouts[5]+"'>"+unusedlayouts[5]+"</option>\n" +
-            "  <option value='"+unusedlayouts[6]+"'>"+unusedlayouts[6]+"</option>\n" +
-            "</select>\n")
-            .appendTo(that.el.parentElement);
-
+        that.$layoutDd.val(layoutName);
         that.$layoutDd.on('change', function() {
             let layout = cy.layout({
                 name: this.value,
@@ -431,16 +754,10 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             layout.run();
 
         });
+        // pysb adds the file path to the model name. Here we removed the path info to only use the model name
+        let name_spl = network.data.name.split(".");
+        that.$model_title.text(name_spl[name_spl.length - 1]);
 
-
-        that.$search = $("<input type=\"text\" class=\"form-control\" id=\"search\" placeholder=\"Search..\">")
-
-        that.$search_wrapper = $("<div id='bla'></div>")
-            .append(that.$search)
-            .appendTo(that.el.parentElement);
-
-        that.$info = $("<div id='info'></div>")
-            .appendTo(that.el.parentElement);
         // info.id = 'infoid';
         // that.el.parentElement.appendChild(info);
 
@@ -563,224 +880,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 lastSearch = thisSearch;
             }
         }, 50));
-
-        let dynamics_vis = function(){
-            // Adding empty tips to nodes and edges in advanced so they
-            // can be updated later on
-            let allEles = cy.elements().filter(function(ele){
-                let n;
-                n = !(ele.isParent());
-                return n
-            });
-
-            allEles.forEach(function(ele){
-                ele.data()['tip'] = makeTippy(ele, '');
-            });
-
-            // Show tip on tap
-            cy.on('taphold', 'node, edge',  function(evt){
-                let ele = evt.target;
-                if (ele.data()['tip']['state']['visible']){
-                    ele.data()['tip'].hide();
-                } else {
-                    ele.data()['tip'].show();
-                }
-            });
-
-            // Defining player buttons
-            let playButton = document.createElement("BUTTON");
-            playButton.innerHTML = '<i class="fa fa-play"></i>';
-            playButton.style.position='absolute';
-            playButton.style.width='30px';
-            playButton.style.height='25px';
-            playButton.style.bottom='0%';
-            // playButton.style.left='100px';
-            playButton.style.border='none';
-            playButton.style.background='#fffffff7';
-            // that.el.parentElement.appendChild(playButton);
-
-            let slider = document.createElement('input');
-            slider.id = 'sliderid';
-            slider.type = 'range';
-            slider.min = 0;
-            slider.max = 50;
-            slider.value = 0;
-            slider.step = 1;
-            slider.style.width = '100%';
-            slider.style.height = '25px';
-            slider.style.top = '0%';
-            // slider.style.left = '150px';
-            slider.style.position = 'absolute';
-            slider.style.border = 'none';
-            // that.el.parentElement.appendChild(slider);
-
-            let slider_text = document.createElement('input');
-            slider_text.id = 'textid';
-            slider_text.type = 'text';
-            slider_text.size = 400;
-            slider_text.value = 0;
-            slider_text.style.width = '50px';
-            slider_text.style.height = '25px';
-            slider_text.style.bottom = '0%';
-            slider_text.style.left = '100px';
-            slider_text.style.position = 'absolute';
-            slider_text.style.border = 'none';
-            // that.el.parentElement.appendChild(slider_text);
-
-            let resetButton = document.createElement("BUTTON");
-            resetButton.innerHTML = '<i class="fa fa-refresh"></i>';
-            resetButton.style.width = '30px';
-            resetButton.style.height = '25px';
-            resetButton.style.position = 'absolute';
-            resetButton.style.bottom = '0%';
-            resetButton.style.left = '50px';
-            resetButton.style.border = 'none';
-            // that.el.parentElement.appendChild(resetButton);
-
-            let playerSection = document.createElement('div');
-            playerSection.style.width = '100%';
-            playerSection.style.height = '50px';
-            playerSection.style.bottom = '0%';
-            playerSection.style.position = 'relative';
-            // playerSection.style.boxSizing = 'border-box';
-            playerSection.appendChild(playButton);
-            playerSection.appendChild(slider);
-            playerSection.appendChild(slider_text);
-            playerSection.appendChild(resetButton);
-            that.el.parentElement.appendChild(playerSection);
-
-            let tspan = network.data.tspan;
-            slider.max = tspan.length - 1;
-
-            function animateAll(ele){
-                let animationDuration = 1000;
-                let animationQueue = [];
-                if (ele.isEdge()){
-                    let edgeColor = ele.data('edge_color');
-                    let edgeSize = ele.data('edge_size');
-                    for (let idx = 0; idx < edgeColor.length; idx++){
-                        let color = edgeColor[idx];
-                        let size = edgeSize[idx];
-                        animationQueue.push(ele.animation({
-                            style:{
-                                'line-color': color,
-                                'target-arrow-color': color,
-                                'source-arrow-color': color,
-                                'width': size
-                            },
-                            duration: animationDuration
-                        }));
-                    }
-                }
-                else {
-                    let nodeRelValue = ele.data('rel_value');
-                    for (let idx = 0; idx < nodeRelValue.length; idx++){
-                        let value = nodeRelValue[idx];
-                        animationQueue.push(ele.animation({
-                            style:{
-                                'pie-1-background-size': value
-                            },
-                            duration: animationDuration
-                        }));
-                    }
-                }
-
-                return animationQueue;
-            }
-            let currentTime = 0;
-
-            function animateAllEles(time, onetime){
-                let playQueue = function(ele, queue, position){
-                    if (position < queue.length){
-                        if (ele.isEdge()){
-                            let qtip = ele.data('edge_qtip')[position];
-                            ele.data()['tip']['popper'].querySelector('.tippy-content').textContent = qtip.toExponential(2).toString();
-
-                        }
-                        else {
-                            let qtip = ele.data('abs_value')[position];
-                            ele.data()['tip']['popper'].querySelector('.tippy-content').textContent = qtip.toExponential(2).toString();
-
-                        }
-                        currentTime = position;
-                        slider.value = currentTime;
-                        slider_text.value = tspan[currentTime].toFixed(2);
-                        if (onetime === true){
-                            queue[position].play().promise('complete').then(() => {
-                                cy.elements().stop(false, false)
-                            })
-                        }
-                        else {
-                            queue[position].play().promise('complete').then(() => {
-                                playQueue(ele, queue, position + 1);
-                            });
-                        }
-
-                    } else {
-                        //    stop animation
-                        cy.elements().stop(false, false);
-                    }
-                };
-                let allEles2 = cy.elements().filter(function(ele){
-                    let n;
-                    n = !(ele.hasClass('cy-expand-collapse-collapsed-node') || ele.isParent());
-                    return n
-                });
-                for (let i=0; i < allEles2.length; i++){
-                    let ele = allEles2[i];
-                    let animationQueue = animateAll(ele);
-                    playQueue(ele, animationQueue, time)
-                }
-            }
-            cy.nodes().on("expandcollapse.beforecollapse", function(event) {
-                console.log('before collapse');
-                pauseSlideshow();
-            });
-
-            cy.nodes().on("expandcollapse.beforeexpand", function(event) {
-                console.log('before expand');
-                pauseSlideshow();
-            });
-
-            let playing = false;
-            //
-            function pauseSlideshow(){
-                playButton.innerHTML = '<i class="fa fa-play"></i>';
-                playing = false;
-                cy.elements().stop(false, false);
-            }
-            //
-            function playSlideshow(){
-                playButton.innerHTML = '<i class="fa fa-pause"></i>';
-                playing = true;
-                animateAllEles(currentTime, false);
-            }
-            //
-            //
-            resetButton.onclick = function(){
-                currentTime = 0;
-                pauseSlideshow();
-                animateAllEles(currentTime, true);
-
-            };
-
-            playButton.onclick = function(){
-                if(playing){ pauseSlideshow(); }
-                else{ playSlideshow(); }
-            };
-            slider.addEventListener('mouseup', function(){
-                currentTime = this.value;
-                currentTime = parseInt(currentTime);
-                pauseSlideshow();
-                animateAllEles(currentTime, true);
-
-            });
-
-        };
-        if(network.data.view === 'dynamic'){
-            dynamics_vis()
-        }
-
     }
 
 });
