@@ -1,7 +1,7 @@
 var widgets = require('@jupyter-widgets/base');
 var _ = require('lodash');
 var cytoscape = require('cytoscape');
-var tippy = require('tippy.js');
+var tippy = require('tippy.js/umd/index.all.js');
 var popper = require('cytoscape-popper');
 var coseBilkent = require('cytoscape-cose-bilkent');
 var dagre = require('cytoscape-dagre');
@@ -86,12 +86,12 @@ var CytoscapeModel = widgets.DOMWidgetModel.extend({
 var CytoscapeView = widgets.DOMWidgetView.extend({
     callback_process:function(formElement){
         this.model.set({'process':formElement});  // update the JS model with the current view value
-        this.touch()   // sync the JS model with the Python backend
+        this.touch();   // sync the JS model with the Python backend
     },
 
     callback_sim:function(formElement){
         this.model.set({'sim_idx':formElement});  // update the JS model with the current view value
-        this.touch()   // sync the JS model with the Python backend
+        this.touch();  // sync the JS model with the Python backend
     },
 
     render: function() {
@@ -296,8 +296,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
     },
 
     cyDynamics: function(){
-        // Adding empty tips to nodes and edges in advanced so they
-        // can be updated later on
         let that = this;
         let cy = this.cyObj;
         let network = this.networkData;
@@ -315,11 +313,10 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             n = !(ele.isParent());
             return n
         });
-
         // Make tip function
         let makeTippy = function(target, text){
             return tippy( target.popperRef(), {
-                html: (function(){
+                content: (function(){
                     let div = document.createElement('div');
                     div.innerHTML = text;
                     return div;
@@ -333,9 +330,10 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 interactive: true,
                 multiple: true,
                 sticky: true
-            } ).tooltips[0];
+            } );
         };
-
+        // Adding empty tips to nodes and edges in advanced so they
+        // can be updated later on
         allEles.forEach(function(ele){
             ele.data()['tip'] = makeTippy(ele, '');
         });
@@ -343,7 +341,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         // Show tip on tap
         cy.on('taphold', 'node, edge',  function(evt){
             let ele = evt.target;
-            if (ele.data()['tip']['state']['visible']){
+            if (ele.data()['tip']['state']['isVisible']){
                 ele.data()['tip'].hide();
             } else {
                 ele.data()['tip'].show();
