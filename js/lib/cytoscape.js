@@ -87,11 +87,13 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
     callback_process:function(formElement){
         this.model.set({'process':formElement});  // update the JS model with the current view value
         this.touch();   // sync the JS model with the Python backend
+        this.$loader.removeClass('hide-loader');
     },
 
     callback_sim:function(formElement){
         this.model.set({'sim_idx':formElement});  // update the JS model with the current view value
         this.touch();  // sync the JS model with the Python backend
+        this.$loader.removeClass('hide-loader');
     },
 
     render: function() {
@@ -169,6 +171,9 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
 
         that.$title = $("<div id='title'></div>")
             .append(that.$model_title)
+            .appendTo(that.el.parentElement);
+
+        that.$loader = $("<div class='loader hide-loader' id='loader'> </div>")
             .appendTo(that.el.parentElement);
 
         // Searchbox elements
@@ -292,7 +297,10 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
     },
 
     process_sim_changed: function(){
-        this.displayed.then(_.bind(this.loadData, this)).then(_.bind(this.cyDynamics, this));
+        let that = this;
+        this.displayed.then(_.bind(this.loadData, this)).then(function(){
+            that.$loader.addClass('hide-loader');
+        }).then(_.bind(this.cyDynamics, this));
     },
 
     cyDynamics: function(){

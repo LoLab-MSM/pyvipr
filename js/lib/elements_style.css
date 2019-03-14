@@ -17,12 +17,12 @@
 }
 
 .tt-menu {
-  background: #fff;
-  width: 14em;
-  border: 1px solid #ccc;
-  max-height: 150px;
-  overflow-y: auto;
-  margin-top: 0.5em;
+    background: #fff;
+    width: 14em;
+    border: 1px solid #ccc;
+    max-height: 150px;
+    overflow-y: auto;
+    margin-top: 0.5em;
 }
 
 .tt-suggestion:hover{
@@ -34,18 +34,18 @@
 }
 
 .tt-menu * {
-  margin: 0;
-  padding: 0;
+    margin: 0;
+    padding: 0;
 }
 
 .tt-suggestion {
-  margin: 0;
-  padding: 0;
-  cursor: pointer;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
 }
 
 .tt-suggestion + .tt-suggestion {
-  border-top: 1px solid #ccc;
+    border-top: 1px solid #ccc;
 }
 
 #infoid{
@@ -70,13 +70,13 @@
 }
 
 #close:hover {
-        float:right;
-        display:inline-block;
-        padding:2px 5px;
-        background:#ccc;
-        cursor: pointer;
+    float:right;
+    display:inline-block;
+    padding:2px 5px;
+    background:#ccc;
+    cursor: pointer;
     color:#fff;
-    }
+}
 
 #title {
     position: absolute;
@@ -92,7 +92,7 @@
     width: 6em;
     margin: 0.5em;
     top: 0;
-    z-index: 999;
+    z-index: 9999;
     right: 7em;
     height: 1.8em;
     background: white;
@@ -143,4 +143,25 @@
     z-index: 9999;
     right: 113px;
     background: white;
+}
+
+.loader {
+    border: 16px solid #f3f3f3; /* Light grey */
+    border-top: 16px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    animation: spin 2s linear infinite;
+    position: absolute;
+    left: 40%;
+    top: 30%;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.hide-loader{
+    display:none;
 }
