@@ -173,9 +173,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             .append(that.$model_title)
             .appendTo(that.el.parentElement);
 
-        that.$loader = $("<div class='loader hide-loader' id='loader'> </div>")
-            .appendTo(that.el.parentElement);
-
         // Searchbox elements
         that.$search = $("<input type=\"text\" class=\"form-control\" id=\"search\" placeholder=\"Search..\">");
 
@@ -197,6 +194,9 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         // Add elements for control of dynamic visualization
         let vizType = that.model.get('type_of_viz');
         if (vizType.startsWith("dynamic") === true) {
+            that.$loader = $("<div class='loader hide-loader' id='loader'> </div>")
+            .appendTo(that.el.parentElement);
+
             that.$nsimb = $(
                 "<select id=\"simLis\" ><optgroup label=\"Simulation #\"></select>")
                 .appendTo(that.el.parentElement);
