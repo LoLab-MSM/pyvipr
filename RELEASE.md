@@ -9,7 +9,7 @@ pip install wheel
 
 ## Prepare release
 
-- To release a new version of pysbjupyter on PyPI:
+- To release a new version of pyvipr on PyPI:
 
 * Update _version.py (set release version, remove 'dev')
 * git add the _version.py file and git commit
@@ -32,7 +32,7 @@ git add and git commit
 git push
 git push --tags
 
-- To release a new version of viz-pysb-widget on NPM:
+- To release a new version of pyvipr on NPM:
 
 ```
 # clean out the `dist` and `node_modules` directories

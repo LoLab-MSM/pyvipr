@@ -7,5 +7,5 @@ Package Install
 - [node](http://nodejs.org/)
 
 ```bash
-npm install --save viz-pysb-widget
+npm install --save pyvipr
 ```

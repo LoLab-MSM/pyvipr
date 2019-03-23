@@ -1,14 +1,14 @@
-var viz-pysb-widget = require('./index');
+var pyvipr = require('./index');
 var base = require('@jupyter-widgets/base');
 
 module.exports = {
-  id: 'viz-pysb-widget',
+  id: 'pyvipr',
   requires: [base.IJupyterWidgetRegistry],
   activate: function(app, widgets) {
       widgets.registerWidget({
-          name: 'viz-pysb-widget',
-          version: viz-pysb-widget.version,
-          exports: viz-pysb-widget
+          name: 'pyvipr',
+          version: pyvipr.version,
+          exports: pyvipr
       });
   },
   autoStart: true

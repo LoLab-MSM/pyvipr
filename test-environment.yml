@@ -1,4 +1,4 @@
-name: pysbjupyter-test
+name: pyvipr-test
 channels:
   - conda-forge
   - alubbock

@@ -66,8 +66,8 @@ class NPM(Command):
     node_modules = os.path.join(node_root, 'node_modules')
 
     targets = [
-        os.path.join(here, 'pysbjupyter', 'static', 'extension.js'),
-        os.path.join(here, 'pysbjupyter', 'static', 'index.js')
+        os.path.join(here, 'pyvipr', 'static', 'extension.js'),
+        os.path.join(here, 'pyvipr', 'static', 'index.js')
     ]
 
     def initialize_options(self):
@@ -121,22 +121,22 @@ class NPM(Command):
         update_package_data(self.distribution)
 
 version_ns = {}
-with open(os.path.join(here, 'pysbjupyter', '_version.py')) as f:
+with open(os.path.join(here, 'pyvipr', '_version.py')) as f:
     exec(f.read(), {}, version_ns)
 
 setup_args = {
-    'name': 'pysbjupyter',
+    'name': 'pyvipr',
     'version': version_ns['__version__'],
     'description': 'Widget to visualize PySB models in Jupyter Notebook',
     'long_description': LONG_DESCRIPTION,
     'include_package_data': True,
     'data_files': [
-        ('share/jupyter/nbextensions/viz-pysb-widget', [
-            'pysbjupyter/static/extension.js',
-            'pysbjupyter/static/index.js',
-            'pysbjupyter/static/index.js.map',
+        ('share/jupyter/nbextensions/pyvipr', [
+            'pyvipr/static/extension.js',
+            'pyvipr/static/index.js',
+            'pyvipr/static/index.js.map',
         ],),
-        ('etc/jupyter/nbconfig/notebook.d' ,['viz-pysb-widget.json'])
+        ('etc/jupyter/nbconfig/notebook.d' ,['pyvipr.json'])
     ],
     'install_requires': [
         'ipywidgets>=7.0.0',
@@ -159,7 +159,7 @@ setup_args = {
 
     'author': 'Oscar Ortega',
     'author_email': 'oscar.ortega@vanderbilt.edu',
-    'url': 'https://github.com/LoLab-VU/viz-pysb-widget',
+    'url': 'https://github.com/LoLab-VU/pyvipr',
     'keywords': [
         'ipython',
         'jupyter',

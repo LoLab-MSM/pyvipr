@@ -19,19 +19,19 @@ sys.path.insert(0, os.path.abspath('.'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'pysbjupyter'
+project = 'pyvipr'
 copyright = '2018, Oscar O Ortega'
 author = 'Oscar O Ortega'
 
-import pysbjupyter, pkg_resources
+import pyvipr, pkg_resources
 
 # The full version, including alpha/beta/rc tags
-release = pysbjupyter.__version__
+release = pyvipr.__version__
 
 # The short X.Y version
 version = pkg_resources.parse_version(release).base_version
 
-del pysbjupyter, pkg_resources
+del pyvipr, pkg_resources
 
 # -- General configuration ---------------------------------------------------
 
@@ -117,7 +117,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'pysbjupyterdoc'
+htmlhelp_basename = 'pyviprdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -144,7 +144,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'pysbjupyter.tex', 'pysbjupyter Documentation',
+    (master_doc, 'pyvipr.tex', 'pyvipr Documentation',
      'Oscar O Ortega', 'manual'),
 ]
 
@@ -154,7 +154,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'pysbjupyter', 'pysbjupyter Documentation',
+    (master_doc, 'pyvipr', 'pyvipr Documentation',
      [author], 1)
 ]
 
@@ -165,8 +165,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'pysbjupyter', 'pysbjupyter Documentation',
-     author, 'pysbjupyter', 'One line description of project.',
+    (master_doc, 'pyvipr', 'pyvipr Documentation',
+     author, 'pyvipr', 'One line description of project.',
      'Miscellaneous'),
 ]
 

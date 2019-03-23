@@ -10,4 +10,4 @@ dependencies:
   - graphviz
   - pip:
       - python-louvain
-      - pysbjupyter
+      - pyvipr

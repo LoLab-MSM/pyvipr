@@ -1,11 +1,11 @@
-.. pysbjupyter documentation master file, created by
+.. pyvipr documentation master file, created by
    sphinx-quickstart on Mon Dec  3 13:26:00 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to pysbjupyter's documentation!
+Welcome to pyvipr's documentation!
 =======================================
-pysbjupyter is an ipython widget for interactively visualizing systems biology models. It uses
+pyvipr is an ipython widget for interactively visualizing systems biology models. It uses
 `PySB`_ for generating network data and simulating trajectories and `Cytoscape.js`_ to render them.
 It supports BioNetGen and SBML models through the pysb importer module.
 

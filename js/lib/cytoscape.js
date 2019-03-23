@@ -74,8 +74,8 @@ var CytoscapeModel = widgets.DOMWidgetModel.extend({
     defaults: _.extend(widgets.DOMWidgetModel.prototype.defaults(), {
         _model_name: 'CytoscapeModel',
         _view_name: 'CytoscapeView',
-        _model_module: 'viz-pysb-widget',
-        _view_module: 'viz-pysb-widget',
+        _model_module: 'pyvipr',
+        _view_module: 'pyvipr',
         _model_module_version: semver_range,
         _view_module_version: semver_range
     })

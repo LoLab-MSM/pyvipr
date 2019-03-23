@@ -11,5 +11,5 @@ dependencies:
   - pysb
   - nbsphinx
   - pip:
-      - pysbjupyter
+      - pyvipr
       - python-louvain

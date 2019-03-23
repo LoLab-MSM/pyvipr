@@ -1,0 +1,62 @@
+## title: organelle_transport.bngl
+#  description: Simple model of tranport involving two cell organelles. This is the model 
+#               that was used in the CellBlender tutorial.
+begin parameters
+    NA 6.02e23 # Avogadro’s number
+    kp_LR 4e8
+    km_LR 10
+    k_LRtrans 1000
+    kp_LT1 4e8
+    km_LT1 10
+    k_LT1trans 1000
+    kp_L2T2 4e8
+    km_L2T2 10
+    k_L2T2trans 1000
+    vol_CYT 1
+    vol_O1M 1
+    vol_O1V 1
+    vol_O2M 1
+    vol_O2V 1
+end parameters
+
+begin compartments
+  CYT  3  vol_CYT  
+  O1M  2  vol_O1M   CYT
+  O1V  3  vol_O1V   O1M
+  O2M  2  vol_O2M   CYT
+  O2V  3  vol_O2V   O2M
+end compartments
+
+begin molecule types
+L()
+R()
+LR()
+T1()
+LT1()
+L2()
+T2()
+L2T2()
+end molecule types
+
+begin seed species
+L@CYT 1000
+R@O1M 200
+T1@O1M 1000
+T2@O2M 1000
+end seed species
+
+begin observables
+  Molecules L2in L2@O2V()
+end observables
+
+begin functions
+end functions
+
+begin reaction rules
+L@CYT + R@O1M <-> LR@O1M kp_LR, km_LR
+LR@O1M -> L@O1V + R@O1M k_LRtrans
+L@O1V + T1@O1M <-> LT1@O1M kp_LT1, km_LT1
+LT1@O1M -> T1@O1M + L2@CYT k_LT1trans
+L2@CYT + T2@O2M <-> L2T2@O2M kp_L2T2, km_L2T2
+L2T2@O2M -> T2@O2M + L2@O2V k_L2T2trans
+end reaction rules

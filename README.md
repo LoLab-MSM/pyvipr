@@ -1,7 +1,7 @@
-[![Documentation Status](https://readthedocs.org/projects/viz-pysb-widget/badge/?version=latest)](https://viz-pysb-widget.readthedocs.io/en/latest/?badge=latest)
-[![Build Status](https://travis-ci.org/LoLab-VU/viz-pysb-widget.svg?branch=master)](https://travis-ci.org/LoLab-VU/viz-pysb-widget)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/LoLab-VU/viz-pysb-widget/master?filepath=docs%2Ftutorial.ipynb)
-# viz-pysb-widget
+[![Documentation Status](https://readthedocs.org/projects/pyvipr/badge/?version=latest)](https://pyvipr.readthedocs.io/en/latest/?badge=latest)
+[![Build Status](https://travis-ci.org/LoLab-VU/pyvipr.svg?branch=master)](https://travis-ci.org/LoLab-VU/pyvipr)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/LoLab-VU/pyvipr/master?filepath=docs%2Ftutorial.ipynb)
+# pyvipr
 Dynamic and static visualizations of [PySB](http://pysb.org/) models using cytoscapejs, It is based on the 
 [cytoscape-jupyter-widget](https://github.com/idekerlab/cytoscape-jupyter-widget)
 
@@ -13,23 +13,23 @@ To install this widget, use _pip_:
 
 ```bash
 # Install the widget from PyPI repository
-> pip install pysbjupyter
+> pip install pyvipr
 
 # Enable it
-> jupyter nbextension enable --py --sys-prefix pysbjupyter
+> jupyter nbextension enable --py --sys-prefix pyvipr
 ```
 ### From git (requires npm)
 ```bash
-$ git clone https://github.com/LoLab-VU/viz-pysb-widget.git
-$ cd viz-pysb-widget
+$ git clone https://github.com/LoLab-VU/pyvipr.git
+$ cd pyvipr
 $ pip install .
-$ jupyter nbextension enable --py --sys-prefix pysbjupyter
+$ jupyter nbextension enable --py --sys-prefix pyvipr
 ```
 
 ## How to use the widget
 After installing the widget, it can be used by importing it in the notebook. The widget is simple to use with PySB 
 models and [SimulationResult](https://pysb.readthedocs.io/en/stable/modules/simulator.html#pysb.simulator.SimulationResult) 
-objects. pysbjupyter has different functions to visualize PySB models and simulations:
+objects. pyvipr has different functions to visualize PySB models and simulations:
 
 | Function                                 | Description                                           |
 |------------------------------------------|-------------------------------------------------------|
@@ -56,8 +56,8 @@ using box selection (modifier key(command, alt, ctrl) + mousedown then drag)
   
 Static Example:
 ```python
-import pysbjupyter as viz
-from pysbjupyter.pysb_models.mm_two_paths_model import model
+import pyvipr as viz
+from pyvipr.pysb_models.mm_two_paths_model import model
 
 viz.species_view(model)
 ```
@@ -65,8 +65,8 @@ viz.species_view(model)
 ![species_view](double_enzymatic_species.png)
 Dynamic Example:
 ```python
-import pysbjupyter as viz
-from pysbjupyter.pysb_models.mm_two_paths_model import model
+import pyvipr as viz
+from pyvipr.pysb_models.mm_two_paths_model import model
 from pysb.simulator import ScipyOdeSimulator
 import numpy as np
 

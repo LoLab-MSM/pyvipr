@@ -11,11 +11,11 @@ before_install:
     - bash miniconda.sh -b -p $HOME/miniconda
     - export PATH="$HOME/miniconda/bin:$PATH"
     - conda env create -f test-environment.yml
-    - source activate pysbjupyter-test
+    - source activate pyvipr-test
 install:
     - pip install .
 script:
-    - pytest --nbval --cov=viz-pysb-widget
+    - pytest --nbval --cov=pyvipr
 after_success: coveralls
 deploy:
   provider: pypi
