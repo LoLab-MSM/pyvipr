@@ -307,6 +307,24 @@ class StaticViz(object):
     def projected_species_rules_view(self):
         return self.projections_view('species_rules')
 
+    def _sp_initial(self, sp):
+        """
+        Get initial condition of a species
+        Parameters
+        ----------
+        sp: pysb.ComplexPattern, pysb species
+
+        Returns
+        -------
+
+        """
+        sp_0 = 0
+        for spInitial in self.model.initial_conditions:
+            if spInitial[0].is_equivalent_to(sp):
+                sp_0 = spInitial[1].value
+                break
+        return sp_0
+
     def species_graph(self):
         """
         Creates a nx.DiGraph graph of the model species
@@ -320,22 +338,26 @@ class StaticViz(object):
         # TODO: there are reactions that generate parallel edges that are not taken into account because netowrkx
         # digraph only allows one edge between two nodes
 
-        for idx in range(len(self.model.species)):
+        for idx, sp in enumerate(self.model.species):
             species_node = 's%d' % idx
             # Setting the information about the node
-            node_data = dict(label=hf.parse_name(self.model.species[idx]),
+            node_data = dict(label=hf.parse_name(sp),
                              background_color="#2b913a",
                              shape='ellipse',
-                             NodeType='species')
+                             NodeType='species',
+                             spInitial=self._sp_initial(sp))
             sp_graph.add_node(species_node, **node_data)
 
         for reaction in self.model.reactions_bidirectional:
             reactants = set(reaction['reactants'])
             products = set(reaction['products'])
-            attr_reversible = {'source_arrow_shape': 'diamond', 'target_arrow_shape': 'triangle',
-                               'source_arrow_fill': 'hollow'} if reaction['reversible'] \
-                                else {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle',
+            if reaction['reversible']:
+                attr_reversible = {'source_arrow_shape': 'diamond', 'target_arrow_shape': 'triangle',
+                                   'source_arrow_fill': 'hollow'}
+            else:
+                attr_reversible = {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle',
                                       'source_arrow_fill': 'filled'}
+
             for s in reactants:
                 for p in products:
                     self._r_link_species(sp_graph, s, p, **attr_reversible)
@@ -377,7 +399,7 @@ class StaticViz(object):
         ic_species = [cp for cp, parameter in self.model.initial_conditions]
         for i, cp in enumerate(self.model.species):
             species_node = 's%d' % i
-            slabel = hf.parse_name(self.model.species[i])
+            slabel = hf.parse_name(cp)
             color = "#ccffcc"
             # color species with an initial condition differently
             if len([s for s in ic_species if s.is_equivalent_to(cp)]):
@@ -387,14 +409,18 @@ class StaticViz(object):
                            shape="ellipse",
                            background_color=color,
                            NodeType='species',
+                           spInitial=self._sp_initial(cp),
                            bipartite=0)
         for j, reaction in enumerate(self.model.reactions_bidirectional):
             reaction_node = 'r%d' % j
+            rule = self.model.rules.get(reaction['rule'][0])
             graph.add_node(reaction_node,
                            label=reaction_node,
                            shape="roundrectangle",
                            background_color="#d3d3d3",
                            NodeType='reaction',
+                           kf=rule.rate_forward.value,
+                           kr=rule.rate_reverse.value if rule.rate_reverse else 'None',
                            bipartite=1)
             reactants = set(reaction['reactants'])
             products = set(reaction['products'])
@@ -436,14 +462,18 @@ class StaticViz(object):
                            shape="ellipse",
                            background_color=color,
                            NodeType='species',
+                           spInitial=self._sp_initial(cp),
                            bipartite=0)
         for i, reaction in enumerate(self.model.reactions):
             reaction_node = 'r%d' % i
+            rule = self.model.rules.get(reaction['rule'][0])
             graph.add_node(reaction_node,
                            label=reaction_node,
                            shape="roundrectangle",
                            background_color="#d3d3d3",
                            NodeType='reaction',
+                           kf=rule.rate_forward.value if not reaction['reverse'][0] else 'None',
+                           kr=rule.rate_reverse.value if reaction['reverse'][0] else 'None',
                            bipartite=1)
             reactants = set(reaction['reactants'])
             products = set(reaction['products'])
@@ -474,6 +504,9 @@ class StaticViz(object):
         node_attrs = {'shape': 'roundrectangle', 'background_color': '#ff4c4c',
                       'NodeType': 'rule', 'bipartite': 1}
         for rule_info, rxns in nodes2merge.items():
+            rule = self.model.rules.get(rule_info[0])
+            node_attrs['kf'] = rule.rate_forward.value
+            node_attrs['kr'] = rule.rate_reverse.value if rule.rate_reverse else 'None'
             node_attrs['label'] = rule_info[0]
             node_attrs['index'] = 'rule' + str(rule_info[1])
             self.merge_nodes(graph, rxns, rule_info[0], **node_attrs)

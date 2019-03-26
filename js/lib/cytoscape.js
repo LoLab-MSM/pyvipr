@@ -778,10 +778,19 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 name = data.name;
             }
             index = component_idx(data);
-            let aaa = ['<div class="tt-suggest-page"><p><strong>' + name + '</strong></p>',
+            let template = ['<div class="tt-suggest-page"><p><strong>' + name + '</strong></p>',
                 '<p><strong>' + '<i class="fa fa-list-ol"></i>' + ' ' + index + '</strong></p><div>',
-                '<p><strong>' + '<i class="fa fa-info-circle"></i>' + ' ' + data.NodeType + '</strong></p><div>'].join('');
-            return aaa;
+                '<p><strong>' + '<i class="fa fa-id-card-o"></i>' + ' ' + data.NodeType + '</strong></p><div>'].join('');
+            if (data.NodeType === 'species'){
+                template = template.concat('<p><strong>' + '<i class="fa fa-bar-chart"></i>' + ' ' + data.spInitial + '</strong></p><div>')
+            }
+            else if (data.NodeType === 'reaction' || data.NodeType === 'rule'){
+                template = template.concat(
+                    '<p><strong>' + 'kf:' + ' ' + data.kf + '</strong></p><div>',
+                   '<p><strong>' + 'kr:' + ' ' + data.kr + '</strong></p><div>'
+                )
+            }
+            return template;
         };
 
         function showNodeInfo( node ){
