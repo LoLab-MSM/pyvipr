@@ -62,7 +62,7 @@ Static Example:
 import pyvipr as viz
 from pyvipr.pysb_models.mm_two_paths_model import model
 
-viz.species_view(model)
+viz.sp_view(model)
 ```
 
 ![species_view](double_enzymatic_species.png)
@@ -75,7 +75,7 @@ import numpy as np
 
 tspan = np.linspace(0, 1000, 100)
 sim = ScipyOdeSimulator(model, tspan).run()
-viz.species_dynamics_view(sim)
+viz.sp_dyn_view(sim)
 ```
 
 ![enzymatic_reaction](pysbViz.gif)
