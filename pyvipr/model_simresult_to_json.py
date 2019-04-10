@@ -1,10 +1,11 @@
-from pyvipr.static_viz import StaticViz
 from pyvipr.dynamic_viz import ModelVisualization
+from pyvipr.network_viz import NetworkViz
+from pyvipr.static_viz import StaticViz
+from pyvipr.util import dispatch_pysb_files
 from pysb.core import Model
 from pysb.simulator.base import SimulationResult
-from pysb.importers.bngl import model_from_bngl
-from pysb.importers.sbml import model_from_sbml, model_from_biomodels
-import os
+from networkx import Graph, DiGraph
+
 
 
 def data_to_json(value, widget):
@@ -22,7 +23,8 @@ def data_to_json(value, widget):
 
     """
     if isinstance(value, (Model, str)):
-        viz = dispatch_pysb_files(value)
+        model = dispatch_pysb_files(value)
+        viz = StaticViz(model)
         try:
             if widget.type_of_viz == 'communities_view':
                 rs = widget.random_state
@@ -45,33 +47,15 @@ def data_to_json(value, widget):
         except AttributeError:
             raise AttributeError('Type of visualization not defined')
         return jsondata
+    elif isinstance(value, (Graph, DiGraph)):
+        viz = NetworkViz(value)
+        try:
+            jsondata = getattr(viz, widget.type_of_viz)()
+        except AttributeError:
+            raise AttributeError('Type of visualization not defined')
+        return jsondata
     else:
-        raise TypeError('Only Model and SimulationResult are supported')
-
-
-def dispatch_pysb_files(value):
-    functions = {'str': _handle_model_files, 'pysb.core.Model': _handle_pysb_model}
-    data_type = str(type(value)).split("'")[1]
-    result = functions[data_type](value)
-    return result
-
-
-def _handle_model_files(value):
-    file_extension = os.path.splitext(value)[1]
-    if file_extension == '.bngl':
-        model = model_from_bngl(value)
-    elif file_extension == '.sbml':
-        model = model_from_sbml(value)
-    elif value.startswith('BIOMD'):
-        model = model_from_biomodels(value)
-    else:
-        raise ValueError('Format not supported')
-    viz = StaticViz(model)
-    return viz
-
-
-def _handle_pysb_model(value):
-    return StaticViz(value)
+        raise TypeError('Only Model, SimulationResult, and networkx graphs are supported')
 
 
 

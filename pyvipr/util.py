@@ -1,7 +1,9 @@
 import re
 from collections import OrderedDict
 from pysb.bng import generate_equations
-import pysb
+from pysb.importers.bngl import model_from_bngl
+from pysb.importers.sbml import model_from_sbml, model_from_biomodels
+import os
 
 
 def parse_name(spec):
@@ -98,4 +100,28 @@ def find_nonimportant_nodes(model):
     non_imp_nodes = set.intersection(non_imp_pdts, non_imp_rcts)
     passengers = non_imp_nodes
     return passengers
+
+
+def dispatch_pysb_files(value):
+    functions = {'str': _handle_model_files, 'pysb.core.Model': _handle_pysb_model}
+    data_type = str(type(value)).split("'")[1]
+    result = functions[data_type](value)
+    return result
+
+
+def _handle_model_files(value):
+    file_extension = os.path.splitext(value)[1]
+    if file_extension == '.bngl':
+        model = model_from_bngl(value)
+    elif file_extension == '.sbml':
+        model = model_from_sbml(value)
+    elif value.startswith('BIOMD'):
+        model = model_from_biomodels(value)
+    else:
+        raise ValueError('Format not supported')
+    return model
+
+
+def _handle_pysb_model(value):
+    return value
 

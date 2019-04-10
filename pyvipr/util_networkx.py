@@ -145,3 +145,72 @@ def to_networkx(cyjs, directed=True):
         g.add_edge(source, target, attr_dict=data)
 
     return g
+
+
+def network_dynamic_data(network, tspan, node_rel=None, node_tip=None, edge_colors=None, edge_sizes=None,
+                         edge_tips=None):
+    """
+
+    Parameters
+    ----------
+    network: nx.DiGraph or nx.Graph
+    tspan
+    node_rel: dict
+        A dictionary where the keys are the node ids and the values are
+        lists that contain (0-100) values that are represented in a
+        pie chart within the node
+    node_tip: dict
+        A dictionary where the keys are the node ids and the values are
+        lists that contain any value that can be accessed
+        as a tooltip in the rendered network
+    edge_colors: dict
+        A dictionary where the keys are the edge ids and the values are
+        lists that contain any hexadecimal color value that are
+        represented in the edge colors
+    edge_sizes: dict
+        A dictionary where the keys are the edge ids and the values are
+        lists that contain any numerical value that are
+        represented in the edge size
+    edge_tips: dict
+        A dictionary where the keys are the edge ids and the values are
+        lists that contain any value that can be accessed
+        as a tooltip in the rendered network
+-
+
+    """
+    node_rel_default = [0] * len(tspan)
+    node_tip_default = [0] * len(tspan)
+    edge_colors_default = ['#787878'] * len(tspan)
+    edge_sizes_default = [5] * len(tspan)
+    edge_tips_default = [0] * len(tspan)
+
+    if node_rel is not None:
+        node_rel_default = node_rel
+    if node_tip is not None:
+        node_tip_default = node_tip
+    if edge_colors is not None:
+        edge_colors_default = edge_colors
+    if edge_sizes is not None:
+        edge_sizes_default = edge_sizes
+    if edge_tips is not None:
+        edge_tips_default = edge_tips
+
+    node_edge_properties = [node_rel_default, node_tip_default, edge_colors_default,
+                            edge_sizes_default, edge_tips_default]
+
+    if [idx for idx in node_edge_properties if len(idx) != len(tspan)]:
+        raise ValueError('All edge and node properties must be '
+                         'equal length')
+
+    nx.set_node_attributes(network, node_rel_default, 'rel_value')
+    nx.set_node_attributes(network, node_tip_default, 'abs_value')
+    nx.set_node_attributes(network, 'ellipse', 'shape')
+    nx.set_node_attributes(network, '#2b913a', 'background_color')
+    nx.set_edge_attributes(network, edge_colors_default, 'edge_color')
+    nx.set_edge_attributes(network, edge_sizes_default, 'edge_size')
+    nx.set_edge_attributes(network, edge_tips_default, 'edge_qtip')
+
+    network.graph['name'] = ''
+    network.graph['view'] = 'dynamic'
+    network.graph['tspan'] = tspan
+

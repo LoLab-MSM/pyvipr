@@ -570,7 +570,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                     'pie-2-background-size': '100'
                 })
 
-                .selector('edge')
+                .selector('edge[source_arrow_shape]')
                 .style({
                     'curve-style': 'bezier',
                     // 'width': 'data(width)',
