@@ -56,7 +56,7 @@ def sp_comp_view(model, layout_name='cose-bilkent'):
     return pysbViz(data=model, type_of_viz='species_compartments_view', layout_name=layout_name)
 
 
-def sp_comm_view(model, layout_name='cose-bilkent', random_state=None):
+def sp_comm_view(model, layout_name='klay', random_state=None):
     """
     Render a visualization of the interactions between the species in a model.
      The species nodes are grouped y the communities detected by the Louvain algorithm.
@@ -270,7 +270,7 @@ def sp_comp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='
                    process=process, sim_idx=sim_idx)
 
 
-def sp_comm_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='cose-bilkent', random_state=None):
+def sp_comm_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='klay', random_state=None):
     """
     Render a dynamic visualization of the simulation. The species nodes are grouped
     by the communities detected by the Louvain algorithm

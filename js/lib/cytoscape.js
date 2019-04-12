@@ -586,6 +586,8 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 })
                 .selector('node.cy-expand-collapse-collapsed-node')
                 .style({
+                    'label': 'data(label)',
+                    'text-wrap': 'wrap',
                     'background-color': 'darkblue',
                     'shape': 'rectangle'})
                 .selector('.faded')
@@ -601,6 +603,24 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         this.cyObj = cy;
         // console.log(cy.elements().components()); this could be potentially used to find
         // disjoint subnetworks within a model network
+
+        // Change name of community nodes
+        let communities = cy.nodes('[NodeType = "community"]');
+        if (!communities.empty()){
+            communities.forEach(function(community){
+                let node_degree = [];
+                community.children().forEach(function(node){
+                    node_degree.push([node, node.degree()])
+                });
+                node_degree.sort(function(a, b){return b[1]-a[1]});
+                if (node_degree[0][1] === node_degree[1][1]){
+                    community.data('label', `${node_degree[0][0].data('label')} \n ${node_degree[1][0].data('label')} regulation`)
+
+
+                }
+                else {community.data('label', node_degree[0][0].data('label') + ' regulation')}
+            })
+        }
 
         function component_idx(data){
             let index;

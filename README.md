@@ -4,9 +4,10 @@
 [![Documentation Status](https://readthedocs.org/projects/viz-pysb-widget/badge/?version=latest)](https://viz-pysb-widget.readthedocs.io/en/latest/?badge=latest)
 [![Build Status](https://travis-ci.org/LoLab-VU/pyvipr.svg?branch=master)](https://travis-ci.org/LoLab-VU/pyvipr)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/LoLab-VU/pyvipr/master?filepath=docs%2Ftutorial.ipynb)
-# pyvipr
-Dynamic and static visualizations of [PySB](http://pysb.org/) models using cytoscapejs, It is based on the 
-[cytoscape-jupyter-widget](https://github.com/idekerlab/cytoscape-jupyter-widget)
+# PyViPR
+PyViPR is a Jupyter widget for the dynamic and static visualization of [PySB](http://pysb.org/), 
+[BNGL](https://www.csb.pitt.edu/Faculty/Faeder/?page_id=409), and [SBML](http://sbml.org/Main_Page) 
+ models using cytoscapejs.
 
 ## Installation
 
@@ -31,16 +32,16 @@ $ jupyter nbextension enable --py --sys-prefix pyvipr
 
 ## How to use the widget
 After installing the widget, it can be used by importing it in the notebook. The widget is simple to use with PySB 
-models and [SimulationResult](https://pysb.readthedocs.io/en/stable/modules/simulator.html#pysb.simulator.SimulationResult) 
-objects. pyvipr has different functions to visualize PySB models and simulations:
+models, [SimulationResult](https://pysb.readthedocs.io/en/stable/modules/simulator.html#pysb.simulator.SimulationResult) 
+objects, and BNGL & SBML files. PyViPR has the following visualization functions:
 
 | Function                                 | Description                                           |
 |------------------------------------------|-------------------------------------------------------|
 | `sp_view(model)`                    | Shows network of interacting species                  |
 | `sp_comp_view(model)`       | Shows network of species in their respective compartments |
 | `sp_comm_view(model)`                | Shows network of species grouped in [communities](https://en.wikipedia.org/wiki/Community_structure) |
-| `sp_rxns_bidirectional_view(model)`      | Shows bipartite network with species and bidirectional rections nodes |
-| `sp_rxns_view(model)`                    | Shows bipartite network with species and unidirectional rections nodes |
+| `sp_rxns_bidirectional_view(model)`      | Shows bipartite network with species and bidirectional reactions nodes |
+| `sp_rxns_view(model)`                    | Shows bipartite network with species and unidirectional reactions nodes |
 | `sp_rules_view(model)`                   | Shows bipartite network with species and rules nodes  |
 | `sp_rules_fxns_view(model)`         | Shows bipartite network with species and rules nodes.<br> Rules nodes are grouped in the functions they come from |
 | `sp_rules_mod_view(model)`           | Shows bipartite network with species and rules nodes.<br> Rules nodes are grouped in the file modules they come from |
@@ -51,9 +52,12 @@ objects. pyvipr has different functions to visualize PySB models and simulations
 | `sp_dyn_view(SimulationResult)`| Shows a species network. Edges size and color are updated <br> according to reaction rate values. Nodes filling <br> are updated according to concentration|
 | `sp_comp_dyn_view(SimulationResult)` | Same as sp_dyn_view but species nodes are grouped by <br> the compartments on which they are located |
 | `sp_comm_dyn_view(SimulationResult)` | Same as sp_dyn_view but species nodes are grouped by communities |
+| `sim_model_dyn_view(model, tspan, param_values)` | Simulates a model a shows a dynamic visualization of the results |
+| `nx_graph_view(graph)` | Shows a networkx graph |
+| `nx_graph_dyn_view(graph, tspan, **kwargs)`| Shows a dynamic visualization of the graph |
 
 All visualizations have a search button that can be used to find nodes in large networks. This search function displays 
-information about the species label and the type of node (species, reaction, rule, ...). Additionally, there is a fit 
+information about the node label and the type of node (species, reaction, rule, ...). Additionally, there is a fit 
 button to center the nodes into the display area. It is possible to zoom in to a node or o collection of nodes
 using box selection (modifier key(command, alt, ctrl) + mousedown then drag)
   
