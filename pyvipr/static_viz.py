@@ -337,12 +337,16 @@ class StaticViz(object):
 
         # TODO: there are reactions that generate parallel edges that are not taken into account because netowrkx
         # digraph only allows one edge between two nodes
-
+        ic_species = [cp for cp, parameter in self.model.initial_conditions]
         for idx, sp in enumerate(self.model.species):
             species_node = 's%d' % idx
+            color = "#2b913a"
+            # color species with an initial condition differently
+            if len([s for s in ic_species if s.is_equivalent_to(sp)]):
+                color = "#aaffff"
             # Setting the information about the node
             node_data = dict(label=hf.parse_name(sp),
-                             background_color="#2b913a",
+                             background_color=color,
                              shape='ellipse',
                              NodeType='species',
                              spInitial=self._sp_initial(sp))
@@ -400,7 +404,7 @@ class StaticViz(object):
         for i, cp in enumerate(self.model.species):
             species_node = 's%d' % i
             slabel = hf.parse_name(cp)
-            color = "#ccffcc"
+            color = "#2b913a"
             # color species with an initial condition differently
             if len([s for s in ic_species if s.is_equivalent_to(cp)]):
                 color = "#aaffff"
@@ -453,7 +457,7 @@ class StaticViz(object):
         for i, cp in enumerate(self.model.species):
             species_node = 's%d' % i
             slabel = hf.parse_name(self.model.species[i])
-            color = "#ccffcc"
+            color = "#2b913a"
             # color species with an initial condition differently
             if len([s for s in ic_species if s.is_equivalent_to(cp)]):
                 color = "#aaffff"

@@ -165,8 +165,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         // Model title
         //TODO: put h1 tag within a div and restrict it size to the size of that div
         that.$model_title = $("<h1></h1>")
-            .css('font-size', '16px')
-            .css('margin-top', '10px');
+            .css({'font-size': '16px', 'margin-top': '10px'});
         // .css('height', '0.7em');
 
         that.$title = $("<div id='title'></div>")
@@ -195,7 +194,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         let vizType = that.model.get('type_of_viz');
         if (vizType.startsWith("dynamic") === true) {
             that.$loader = $("<div class='loader hide-loader' id='loader'> </div>")
-            .appendTo(that.el.parentElement);
+                .appendTo(that.el.parentElement);
 
             that.$nsimb = $(
                 "<select id=\"simLis\" ><optgroup label=\"Simulation #\"></select>")
@@ -607,6 +606,24 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         // Change name of community nodes
         let communities = cy.nodes('[NodeType = "community"]');
         if (!communities.empty()){
+            that.expandButton = $("<button id='expandid'>Collapse</button>")
+                .css({
+                    'position': 'absolute',
+                    'right': '22px',
+                    'top': '31px',
+                    'zIndex': '999'
+                })
+                .on('click', function(){
+                    if (this.innerHTML === 'Collapse') {
+                        api.collapseAll();
+                        this.innerHTML = 'Expand'
+                    }
+                    else {
+                        api.expandAll();
+                        this.innerHTML = 'Collapse'
+                    }
+                })
+                .appendTo(that.el.parentElement);
             communities.forEach(function(community){
                 let node_degree = [];
                 community.children().forEach(function(node){
@@ -614,11 +631,11 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 });
                 node_degree.sort(function(a, b){return b[1]-a[1]});
                 if (node_degree[0][1] === node_degree[1][1]){
-                    community.data('label', `${node_degree[0][0].data('label')} \n ${node_degree[1][0].data('label')} regulation`)
+                    community.data('label', `${community.data('id')}: ${node_degree[0][0].data('label')} \n${node_degree[1][0].data('label')} regulation`)
 
 
                 }
-                else {community.data('label', node_degree[0][0].data('label') + ' regulation')}
+                else {community.data('label', community.data('id') +': ' +node_degree[0][0].data('label') + ' regulation')}
             })
         }
 
@@ -659,8 +676,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
 
             that.$popup = $("<div class='fragment'>" +
                 "</div>")
-                .css('border', '1px solid #ccc')
-                .css('background', '#FF7F7F')
+                .css({'border': '1px solid #ccc','background': '#FF7F7F'})
                 .append(that.$close)
                 .append(that.$message)
                 .appendTo(that.el.parentElement);
@@ -759,7 +775,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         });
         that.$downloadButton.on('click', function(){
             let element = document.createElement('a');
-            element.setAttribute('href', cy.png({scale: 3}));
+            element.setAttribute('href', cy.png({scale: 1}));
             element.setAttribute('download', 'graph.png');
             element.style.display = 'none';
             document.body.appendChild(element);
@@ -807,7 +823,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             else if (data.NodeType === 'reaction' || data.NodeType === 'rule'){
                 template = template.concat(
                     '<p><strong>' + 'kf:' + ' ' + data.kf + '</strong></p><div>',
-                   '<p><strong>' + 'kr:' + ' ' + data.kr + '</strong></p><div>'
+                    '<p><strong>' + 'kr:' + ' ' + data.kr + '</strong></p><div>'
                 )
             }
             return template;
