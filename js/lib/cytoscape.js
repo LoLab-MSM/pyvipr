@@ -603,7 +603,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         // console.log(cy.elements().components()); this could be potentially used to find
         // disjoint subnetworks within a model network
 
-        // Change name of community nodes
+        // Name community nodes with the highest degree node
         let communities = cy.nodes('[NodeType = "community"]');
         if (!communities.empty()){
             that.expandButton = $("<button id='expandid'>Collapse</button>")
@@ -637,6 +637,51 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 }
                 else {community.data('label', community.data('id') +': ' +node_degree[0][0].data('label') + ' regulation')}
             })
+        }
+
+        // Group selected species, rules, or reaction nodes
+        let compartments_check = cy.nodes('[NodeType = "compartment"]').empty(),
+            functions_check = cy.nodes('[NodeType = "function"]').empty(),
+            modules_check = cy.nodes('[NodeType = "module"]').empty();
+
+        if (compartments_check === true && functions_check === true
+            && modules_check === true && communities.empty() === true){
+            that.groupSelected = $("<button id='groupSel'>Group</button>")
+                .css({
+                    'position': 'absolute',
+                    'right': '22px',
+                    'top': '31px',
+                    'zIndex': '999'
+                })
+                .on('click', function() {
+                    let group_name = prompt("Give me input");
+                    let list = cy.$(':selected');
+                    if (!list.filter(':parent').empty()) {
+                        alert("It is not possible to group regular nodes with compound nodes")
+                    }
+                    else{
+                        let nodes = [];
+                        nodes.push({group: "nodes", data: {id: group_name}, position: {x: 0, y: 0}});
+
+                        // Create copies of old nodes
+                        for (let i = list.size() - 1; i >= 0; i--) {
+                            let node_info = list[i].json();
+                            node_info["data"]["parent"] = group_name;
+                            nodes.push(node_info);
+                            let node_edges = list[i].connectedEdges();
+                            for (let j = node_edges.size() - 1; j >= 0; j--) {
+                                nodes.push(node_edges[j].json())
+                            }
+                        }
+                        // Remove old nodes
+                        list.remove();
+                        // Add new nodes
+                        cy.add(nodes);
+                    }
+
+                })
+                .appendTo(that.el.parentElement)
+
         }
 
         function component_idx(data){
