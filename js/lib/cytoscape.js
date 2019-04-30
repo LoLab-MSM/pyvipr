@@ -581,7 +581,8 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 .style({
                     'background-opacity': '0.5',
                     'shape': 'rectangle',
-                    'label': 'data(id)'
+                    'label': 'data(id)',
+                    'border-color': '#000000'
                 })
                 .selector('node.cy-expand-collapse-collapsed-node')
                 .style({
