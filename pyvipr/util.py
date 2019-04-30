@@ -4,6 +4,7 @@ from pysb.bng import generate_equations
 from pysb.importers.bngl import model_from_bngl
 from pysb.importers.sbml import model_from_sbml, model_from_biomodels
 import os
+import subprocess
 
 
 def parse_name(spec):
@@ -117,6 +118,12 @@ def _handle_model_files(value):
         model = model_from_sbml(value)
     elif value.startswith('BIOMD'):
         model = model_from_biomodels(value)
+    elif file_extension == '.ka':
+        subprocess.run(['truml', '-k', value])
+        bngl_model_path = re.sub('ka', 'bngl', value)
+        model = model_from_bngl(bngl_model_path)
+        os.remove(bngl_model_path)
+
     else:
         raise ValueError('Format not supported')
     return model
