@@ -7,7 +7,6 @@ from pysb.simulator.base import SimulationResult
 from networkx import Graph, DiGraph
 
 
-
 def data_to_json(value, widget):
     """
     Generate a json file from the data passed to the widget
