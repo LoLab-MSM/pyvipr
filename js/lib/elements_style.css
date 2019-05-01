@@ -4,7 +4,8 @@
     margin: 0.5em;
     top: 0;
     z-index: 9999;
-    right: 15px;
+    right: 0;
+    height: 1.8em;
 }
 
 #dbutton{
@@ -13,7 +14,8 @@
     margin: 0.5em;
     top: 0;
     z-index: 9999;
-    right: 4em;
+    right: 41px;
+    height: 1.8em;
 }
 
 .tt-menu {
@@ -80,8 +82,8 @@
 
 #title {
     position: absolute;
-    left: 15em;
-    top: 0;
+    left: 156px;
+    top: 27px;
     width: 30%;
     z-index: 9999;
     overflow: auto;
@@ -93,29 +95,29 @@
     margin: 0.5em;
     top: 0;
     z-index: 9999;
-    right: 7em;
+    right: 82px;
     height: 1.8em;
     background: white;
 }
 
 #search {
-    width: 14em;
+    width: 11em;
     font-family: inherit;
 }
 
 #searchDiv {
     position: absolute;
     left: 0;
-    top: 0;
+    top: 23px;
     z-index: 9999;
     margin: 0.5em;
-    width: 14em;
+    width: 11em;
 }
 
 #info {
     position: absolute;
     left: 0;
-    top: 3em;
+    top: 4em;
     margin: 0.5em;
     background: #fff;
     width: 14em;
@@ -129,20 +131,22 @@
     position: absolute;
     width: 7em;
     margin: 0.5em;
-    top: 1.8em;
+    top: 24px;
     z-index: 9999;
-    right: 15px;
+    right: 54px;
     background: white;
+    height: 1.8em;
 }
 
 #simLis {
     position: absolute;
     width: 3em;
     margin: 0.5em;
-    top: 1.8em;
+    top: 24px;
     z-index: 9999;
-    right: 113px;
+    right: 151px;
     background: white;
+    height: 1.8em;
 }
 
 .loader {

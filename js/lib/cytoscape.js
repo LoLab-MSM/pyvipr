@@ -153,8 +153,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         var that = this;
         // Layout options
         that.$layoutDd = $(
-            "<select id=\"layoutList\" ><optgroup label=\"Layouts available\"></select>")
-            .appendTo(that.el.parentElement);
+            "<select id=\"layoutList\" ><optgroup label=\"Layouts available\"></select>");
 
         let layouts = ["cose-bilkent", "dagre", "klay", "random", "preset", "grid", "circle", "concentric", "breadthfirst", "cose"];
         $.each(layouts, function(index, value){
@@ -163,42 +162,62 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 .text(value));
         });
         // Model title
-        //TODO: put h1 tag within a div and restrict it size to the size of that div
         that.$model_title = $("<h1></h1>")
             .css({'font-size': '16px', 'margin-top': '10px'});
-        // .css('height', '0.7em');
+
+        that.$pyvipr = $("<h1>PyViPR</h1>")
+            .css({'font-size': '1.3em', 'margin-top': '10px', 'color': 'gray',
+            'font-family': "\'Lucida console\', Lucida, monospace", 'font-weight': 'bold'});
 
         that.$title = $("<div id='title'></div>")
-            .append(that.$model_title)
-            .appendTo(that.el.parentElement);
+            .append(that.$model_title);
+
+        that.$pyviprdiv = $("<div id='pyviprid'></div>")
+            .css({'position': 'absolute', 'left': '10px', 'bottom': '30px'})
+            .append(that.$pyvipr);
 
         // Searchbox elements
         that.$search = $("<input type=\"text\" class=\"form-control\" id=\"search\" placeholder=\"Search..\">");
 
         that.$search_wrapper = $("<div id='searchDiv'></div>")
-            .append(that.$search)
-            .appendTo(that.el.parentElement);
+            .append(that.$search);
 
-        that.$info = $("<div id='info'></div>")
-            .appendTo(that.el.parentElement);
+        that.$info = $("<div id='info'></div>");
 
         // Fit button to fit network to cell space
-        that.$fitButton = $("<button id='fitbuttonid'><i class=\"fa fa-arrows-h\"></i></button>")
-            .appendTo(that.el.parentElement);
+        that.$fitButton = $("<button id='fitbuttonid'><i class=\"fa fa-arrows-h\"></i></button>");
 
         // Download button
-        that.$downloadButton = $("<button id='dbutton'><i class=\"fa fa-download\" aria-hidden=\"true\"></i></button>")
+        that.$downloadButton = $("<button id='dbutton'><i class=\"fa fa-download\" aria-hidden=\"true\"></i></button>");
+
+        // Controls section
+        that.$ControlSection = $("<div id='controlid'></div>")
+            .css({
+                "width": "100%",
+                "height": "5em",
+                "bottom": "500px",
+                "position": "relative",
+                "border": "medium solid grey",
+                "border-radius": "10px"
+            })
+            .append(that.$downloadButton)
+            .append(that.$fitButton)
+            .append(that.$info)
+            .append(that.$search_wrapper)
+            .append(that.$title)
+            .append(that.$layoutDd)
+            .append(that.$pyviprdiv)
             .appendTo(that.el.parentElement);
 
         // Add elements for control of dynamic visualization
         let vizType = that.model.get('type_of_viz');
         if (vizType.startsWith("dynamic") === true) {
             that.$loader = $("<div class='loader hide-loader' id='loader'> </div>")
-                .appendTo(that.el.parentElement);
+                .appendTo(that.$ControlSection);
 
             that.$nsimb = $(
                 "<select id=\"simLis\" ><optgroup label=\"Simulation #\"></select>")
-                .appendTo(that.el.parentElement);
+                .appendTo(that.$ControlSection);
 
             let nsims = that.networkData.data.nsims;
             let sim_idx = that.model.get('sim_idx');
@@ -220,7 +239,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 "  <option value='" + process + "'>" + process + "</option>\n" +
                 "  <option value='" + unusedprocess[0] + "'>" + unusedprocess[0] + "</option>\n" +
                 "</select>\n")
-                .appendTo(that.el.parentElement);
+                .appendTo(that.$ControlSection);
 
             // Defining player buttons
             that.$playButton = $("<button id='dbutton'><i class=\"fa fa-play\"></i></button>")
@@ -274,7 +293,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 .css({
                     "width": "100%",
                     "height": "50px",
-                    "bottom": "0%",
+                    "bottom": "0px",
                     "position": "relative"
                 })
                 .append(that.$playButton)
@@ -650,9 +669,10 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             that.groupSelected = $("<button id='groupSel'>Group</button>")
                 .css({
                     'position': 'absolute',
-                    'right': '22px',
+                    'right': '7px',
                     'top': '31px',
-                    'zIndex': '999'
+                    'zIndex': '999',
+                    'height': '1.8em'
                 })
                 .on('click', function() {
                     let group_name = prompt("Give me input");
@@ -681,7 +701,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                     }
 
                 })
-                .appendTo(that.el.parentElement)
+                .appendTo(that.$ControlSection)
 
         }
 
@@ -797,10 +817,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 cy.elements().removeClass('faded')
             }
         });
-        // I set the that.el.parentElement position to relative so the buttons can be render
-        // relative to it in readthedocs. I don't know if this can have consequences on the notebook rendering.
-        // Ideally we would create a new div where we would embed everything.
-        that.el.parentElement.style.position = 'relative';
 
         let allNodes = cy.nodes();
         let layoutPadding = 30;
