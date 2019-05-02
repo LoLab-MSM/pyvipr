@@ -1,6 +1,6 @@
 {
     "name": "pyvipr",
-    "version": "0.1.2",
+    "version": "0.2.0",
     "description": "Dynamic and static visualizations of PySB models using cytoscape.js",
     "author": "Oscar Ortega",
     "main": "lib/index.js",
@@ -40,7 +40,7 @@
         "cytoscape-expand-collapse": "^3.1.2",
         "cytoscape-klay": "^3.1.2",
         "cytoscape-popper": "^1.0.2",
-        "jquery": "^3.3.1",
+        "jquery": ">=3.4.0",
         "lodash": "^4.17.4",
         "npm": "^6.5.0",
         "tippy.js": "^4.1.0",
