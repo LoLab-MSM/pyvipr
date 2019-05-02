@@ -11,7 +11,7 @@ pip install wheel
 
 - To release a new version of pyvipr on PyPI:
 
-* Update _version.py (set release version, remove 'dev')
+* Update version_info and frontend_version in _version.py (set release version, remove 'dev')
 * git add the _version.py file and git commit
 * Build the distribution (both )
 
@@ -36,6 +36,7 @@ git push --tags
 
 ```
 # clean out the `dist` and `node_modules` directories
+Update package.json
 git clean -fdx
 npm install
 npm publish
