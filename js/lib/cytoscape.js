@@ -630,7 +630,8 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 .css({
                     'position': 'absolute',
                     'right': '22px',
-                    'top': '31px',
+                    'top': '40px',
+                    'height': '1.8em',
                     'zIndex': '999'
                 })
                 .on('click', function(){
