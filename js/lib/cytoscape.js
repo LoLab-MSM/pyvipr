@@ -153,7 +153,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         var that = this;
         // Layout options
         that.$layoutDd = $(
-            "<select id=\"layoutList\" ><optgroup label=\"Layouts available\"></select>");
+            "<select class=\"select-css\" id=\"layoutList\" ><optgroup label=\"Layouts available\"></select>");
 
         let layouts = ["cose-bilkent", "dagre", "klay", "random", "preset", "grid", "circle", "concentric", "breadthfirst", "cose"];
         $.each(layouts, function(index, value){
@@ -173,7 +173,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             .append(that.$model_title);
 
         that.$pyviprdiv = $("<div id='pyviprid'></div>")
-            .css({'position': 'absolute', 'left': '10px', 'bottom': '30px'})
+            .css({'position': 'absolute', 'left': '0.6em', 'bottom': '2em'})
             .append(that.$pyvipr);
 
         // Searchbox elements
@@ -216,7 +216,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 .appendTo(that.$ControlSection);
 
             that.$nsimb = $(
-                "<select id=\"simLis\" ><optgroup label=\"Simulation #\"></select>")
+                "<select class =\"select-css\" id=\"simLis\" ><optgroup label=\"Simulation #\"></select>")
                 .appendTo(that.$ControlSection);
 
             let nsims = that.networkData.data.nsims;
@@ -234,7 +234,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 return e !== process
             });
             that.$processid = $(
-                "<select id=\"myprocesses\" >\n" +
+                "<select class =\"select-css\" id=\"myprocesses\" >\n" +
                 "<optgroup label=\"Process\">\n" +
                 "  <option value='" + process + "'>" + process + "</option>\n" +
                 "  <option value='" + unusedprocess[0] + "'>" + unusedprocess[0] + "</option>\n" +
@@ -626,25 +626,27 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         // Name community nodes with the highest degree node
         let communities = cy.nodes('[NodeType = "community"]');
         if (!communities.empty()){
-            that.expandButton = $("<button id='expandid'>Collapse</button>")
+            that.expandButton = $("<button id='expandid'>Collapse all</button>")
                 .css({
                     'position': 'absolute',
-                    'right': '22px',
-                    'top': '40px',
+                    'right': '6em',
+                    'top': '0',
+                    'width': '8em',
                     'height': '1.8em',
-                    'zIndex': '999'
+                    'zIndex': '999',
+                    'margin': '0.5em'
                 })
                 .on('click', function(){
-                    if (this.innerHTML === 'Collapse') {
+                    if (this.innerHTML === 'Collapse all') {
                         api.collapseAll();
-                        this.innerHTML = 'Expand'
+                        this.innerHTML = 'Expand all'
                     }
                     else {
                         api.expandAll();
-                        this.innerHTML = 'Collapse'
+                        this.innerHTML = 'Collapse all'
                     }
                 })
-                .appendTo(that.el.parentElement);
+                .appendTo(that.$ControlSection);
             communities.forEach(function(community){
                 let node_degree = [];
                 community.children().forEach(function(node){
@@ -670,18 +672,19 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             that.groupSelected = $("<button id='groupSel'>Group</button>")
                 .css({
                     'position': 'absolute',
-                    'right': '7px',
-                    'top': '31px',
+                    'right': '6em',
+                    'top': '0',
                     'zIndex': '999',
-                    'height': '1.8em'
+                    'height': '1.8em',
+                    'margin': '0.5em'
                 })
                 .on('click', function() {
-                    let group_name = prompt("Give me input");
+                    let group_name = prompt("Group name", "Group 0");
                     let list = cy.$(':selected');
                     if (!list.filter(':parent').empty()) {
                         alert("It is not possible to group regular nodes with compound nodes")
                     }
-                    else{
+                    if (group_name != null && list.filter(':parent').empty()){
                         let nodes = [];
                         nodes.push({group: "nodes", data: {id: group_name}, position: {x: 0, y: 0}});
 
