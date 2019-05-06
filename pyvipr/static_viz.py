@@ -36,7 +36,6 @@ class StaticViz(object):
         self.graph = None
         generate_equations(self.model)
 
-    # This is a function to merge several nodes into one in a Networkx graph
     @staticmethod
     def merge_nodes(G, nodes, new_node, **attr):
         """
@@ -61,7 +60,7 @@ class StaticViz(object):
 
     def species_view(self):
         """
-        Generate data to create a species network
+        Generate a Cytoscape.js JSON with the species network information
 
         Parameters
         ----------
@@ -74,8 +73,9 @@ class StaticViz(object):
 
         Returns
         -------
-        A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
-        contains all the information (nodes,edges, positions) to generate a cytoscapejs network.
+        dict
+            A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
+            contains all the information (nodes,edges, positions) to generate a cytoscapejs network.
         """
         graph = self.species_graph()
         g_layout = dot_layout(graph)
@@ -85,11 +85,13 @@ class StaticViz(object):
     def species_compartments_view(self):
         """
         Generate data to create a species networks and their respective compartments
+        
         Returns
         -------
-        A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
-        contains all the information (nodes, parent_nodes, edges, positions) to
-         generate a cytoscapejs network.
+        dict
+            A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
+            contains all the information (nodes, parent_nodes, edges, positions) to
+            generate a cytoscapejs network.
         """
         graph = self.compartments_data_graph()
         g_layout = dot_layout(graph)
@@ -97,6 +99,20 @@ class StaticViz(object):
         return data
 
     def compartments_data_graph(self):
+        """
+        Check for compartments in model and add the compartments as compound nodes
+        where the species are located
+        
+        Returns
+        -------
+        nx.Digraph
+            Graph with model species and compartments
+        
+        Raises
+        ------
+        ValueError
+            Model has not compartments
+        """
         # Check if model has comparments
         if not self.model.compartments:
             raise ValueError('Model has no compartments')
@@ -122,7 +138,8 @@ class StaticViz(object):
 
     def communities_view(self, random_state=None):
         """
-        Use a community detection algorithm to find groups of nodes that are densely connected.
+        Use the `Louvain algorithm <https://en.wikipedia.org/wiki/Louvain_Modularity>`_ 
+        for community detection to find groups of nodes that are densely connected.
         It generates the data to create a network with compound nodes that hold the communities.
         Returns
         -------
