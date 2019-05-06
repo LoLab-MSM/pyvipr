@@ -1,4 +1,4 @@
-from pyvipr.dynamic_viz import ModelVisualization
+from pyvipr.dynamic_viz import DynamicViz
 from pyvipr.network_viz import NetworkViz
 from pyvipr.static_viz import StaticViz
 from pyvipr.util import dispatch_pysb_files
@@ -35,7 +35,7 @@ def data_to_json(value, widget):
         return jsondata
 
     elif isinstance(value, SimulationResult):
-        viz = ModelVisualization(value, widget.sim_idx)
+        viz = DynamicViz(value, widget.sim_idx)
         process = widget.process
         try:
             if widget.type_of_viz == 'dynamic_communities_view':

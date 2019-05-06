@@ -22,7 +22,7 @@ class OrderedGraph(nx.DiGraph):
 
 class StaticViz(object):
     """
-    Class to visualize models and their dynamics
+    Class to generate static visualizations of systems biology models
 
     Parameters
     ----------
@@ -60,7 +60,7 @@ class StaticViz(object):
 
     def species_view(self):
         """
-        Generate a Cytoscape.js JSON with the species network information
+        Generate a dictionary that contains the species network information
 
         Parameters
         ----------
@@ -84,8 +84,9 @@ class StaticViz(object):
 
     def species_compartments_view(self):
         """
-        Generate data to create a species networks and their respective compartments
-        
+        Generate a dictionary that contains the information about the species 
+        network. Species are grouped by the compartments they belong to
+
         Returns
         -------
         dict
@@ -100,9 +101,9 @@ class StaticViz(object):
 
     def compartments_data_graph(self):
         """
-        Check for compartments in model and add the compartments as compound nodes
-        where the species are located
-        
+        Create a networkx DiGraph. Check for compartments in a model and add 
+        the compartments as compound nodes where the species are located
+
         Returns
         -------
         nx.Digraph
@@ -138,14 +139,21 @@ class StaticViz(object):
 
     def communities_view(self, random_state=None):
         """
-        Use the `Louvain algorithm <https://en.wikipedia.org/wiki/Louvain_Modularity>`_ 
+        Use the `Louvain algorithm https://en.wikipedia.org/wiki/Louvain_Modularity
         for community detection to find groups of nodes that are densely connected.
         It generates the data to create a network with compound nodes that hold the communities.
+
+        Parameters
+        ==========
+        random_state : int, optional
+            Random state seed use by the community detection algorithm, by default None
+        
         Returns
         -------
-        A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
-        contains all the information (nodes,edges, parent nodes, positions) to generate
-        a cytoscapejs network.
+        dict
+            A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
+            contains all the information (nodes,edges, parent nodes, positions) to generate
+            a cytoscapejs network.
         """
         graph = self.communities_data_graph(random_state=random_state)
         g_layout = dot_layout(graph)
@@ -153,6 +161,21 @@ class StaticViz(object):
         return data
 
     def communities_data_graph(self, random_state=None):
+        """
+        Create a networkx DiGraph. It applies the Louvain algorithm to detect
+        communities and add that information to the graph
+        
+        Parameters
+        ----------
+        random_state : int, optional
+            Random state seed use by the community detection algorithm, by default None
+        
+        Returns
+        -------
+        nx.DiGraph
+            A networkx DiGraph where the nodes have a `parent` property that correspond
+            to the community they belong to
+        """
         graph = self.species_graph()
         graph_communities = graph.copy().to_undirected()  # Louvain algorithm only deals with undirected graphs
         communities = best_partition(graph_communities, random_state=random_state)
@@ -167,12 +190,13 @@ class StaticViz(object):
         Generate a dictionary with the info of a bipartite graph where one set of
         nodes is the model species and the other set is the model bidirectional reactions
 
-        Parameters
-        ----------
-
         Returns
         -------
-        A dictionary object with the graph information
+        dict
+            A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
+            contains all the information (nodes,edges, parent nodes, positions) to generate
+            a cytoscapejs network.
+
         """
         graph = self.sp_rxns_bidirectional_graph()
         g_layout = dot_layout(graph)
@@ -185,7 +209,10 @@ class StaticViz(object):
         and the other set is the unidirectional reactions
         Returns
         -------
-        A dictionary object with the graph information.
+        dict
+            A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
+            contains all the information (nodes,edges, parent nodes, positions) to generate
+            a cytoscapejs network.
         """
         graph = self.sp_rxns_graph()
         g_layout = dot_layout(graph)
@@ -196,9 +223,13 @@ class StaticViz(object):
         """
         Generates a dictionary with the info of a bipartite graph where one set of nodes is the model species
         and the other set is the model rules
+        
         Returns
         -------
-
+        dict
+            A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
+            contains all the information (nodes,edges, parent nodes, positions) to generate
+            a cytoscapejs network.
         """
         rules_graph = self.rules_graph()
         rules_graph = self.graph_merged_pair_edges(rules_graph)
@@ -211,9 +242,13 @@ class StaticViz(object):
         Generates a dictionary with the info of a bipartite graph where one set of nodes is the model species
         and the other set is the model rules. Additionally, it adds information of the functions from which
         the rules come from.
+        
         Returns
         -------
-
+        dict
+            A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
+            contains all the information (nodes,edges, parent nodes, positions) to generate
+            a cytoscapejs network.
         """
         rules_graph = self.rules_graph()
         rules_graph = self.graph_merged_pair_edges(rules_graph)
@@ -230,9 +265,13 @@ class StaticViz(object):
         Generates a dictionary with the info of a bipartite graph where one set of nodes is the model species
         and the other set is the model rules. Additionally, it adds information of the modules from which
         the rules come from.
+        
         Returns
         -------
-
+        dict
+            A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
+            contains all the information (nodes,edges, parent nodes, positions) to generate
+            a cytoscapejs network.
         """
         rules_graph = self.rules_graph()
         rules_graph = self.graph_merged_pair_edges(rules_graph)
@@ -287,6 +326,7 @@ class StaticViz(object):
 
     def projections_view(self, project_to='species_reactions'):
         """
+        Project a bipartite graph to the type of node defined in `project to`.
         Generates a dictionary with the info of a graph representing the PySB model.
 
         Parameters
@@ -297,8 +337,10 @@ class StaticViz(object):
 
         Returns
         -------
-        A dictionary object with the graph information
-
+        dict
+            A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
+            contains all the information (nodes,edges, parent nodes, positions) to generate
+            a cytoscapejs network.
         """
         if project_to == 'species_reactions' or project_to == 'reactions':
             bipartite_graph = self.sp_rxns_bidirectional_graph()
@@ -344,11 +386,12 @@ class StaticViz(object):
 
     def species_graph(self):
         """
-        Creates a nx.DiGraph graph of the model species
+        Creates a nx.DiGraph graph of the model species interactions
 
         Returns
         -------
-        A :class: nx.Digraph graph that has the information for the visualization of the model
+        nx.Digraph 
+            Graph that has the information for the visualization of the model
         """
         sp_graph = OrderedGraph(name=self.model.name, graph={'rankdir':'LR'}, paths=[])
 
@@ -413,7 +456,8 @@ class StaticViz(object):
 
         Returns
         -------
-        A :class: nx.Digraph graph that has the information for the visualization of the model
+        nx.Digraph 
+            Graph that has the information for the visualization of the model
         """
 
         graph = OrderedGraph(name=self.model.name, graph={'rankdir':'LR'})
@@ -467,7 +511,8 @@ class StaticViz(object):
 
         Returns
         -------
-        A :class: nx.Digraph graph that has the information for the visualization of the model
+        nx.Digraph 
+            Graph that has the information for the visualization of the model
         """
         graph = OrderedGraph(name=self.model.name, graph={'rankdir': 'LR'})
         ic_species = [cp for cp, parameter in self.model.initial_conditions]
@@ -517,7 +562,8 @@ class StaticViz(object):
 
         Returns
         -------
-        A :class: nx.Digraph graph that has the information for the visualization of the model
+        nx.Digraph
+            Graph that has the information for the visualization of the model
         """
         graph = self.sp_rxns_graph()
         # Merge reactions into the rules that they come from
@@ -546,7 +592,8 @@ class StaticViz(object):
 
         Returns
         -------
-        a nx.DiGraph
+        nx.DiGraph
+            Projected graph
         """
         if project_to == 'species_reactions' or project_to == 'species_rules':
             nodes = {n for n, d in graph.nodes(data=True) if d['bipartite']==0}
@@ -563,13 +610,16 @@ class StaticViz(object):
     def graph_merged_pair_edges(graph):
         """
         Merges pair of edges that are reversed
+        
         Parameters
         ----------
         graph: nx.DiGraph
             The networkx directed graph whose pairs of edges ((u, v), (v, u)) are going to be merged
+        
         Returns
         -------
-        A :class: nx.Digraph graph that has the information for the visualization of the model
+        nx.Digraph 
+            Graph that has the information for the visualization of the model
         """
         edges_to_delete = []
         edges_attributes = {}
@@ -592,9 +642,12 @@ class StaticViz(object):
     def merge_reactions2rules(self):
         """
         Merges the model reactions into each of the rules from which the reactions come form.
+        
         Returns
         -------
-
+        dict
+            Dictionary whose keys are tuples of rule name and rule index and the values
+            are the reactions that are generated by each rule
         """
         rxn_per_rule = {}
         for r_idx, rule in enumerate(self.model.rules):
@@ -633,7 +686,8 @@ class StaticViz(object):
 
 def graph_to_json(sp_graph, layout=None, path=''):
     """
-
+    Convert networkx graph to a dictionary that can be converted
+    to cytoscape.js json
     Parameters
     ----------
     sp_graph : nx.Digraph graph
@@ -645,7 +699,8 @@ def graph_to_json(sp_graph, layout=None, path=''):
 
     Returns
     -------
-    A Dictionary Object that can be converted into Cytoscape.js JSON
+    dict
+        A Dictionary Object that can be converted into Cytoscape.js JSON
     """
     data = from_networkx(sp_graph, layout=layout, scale=1)
     if path:

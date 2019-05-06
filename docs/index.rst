@@ -10,7 +10,7 @@ pyvipr is an ipython widget for interactively visualizing systems biology models
 It supports BioNetGen and SBML models through the pysb importer module.
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 3
    :caption: Contents:
 
    installation

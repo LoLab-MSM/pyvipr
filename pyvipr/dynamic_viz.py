@@ -20,7 +20,7 @@ class OrderedGraph(nx.DiGraph):
 
 class MidpointNormalize(colors.Normalize):
     """
-    A class which, when called, can normalize data into the ``[vmin,midpoint,vmax] interval
+    A class which, when called, can normalize data into the [vmin,midpoint,vmax] interval
     """
 
     def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
@@ -34,9 +34,9 @@ class MidpointNormalize(colors.Normalize):
         return np.ma.masked_array(np.interp(value, x, y))
 
 
-class ModelVisualization(object):
+class DynamicViz(object):
     """
-    Class to visualize the dynamics of systems biology models defined in BNGL, SBML and PySB format.
+    Class to visualize the dynamics of systems biology models defined in PySB format.
 
     Parameters
     ----------
@@ -83,8 +83,9 @@ class ModelVisualization(object):
 
         Returns
         -------
-        A Dictionary Object with all nodes and edges information that
-        can be converted into Cytoscape.js JSON to be visualized
+        dict
+            A Dictionary Object with all nodes and edges information that
+            can be converted into Cytoscape.js JSON to be visualized
         """
         self.type_viz = type_viz
         self.sp_graph = StaticViz(self.model).species_graph()
@@ -97,6 +98,11 @@ class ModelVisualization(object):
         return data
 
     def dynamic_compartments_view(self, type_viz='consumption'):
+        """
+        Same as :py:meth:`dynamic_view` but the species nodes are grouped
+        by the compartments they belong to
+
+        """
         self.type_viz = type_viz
         self.sp_graph = StaticViz(self.model).compartments_data_graph()
         self.sp_graph.graph['view'] = 'dynamic'
@@ -109,6 +115,9 @@ class ModelVisualization(object):
 
     def dynamic_communities_view(self, type_viz='consumption', random_state=None):
         """
+                Same as :py:meth:`dynamic_view` but the species nodes are grouped
+        by the communities they belong to. Communities are obtained using the 
+        Louvain algorithm.
 
         Parameters
         ----------
@@ -120,7 +129,9 @@ class ModelVisualization(object):
 
         Returns
         -------
-
+        dict
+            A Dictionary Object with all nodes and edges information that
+            can be converted into Cytoscape.js JSON to be visualized
         """
         self.type_viz = type_viz
         self.sp_graph = StaticViz(self.model).communities_data_graph(random_state=random_state)
@@ -163,9 +174,11 @@ class ModelVisualization(object):
     def matrix_bidirectional_rates(self):
         """
         Obtains the values of the reaction rates at all the time points of the simulation
+        
         Returns
         -------
-        An np.ndarray with the reaction rates values
+        np.ndarray 
+            Array with the reaction rates values
         """
         rxns_matrix = np.zeros((len(self.model.reactions_bidirectional), len(self.tspan)))
 
@@ -192,6 +205,7 @@ class ModelVisualization(object):
         The color is a representation of the percentage of flux going through an edge.
         The edge size is a representation of the relative value of the reaction normalized to the maximum value that
         the edge can attain during the whole simulation.
+        
         Returns
         -------
         Three dictionaries. The first one contains the information of the edge sizes at all time points.
@@ -321,6 +335,7 @@ class ModelVisualization(object):
         """
         Obtains the species concentration values and the relative concentration
         compared with the maximum concentration across all time points
+        
         Returns
         -------
         Two dictionaries. The first one has the species concentration. The
@@ -341,6 +356,7 @@ class ModelVisualization(object):
     def f2hex_edges(fx, vmin=-0.99, vmax=0.99):
         """
         Converts reaction rates values to f2hex colors
+        
         Parameters
         ----------
         fx: vector-like
@@ -352,7 +368,8 @@ class ModelVisualization(object):
 
         Returns
         -------
-        A vector of colors in hex format that encodes the reaction rate values
+        list
+            A vector of colors in hex format that encodes the reaction rate values
         """
         norm = MidpointNormalize(vmin=vmin, vmax=vmax, midpoint=0)
         f2rgb = cm.ScalarMappable(norm=norm, cmap=cm.get_cmap('RdBu_r'))
@@ -366,6 +383,7 @@ class ModelVisualization(object):
     def range_normalization(x, min_x, max_x, a=0.5, b=10):
         """
         Normalize vector to the [0.5, 10] range
+        
         Parameters
         ----------
         x: vector-like
