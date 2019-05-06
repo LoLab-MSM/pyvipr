@@ -5,4 +5,5 @@ PyViPR Core Modules Reference
    :maxdepth: 3
 
    views
+   static_viz
    dynamic_viz
