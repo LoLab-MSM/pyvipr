@@ -1,4 +1,4 @@
-Model visualizations (:py:mod:`pyvipr.static_viz`)
+Static model visualizations (:py:mod:`pyvipr.static_viz`)
 ==================================================================
 
 .. automodule:: pyvipr.static_viz

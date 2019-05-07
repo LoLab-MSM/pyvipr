@@ -42,7 +42,7 @@ class StaticViz(object):
         Merges the selected `nodes` of the graph G into one `new_node`,
         meaning that all the edges that pointed to or from one of these
         `nodes` will point to or from the `new_node`.
-        attr_dict and **attr are defined as in `G.add_node`.
+        attr_dict and `**attr` are defined as in `G.add_node`.
         """
         G.add_node(new_node, **attr)  # Add the 'merged' node
         newG = G.copy()
@@ -139,7 +139,7 @@ class StaticViz(object):
 
     def communities_view(self, random_state=None):
         """
-        Use the `Louvain algorithm https://en.wikipedia.org/wiki/Louvain_Modularity
+        Use the Louvain algorithm https://en.wikipedia.org/wiki/Louvain_Modularity
         for community detection to find groups of nodes that are densely connected.
         It generates the data to create a network with compound nodes that hold the communities.
 
@@ -207,6 +207,7 @@ class StaticViz(object):
         """
         Generates a dictionary with the info of a bipartite graph where one set of nodes is the model species
         and the other set is the unidirectional reactions
+
         Returns
         -------
         dict
@@ -582,12 +583,13 @@ class StaticViz(object):
     def projected_graph(self, graph, project_to='species'):
         """
         Project a bipartite graph into one of the sets of nodes
+
         Parameters
         ----------
         graph: nx.DiGraph
             a networkx bipartite graph
         project_to: str
-            One of the following options: `species_reactions`, `species_rules`,
+            One of the following options `species_reactions`, `species_rules`,
             `reactions`, `rules`
 
         Returns
@@ -719,7 +721,8 @@ def dot_layout(sp_graph):
 
     Returns
     -------
-    An OrderedDict containing the node position according to the dot layout
+    OrderedDict 
+        Ordered Dictionary that contains the node position according to the dot layout
     """
 
     pos = nx.nx_pydot.graphviz_layout(sp_graph, prog='dot')

@@ -357,7 +357,8 @@ def nx_graph_dyn_view(graph, tspan, node_rel=None, node_tip=None, edge_colors=No
     Parameters
     ----------
     graph: nx.DiGraph or nx.Graph
-    tspan
+    tspan: vector-like, optional
+        Time values over which to simulate. The first and last values define
     node_rel: dict
         A dictionary where the keys are the node ids and the values are
         lists that contain (0-100) values that are represented in a

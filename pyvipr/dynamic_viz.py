@@ -115,7 +115,7 @@ class DynamicViz(object):
 
     def dynamic_communities_view(self, type_viz='consumption', random_state=None):
         """
-                Same as :py:meth:`dynamic_view` but the species nodes are grouped
+        Same as :py:meth:`dynamic_view` but the species nodes are grouped
         by the communities they belong to. Communities are obtained using the 
         Louvain algorithm.
 
@@ -208,9 +208,10 @@ class DynamicViz(object):
         
         Returns
         -------
-        Three dictionaries. The first one contains the information of the edge sizes at all time points.
-        The second one contains the information of the edge colors at all time points.
-        The third one contains the values of the reaction rates at all time points.
+        tuple
+            Three dictionaries. The first one contains the information of the edge sizes at all time points. 
+            The second one contains the information of the edge colors at all time points.
+            The third one contains the values of the reaction rates at all time points.
         """
         all_rate_colors = {}
         all_rate_sizes = {}
@@ -338,8 +339,9 @@ class DynamicViz(object):
         
         Returns
         -------
-        Two dictionaries. The first one has the species concentration. The
-        second one has the relative species concentrations
+        tuple
+            Two dictionaries. The first one has the species concentration. The
+            second one has the relative species concentrations
         """
         node_absolute = {}
         node_relative = {}

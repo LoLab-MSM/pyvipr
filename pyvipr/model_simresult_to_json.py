@@ -55,11 +55,3 @@ def data_to_json(value, widget):
         return jsondata
     else:
         raise TypeError('Only Model, SimulationResult, and networkx graphs are supported')
-
-
-
-
-
-
-
-
