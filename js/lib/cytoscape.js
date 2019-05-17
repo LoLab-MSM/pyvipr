@@ -1,15 +1,15 @@
-var widgets = require('@jupyter-widgets/base');
-var _ = require('lodash');
-var cytoscape = require('cytoscape');
-var tippy = require('tippy.js/umd/index.all.js');
-var popper = require('cytoscape-popper');
-var coseBilkent = require('cytoscape-cose-bilkent');
-var dagre = require('cytoscape-dagre');
-var klay = require('cytoscape-klay');
-var expandCollapse = require('cytoscape-expand-collapse');
-var typeahead = require('typeahead.js');
-var $ = require('jquery');
-var semver_range = "^" + require("../package.json").version;
+let widgets = require('@jupyter-widgets/base');
+let _ = require('lodash');
+let cytoscape = require('cytoscape');
+let tippy = require('tippy.js/umd/index.all.js');
+let popper = require('cytoscape-popper');
+let coseBilkent = require('cytoscape-cose-bilkent');
+let dagre = require('cytoscape-dagre');
+let klay = require('cytoscape-klay');
+let expandCollapse = require('cytoscape-expand-collapse');
+let typeahead = require('typeahead.js');
+let $ = require('jquery');
+let semver_range = "^" + require("../package.json").version;
 cytoscape.use(popper);
 cytoscape.use(coseBilkent);
 cytoscape.use(dagre);
@@ -55,6 +55,63 @@ const DEF_STYLE = [{
     }
 ];
 
+const DEF_MODELS_STYLE = [{
+    selector: 'node[shape]',
+    style: {
+        'label': 'data(label)',
+        'shape': 'data(shape)',
+        'pie-size': '80%',
+        'pie-1-background-color': 'data(background_color)',
+        'pie-1-background-size': '100',
+        'pie-2-background-color': '#dddcd4',
+        'pie-2-background-size': '100'
+    }
+},
+    {
+
+        selector: 'edge[source_arrow_shape]',
+        style: {
+            'curve-style': 'bezier',
+            'target-arrow-shape': 'data(target_arrow_shape)',
+            'source-arrow-shape': 'data(source_arrow_shape)',
+            'source-arrow-fill': 'data(source_arrow_fill)'
+        }
+    },
+    {
+        selector: ':parent',
+        style: {
+            'background-opacity': '0.5',
+            'shape': 'rectangle',
+            'label': 'data(id)',
+            'border-color': '#000000'
+        }
+    },
+    {
+        selector:'node.cy-expand-collapse-collapsed-node',
+        style: {
+            'label': 'data(label)',
+            'text-wrap': 'wrap',
+            'background-color': 'darkblue',
+            'shape': 'rectangle'
+        }
+    },
+    {
+        selector: '.faded',
+        style: {
+            'opacity': 0.25,
+            'text-opacity': 0
+        }
+    },
+    {
+        // TODO: Make this as an option?
+        selector:'edge.edges_expanded_collapsed',
+        style: {
+            'curve-style': 'unbundled-bezier',
+            'control-point-distances': '0 0 0'
+        }
+    },
+];
+
 // Cytoscape Model. Custom widgets models must at least provide default values
 // for model attributes, including
 //
@@ -81,7 +138,6 @@ var CytoscapeModel = widgets.DOMWidgetModel.extend({
     })
 });
 
-
 // Custom View. Renders the widget model.
 var CytoscapeView = widgets.DOMWidgetView.extend({
     callback_process:function(formElement){
@@ -100,7 +156,8 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         let vizType = this.model.get('type_of_viz');
         if (vizType.startsWith("dynamic") === true) {
             this.displayed.then(_.bind(this.loadData, this)).then(_.bind(this.renderButtons, this))
-                .then(_.bind(this.value_changed, this)).then(_.bind(this.cyDynamics, this));
+                .then(_.bind(this.value_changed, this)).then(_.bind(this.setupDynamics, this))
+                .then(_.bind(this.cyDynamics, this));
 
             this.model.on('change:data', this.process_sim_changed, this);
         }
@@ -155,7 +212,8 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         that.$layoutDd = $(
             "<select class=\"select-css\" id=\"layoutList\" ><optgroup label=\"Layouts available\"></select>");
 
-        let layouts = ["cose-bilkent", "dagre", "klay", "random", "preset", "grid", "circle", "concentric", "breadthfirst", "cose"];
+        let layouts = ["cose-bilkent", "dagre", "klay", "random", "preset", "grid", "circle",
+            "concentric", "breadthfirst", "cose"];
         $.each(layouts, function(index, value){
             that.$layoutDd.append($("<option></option>")
                 .attr("value", value)
@@ -167,7 +225,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
 
         that.$pyvipr = $("<h1>PyViPR</h1>")
             .css({'font-size': '1.3em', 'margin-top': '10px', 'color': 'gray',
-            'font-family': "\'Lucida console\', Lucida, monospace", 'font-weight': 'bold'});
+                'font-family': "\'Lucida console\', Lucida, monospace", 'font-weight': 'bold'});
 
         that.$title = $("<div id='title'></div>")
             .append(that.$model_title);
@@ -316,15 +374,15 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
 
     process_sim_changed: function(){
         let that = this;
-        this.displayed.then(_.bind(this.loadData, this)).then(function(){
-            that.$loader.addClass('hide-loader');
-        }).then(_.bind(this.cyDynamics, this));
+        let cy = this.cyObj;
+        this.displayed.then(_.bind(this.loadData, this)).then(function(){cy.elements().stop(true, false)})
+            .then(_.bind(this.cyDynamics, this))
+            .then(function(){that.$loader.addClass('hide-loader');});
     },
 
-    cyDynamics: function(){
+    setupDynamics: function(){
         let that = this;
         let cy = this.cyObj;
-        let network = this.networkData;
 
         that.$processid.on('change', function(){
             that.callback_process(this.value)
@@ -374,10 +432,23 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             }
         });
 
+    },
+
+    cyDynamics: function(){
+        let that = this;
+        let cy = this.cyObj;
+        let network = this.networkData;
+
+        that.$resetButton.off('click');
+        that.$playButton.off('click');
+        that.$slider.off('mouseup');
+
         let tspan = network.data.tspan;
         that.$slider.attr({"max": tspan.length - 1});
         // start slider, time text and animation always at 0
+        let playing = false;
         let currentTime = 0;
+        that.$playButton.html('<i class="fa fa-play"></i>');
         animateAllEles(currentTime, true);
 
         function animateAll(ele, data){
@@ -433,9 +504,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                     that.$slider.val(currentTime);
                     that.$slider_text.val(tspan[currentTime].toFixed(2));
                     if (onetime === true){
-                        queue[position].play().promise('complete').then(() => {
-                            cy.elements().stop(false, false)
-                        })
+                        queue[position].play()
                     }
                     else {
                         queue[position].play().promise('complete').then(() => {
@@ -448,16 +517,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                     cy.elements().stop(false, false);
                 }
             };
-            // let allEles2 = cy.elements().filter(function(ele){
-            //     let n;
-            //     n = !(ele.hasClass('cy-expand-collapse-collapsed-node') || ele.isParent());
-            //     return n
-            // });
-            // for (let i=0; i < allEles2.length; i++){
-            //     let ele = allEles2[i];
-            //     let animationQueue = animateAll(ele);
-            //     playQueue(ele, animationQueue, time)
-            // }
+
             network.elements.edges.forEach(function(edge){
                 let source = edge.data.source;
                 let target = edge.data.target;
@@ -477,8 +537,8 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                         }
                         return gSource === source && gTarget === target
                     });
-                    let animationQueue = animateAll(ele, edge.data);
-                    playQueue(ele, animationQueue, time);
+                    let animationQueueEdges = animateAll(ele, edge.data);
+                    playQueue(ele, animationQueueEdges, time);
                 }
 
             });
@@ -488,8 +548,8 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                     let ele = cy.nodes().filter(function(ele){
                         return ele.data('name') === node.data.name && ele.isParent() === false
                     });
-                    let animationQueue = animateAll(ele, node.data);
-                    playQueue(ele, animationQueue, time)}
+                    let animationQueueNodes = animateAll(ele, node.data);
+                    playQueue(ele, animationQueueNodes, time)}
             })
         }
         cy.nodes().on("expandcollapse.beforecollapse", function(event) {
@@ -500,7 +560,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             pauseSlideshow();
         });
 
-        let playing = false;
         //
         function pauseSlideshow(){
             that.$playButton.html('<i class="fa fa-play"></i>');
@@ -533,7 +592,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             animateAllEles(currentTime, true);
 
         });
-
     },
 
     renderCy: function() {
@@ -575,45 +633,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         let cy = cytoscape({
             container: that.el, // container to render in
             elements: network.elements,
-            style: cytoscape.stylesheet()
-                .selector('node[shape]')
-                .style({
-                    'label': 'data(label)',
-                    'shape': 'data(shape)',
-                    // 'font-size': 24,
-                    'pie-size': '80%',
-                    'pie-1-background-color': 'data(background_color)',
-                    'pie-1-background-size': '100',
-                    'pie-2-background-color': '#dddcd4',
-                    'pie-2-background-size': '100'
-                })
-
-                .selector('edge[source_arrow_shape]')
-                .style({
-                    'curve-style': 'bezier',
-                    // 'width': 'data(width)',
-                    'target-arrow-shape': 'data(target_arrow_shape)',
-                    'source-arrow-shape': 'data(source_arrow_shape)',
-                    'source-arrow-fill': 'data(source_arrow_fill)'
-                })
-                .selector(':parent')
-                .style({
-                    'background-opacity': '0.5',
-                    'shape': 'rectangle',
-                    'label': 'data(id)',
-                    'border-color': '#000000'
-                })
-                .selector('node.cy-expand-collapse-collapsed-node')
-                .style({
-                    'label': 'data(label)',
-                    'text-wrap': 'wrap',
-                    'background-color': 'darkblue',
-                    'shape': 'rectangle'})
-                .selector('.faded')
-                .style({
-                    'opacity': 0.25,
-                    'text-opacity': 0
-                }),
+            style: DEF_MODELS_STYLE,
             layout: {
                 name: layoutName,
                 nodeDimensionsIncludeLabels: true
@@ -623,27 +643,63 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         // console.log(cy.elements().components()); this could be potentially used to find
         // disjoint subnetworks within a model network
 
+        // Initialize Expand collapse compound nodes extension
+        let api = cy.expandCollapse({undoable:false, animate:true, fisheye:false});
         // Name community nodes with the highest degree node
         let communities = cy.nodes('[NodeType = "community"]');
         if (!communities.empty()){
-            that.expandButton = $("<button id='expandid'>Collapse all</button>")
+            that.expandButton = $("<button id='expandid'>Collapse nodes</button>")
                 .css({
                     'position': 'absolute',
                     'right': '6em',
                     'top': '0',
-                    'width': '8em',
+                    'width': '9em',
                     'height': '1.8em',
                     'zIndex': '999',
                     'margin': '0.5em'
                 })
                 .on('click', function(){
-                    if (this.innerHTML === 'Collapse all') {
-                        api.collapseAll();
-                        this.innerHTML = 'Expand all'
+                    let api_options = {
+                        layoutBy: {
+                            name: layoutName,
+                            animate: "end",
+                            randomize: false,
+                            fit: true
+                        },
+                        fisheye: false,  // Fisheye doesn't work for expanding nodes when there is an animation playing
+                        animate: true,
+                        undoable: false
+                    };
+                    if (this.innerHTML === 'Collapse nodes') {
+                        api.collapseAll(api_options);
+                        this.innerHTML = 'Expand nodes'
                     }
                     else {
-                        api.expandAll();
-                        this.innerHTML = 'Collapse all'
+                        api.expandAll(api_options);
+                        this.innerHTML = 'Collapse nodes'
+                    }
+                })
+                .appendTo(that.$ControlSection);
+
+            that.expandEdges = $("<button id='expandedgesid'>Collapse edges</button>")
+                .css({
+                    'position': 'absolute',
+                    'right': '15em',
+                    'top': '0',
+                    'width': '9em',
+                    'height': '1.8em',
+                    'zIndex': '999',
+                    'margin': '0.5em'
+                })
+                .on('click', function(){
+                    let metaEdges = cy.elements(".cy-expand-collapse-meta-edge");
+                    if (this.innerHTML === 'Collapse edges' && metaEdges.nonempty()) {
+                        metaEdges.addClass("edges_expanded_collapsed");
+                        this.innerHTML = 'Expand edges'
+                    }
+                    else {
+                        cy.elements(".cy-expand-collapse-meta-edge").removeClass("edges_expanded_collapsed");
+                        this.innerHTML = 'Collapse edges'
                     }
                 })
                 .appendTo(that.$ControlSection);
@@ -757,18 +813,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 return false;
             });
         }
-        // Expand collapse compound nodes
-        var api = cy.expandCollapse({
-            layoutBy: {
-                name: "cose-bilkent",
-                animate: "end",
-                randomize: false,
-                fit: true
-            },
-            fisheye: false,  // Fisheye doesn't work for expanding nodes when there is an animation playing
-            animate: true,
-            undoable: false
-        });
 
         // Adds feature, that when a node is tapped, it fades off all the
         // nodes that are not in its neighborhood
@@ -851,8 +895,9 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
 
         that.$layoutDd.val(layoutName);
         that.$layoutDd.on('change', function() {
+            layoutName = this.value;
             let layout = cy.layout({
-                name: this.value,
+                name: layoutName,
                 nodeDimensionsIncludeLabels: true,
                 positions: function(node){
                     let idx = parseInt(node.id().match(/\d+/),10);
