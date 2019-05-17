@@ -379,9 +379,9 @@ class StaticViz(object):
 
         """
         sp_0 = 0
-        for spInitial in self.model.initial_conditions:
-            if spInitial[0].is_equivalent_to(sp):
-                sp_0 = spInitial[1].value
+        for spInitial in self.model.initials:
+            if spInitial.pattern.is_equivalent_to(sp):
+                sp_0 = spInitial.value.value
                 break
         return sp_0
 
@@ -398,12 +398,11 @@ class StaticViz(object):
 
         # TODO: there are reactions that generate parallel edges that are not taken into account because netowrkx
         # digraph only allows one edge between two nodes
-        ic_species = [cp for cp, parameter in self.model.initial_conditions]
         for idx, sp in enumerate(self.model.species):
             species_node = 's%d' % idx
             color = "#2b913a"
             # color species with an initial condition differently
-            if len([s for s in ic_species if s.is_equivalent_to(sp)]):
+            if len([s.pattern for s in self.model.initials if s.pattern.is_equivalent_to(sp)]):
                 color = "#aaffff"
             # Setting the information about the node
             node_data = dict(label=hf.parse_name(sp),
@@ -462,13 +461,12 @@ class StaticViz(object):
         """
 
         graph = OrderedGraph(name=self.model.name, graph={'rankdir':'LR'})
-        ic_species = [cp for cp, parameter in self.model.initial_conditions]
         for i, cp in enumerate(self.model.species):
             species_node = 's%d' % i
             slabel = hf.parse_name(cp)
             color = "#2b913a"
             # color species with an initial condition differently
-            if len([s for s in ic_species if s.is_equivalent_to(cp)]):
+            if len([s.pattern for s in self.model.initials if s.pattern.is_equivalent_to(cp)]):
                 color = "#aaffff"
             graph.add_node(species_node,
                            label=slabel,
@@ -516,13 +514,12 @@ class StaticViz(object):
             Graph that has the information for the visualization of the model
         """
         graph = OrderedGraph(name=self.model.name, graph={'rankdir': 'LR'})
-        ic_species = [cp for cp, parameter in self.model.initial_conditions]
         for i, cp in enumerate(self.model.species):
             species_node = 's%d' % i
             slabel = hf.parse_name(self.model.species[i])
             color = "#2b913a"
             # color species with an initial condition differently
-            if len([s for s in ic_species if s.is_equivalent_to(cp)]):
+            if len([s.pattern for s in self.model.initials if s.pattern.is_equivalent_to(cp)]):
                 color = "#aaffff"
             graph.add_node(species_node,
                            label=slabel,
