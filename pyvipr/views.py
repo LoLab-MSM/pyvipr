@@ -4,6 +4,7 @@ __all__ = [
     'sp_view',
     'sp_comp_view',
     'sp_comm_view',
+    'sp_comm_hierarchy_view',
     'sp_rxns_bidirectional_view',
     'sp_rxns_view',
     'sp_rules_view',
@@ -36,7 +37,7 @@ def sp_view(model, layout_name='preset'):
 
     """
 
-    return pysbViz(data=model, type_of_viz='species_view', layout_name=layout_name)
+    return pysbViz(data=model, type_of_viz='sp_view', layout_name=layout_name)
 
 
 def sp_comp_view(model, layout_name='cose-bilkent'):
@@ -53,7 +54,7 @@ def sp_comp_view(model, layout_name='cose-bilkent'):
         Layout to use
 
     """
-    return pysbViz(data=model, type_of_viz='species_compartments_view', layout_name=layout_name)
+    return pysbViz(data=model, type_of_viz='sp_comp_view', layout_name=layout_name)
 
 
 def sp_comm_view(model, layout_name='klay', random_state=None):
@@ -73,7 +74,27 @@ def sp_comm_view(model, layout_name='klay', random_state=None):
         Random state seed use by the community detection algorithm
 
     """
-    return pysbViz(data=model, type_of_viz='communities_view', random_state=random_state, layout_name=layout_name)
+    return pysbViz(data=model, type_of_viz='sp_comm_view', random_state=random_state, layout_name=layout_name)
+
+
+def sp_comm_hierarchy_view(model, layout_name='klay', random_state=None):
+    """
+    Render a visualization of the interactions between the species in a model.
+    The species nodes are grouped by the communities detected by the
+    Louvain algorithm: https://en.wikipedia.org/wiki/Louvain_Modularity.
+
+    Parameters
+    ----------
+    model: pysb.model or str
+        Model to visualize. It can be a pysb model, or the file path to an
+        an SBML or BNGL model
+    layout_name: str
+        Layout to use
+    random_state: int
+        Random state seed use by the community detection algorithm
+
+    """
+    return pysbViz(data=model, type_of_viz='sp_comm_hierarchy_view', random_state=random_state, layout_name=layout_name)
 
 
 def sp_rxns_bidirectional_view(model, layout_name='preset'):
@@ -144,7 +165,7 @@ def sp_rules_fxns_view(model, layout_name='cose-bilkent'):
         Layout to use
 
     """
-    return pysbViz(data=model, type_of_viz='sp_rules_functions_view', layout_name=layout_name)
+    return pysbViz(data=model, type_of_viz='sp_rules_fxns_view', layout_name=layout_name)
 
 
 def sp_rules_mod_view(model, layout_name='cose-bilkent'):
@@ -162,7 +183,7 @@ def sp_rules_mod_view(model, layout_name='cose-bilkent'):
         Layout to use
 
     """
-    return pysbViz(data=model, type_of_viz='sp_rules_modules_view', layout_name=layout_name)
+    return pysbViz(data=model, type_of_viz='sp_rules_mod_view', layout_name=layout_name)
 
 
 def projected_species_reactions_view(model, layout_name='preset'):
@@ -246,7 +267,7 @@ def sp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='prese
         Layout to use
 
     """
-    return pysbViz(data=simulation, type_of_viz='dynamic_view', layout_name=layout_name,
+    return pysbViz(data=simulation, type_of_viz='sp_dyn_view', layout_name=layout_name,
                    process=process, sim_idx=sim_idx)
 
 
@@ -267,7 +288,7 @@ def sp_comp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='
         Layout to use
 
     """
-    return pysbViz(data=simulation, type_of_viz='dynamic_compartments_view', layout_name=layout_name,
+    return pysbViz(data=simulation, type_of_viz='sp_comp_dyn_view', layout_name=layout_name,
                    process=process, sim_idx=sim_idx)
 
 
@@ -290,7 +311,7 @@ def sp_comm_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='
         Random state seed use by the community detection algorithm
 
     """
-    return pysbViz(data=simulation, type_of_viz='dynamic_communities_view', layout_name=layout_name,
+    return pysbViz(data=simulation, type_of_viz='sp_comm_dyn_view', layout_name=layout_name,
                    random_state=random_state, process=process, sim_idx=sim_idx)
 
 
@@ -315,8 +336,8 @@ def sim_model_dyn_view(model, tspan, param_values=None, type_of_viz='dynamic_vie
         If not specified, parameter values will be taken directly from
         model.parameters.
     type_of_viz: str
-        Type of visualization. It can only be `dynamic_view`, `dynamic_compartments_view`
-        or `dynamic_communities_view`
+        Type of visualization. It can only be `sp_dyn_view`, `sp_comp_dyn_view`
+        or `sp_comm_dyn_view`
     process : str
         Type of the dynamic visualization, it can be 'consumption' or 'production'
     layout_name : str
