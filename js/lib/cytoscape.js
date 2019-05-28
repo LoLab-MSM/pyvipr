@@ -647,7 +647,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         let api = cy.expandCollapse({undoable:false, animate:true, fisheye:false});
         // Name community nodes with the highest degree node
         let communities = cy.nodes('[NodeType = "community"]');
-        if (!communities.empty()){
+        if (communities.nonempty()){
             that.expandButton = $("<button id='expandid'>Collapse nodes</button>")
                 .css({
                     'position': 'absolute',
@@ -705,7 +705,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 .appendTo(that.$ControlSection);
             communities.forEach(function(community){
                 let node_degree = [];
-                community.children().forEach(function(node){
+                community.descendants().forEach(function(node){
                     node_degree.push([node, node.degree()])
                 });
                 node_degree.sort(function(a, b){return b[1]-a[1]});
