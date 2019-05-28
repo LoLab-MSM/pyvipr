@@ -7,7 +7,7 @@ import pysb
 import pyvipr.util as hf
 from pysb.bng import generate_equations
 from networkx.algorithms import bipartite
-from community import best_partition
+from community import best_partition, generate_dendrogram
 
 
 class OrderedGraph(nx.DiGraph):
@@ -58,7 +58,7 @@ class StaticViz(object):
         for n in nodes:  # remove the merged nodes
             G.remove_node(n)
 
-    def species_view(self):
+    def sp_view(self):
         """
         Generate a dictionary that contains the species network information
 
@@ -69,7 +69,7 @@ class StaticViz(object):
         --------
         >>> from pysb.examples.earm_1_0 import model
         >>> viz = StaticViz(model)
-        >>> data = viz.species_view()
+        >>> data = viz.sp_view()
 
         Returns
         -------
@@ -82,7 +82,7 @@ class StaticViz(object):
         data = graph_to_json(sp_graph=graph, layout=g_layout)
         return data
 
-    def species_compartments_view(self):
+    def sp_comp_view(self):
         """
         Generate a dictionary that contains the information about the species 
         network. Species are grouped by the compartments they belong to
@@ -137,7 +137,7 @@ class StaticViz(object):
         nx.set_node_attributes(graph, sp_compartment, 'parent')
         return graph
 
-    def communities_view(self, random_state=None):
+    def sp_comm_view(self, random_state=None):
         """
         Use the Louvain algorithm https://en.wikipedia.org/wiki/Louvain_Modularity
         for community detection to find groups of nodes that are densely connected.
@@ -147,7 +147,7 @@ class StaticViz(object):
         ==========
         random_state : int, optional
             Random state seed use by the community detection algorithm, by default None
-        
+
         Returns
         -------
         dict
@@ -160,13 +160,40 @@ class StaticViz(object):
         data = graph_to_json(sp_graph=graph, layout=g_layout)
         return data
 
-    def communities_data_graph(self, random_state=None):
+    def sp_comm_hierarchy_view(self, random_state=None):
+        """
+        Use the Louvain algorithm https://en.wikipedia.org/wiki/Louvain_Modularity
+        for community detection to find groups of nodes that are densely connected.
+        It generates the data of all the intermediate clusters obtained during the Louvain
+        algorithm generate to create a network with compound nodes that hold the communities.
+
+        Parameters
+        ==========
+        random_state : int, optional
+            Random state seed use by the community detection algorithm, by default None
+
+        Returns
+        -------
+        dict
+            A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
+            contains all the information (nodes,edges, parent nodes, positions) to generate
+            a cytoscapejs network.
+        """
+        graph = self.communities_data_graph(all_levels=True, random_state=random_state)
+        g_layout = dot_layout(graph)
+        data = graph_to_json(sp_graph=graph, layout=g_layout)
+        return data
+
+    def communities_data_graph(self, all_levels=False, random_state=None):
         """
         Create a networkx DiGraph. It applies the Louvain algorithm to detect
         communities and add that information to the graph
         
         Parameters
         ----------
+        all_levels : bool
+            Indicates if the generated graph contains the information about the
+            clusters obtained at each iteration of the Louvain algorithm
         random_state : int, optional
             Random state seed use by the community detection algorithm, by default None
         
@@ -178,11 +205,41 @@ class StaticViz(object):
         """
         graph = self.species_graph()
         graph_communities = graph.copy().to_undirected()  # Louvain algorithm only deals with undirected graphs
-        communities = best_partition(graph_communities, random_state=random_state)
-        # compound nodes to add to hold communities
-        cnodes = set(communities.values())
-        graph.add_nodes_from(cnodes, NodeType='community')
-        nx.set_node_attributes(graph, communities, 'parent')
+        if all_levels:
+            # We add the first communities detected, The dendrogram at level 0 contains the nodes as keys
+            # and the clusters they belong to as values.
+            dendrogram = generate_dendrogram(graph_communities, random_state=random_state)
+            partition = dendrogram[0]
+            cnodes = set(partition.values())
+            graph.add_nodes_from(cnodes, NodeType='subcommunity')
+            nx.set_node_attributes(graph, partition, 'parent')
+
+            # The dendrogram at level 1 contains the new community nodes and the clusters they belong to.
+            # We change the cluster names to differentiate them from the cluster names of the first clustering
+            # result. Then, repeat the same procedures for the next levels.
+            cluster_child_parent = dendrogram[1]
+            for key, value in cluster_child_parent.items():
+                cluster_child_parent[key] = '{0}_{1}'.format(1, value)
+            cnodes = set(cluster_child_parent.values())
+            graph.add_nodes_from(cnodes, NodeType='subcommunity')
+            nx.set_node_attributes(graph, cluster_child_parent, 'parent')
+            for level in range(2, len(dendrogram)):
+                cluster_child_parent = dendrogram[level]
+                cluster_child_parent2 = {'{0}_{1}'.format(level - 1, key): '{0}_{1}'.format(level, value) for
+                                         (key, value) in cluster_child_parent.items()}
+                cnodes = set(cluster_child_parent2.values())
+                if level < len(dendrogram) - 1:
+                    graph.add_nodes_from(cnodes, NodeType='subcommunity')
+                else:
+                    graph.add_nodes_from(cnodes, NodeType='community')
+                nx.set_node_attributes(graph, cluster_child_parent2, 'parent')
+                # Update nodes clusters
+        else:
+            communities = best_partition(graph_communities, random_state=random_state)
+            # compound nodes to add to hold communities
+            cnodes = set(communities.values())
+            graph.add_nodes_from(cnodes, NodeType='community')
+            nx.set_node_attributes(graph, communities, 'parent')
         return graph
 
     def sp_rxns_bidirectional_view(self):
@@ -238,7 +295,7 @@ class StaticViz(object):
         data = graph_to_json(sp_graph=rules_graph, layout=g_layout)
         return data
 
-    def sp_rules_functions_view(self):
+    def sp_rules_fxns_view(self):
         """
         Generates a dictionary with the info of a bipartite graph where one set of nodes is the model species
         and the other set is the model rules. Additionally, it adds information of the functions from which
@@ -261,7 +318,7 @@ class StaticViz(object):
         data = graph_to_json(sp_graph=rules_graph, layout=g_layout)
         return data
 
-    def sp_rules_modules_view(self):
+    def sp_rules_mod_view(self):
         """
         Generates a dictionary with the info of a bipartite graph where one set of nodes is the model species
         and the other set is the model rules. Additionally, it adds information of the modules from which
