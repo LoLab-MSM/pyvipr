@@ -25,7 +25,7 @@ def data_to_json(value, widget):
         model = dispatch_pysb_files(value)
         viz = StaticViz(model)
         try:
-            if widget.type_of_viz == 'communities_view':
+            if widget.type_of_viz in ['sp_comm_view', 'sp_comm_hierarchy_view']:
                 rs = widget.random_state
                 jsondata = getattr(viz, widget.type_of_viz)(random_state=rs)
             else:
