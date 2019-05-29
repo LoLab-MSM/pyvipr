@@ -15,11 +15,18 @@ PyViPR is a Jupyter widget for the dynamic and static visualization of [PySB](ht
 
 To install this widget, use _pip_:
 
-```bash
+
 # Install the widget from PyPI repository
+```bash
 > pip install pyvipr
+```
+PyViPR requires PySB to create the visualizations. To finish the [installation of PySB](https://pysb.readthedocs.io/en/stable/installation.html#option-1-install-pysb-natively-on-your-computer) it
+requires to manually install BioNetGen into the default path for your platform 
+(/usr/local/share/BioNetGen on Mac and Linux, c:\Program Files\BioNetGen on Windows), 
+or set the BNGPATH environment variable to the BioNetGen path on your machine.
 
 # Enable it
+```bash
 > jupyter nbextension enable --py --sys-prefix pyvipr
 ```
 ### From git (requires npm)
