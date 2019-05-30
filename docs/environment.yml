@@ -10,6 +10,6 @@ dependencies:
   - jupyter_sphinx
   - pysb
   - nbsphinx
+  - pyvipr
   - pip:
-      - pyvipr
       - python-louvain
