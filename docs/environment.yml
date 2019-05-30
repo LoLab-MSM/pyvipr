@@ -2,7 +2,6 @@ name: pysbViz_docs
 channels:
   - conda-forge
   - alubbock
-  - ortegas
 dependencies:
   - python=3.7
   - traitlets
@@ -11,6 +10,6 @@ dependencies:
   - jupyter_sphinx
   - pysb
   - nbsphinx
-  - pyvipr
   - pip:
+      - pyvipr
       - python-louvain
