@@ -145,7 +145,6 @@ setup_args = {
         'pysb>=1.8.0',
         'sympy>=1.3',
         'matplotlib>=3.0.2',
-        'pydot>=1.3.0',
         'python-louvain>=0.13'
     ],
     'packages': find_packages(),

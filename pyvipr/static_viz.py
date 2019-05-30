@@ -78,8 +78,7 @@ class StaticViz(object):
             contains all the information (nodes,edges, positions) to generate a cytoscapejs network.
         """
         graph = self.species_graph()
-        g_layout = dot_layout(graph)
-        data = graph_to_json(sp_graph=graph, layout=g_layout)
+        data = graph_to_json(sp_graph=graph)
         return data
 
     def sp_comp_view(self):
@@ -95,8 +94,7 @@ class StaticViz(object):
             generate a cytoscapejs network.
         """
         graph = self.compartments_data_graph()
-        g_layout = dot_layout(graph)
-        data = graph_to_json(sp_graph=graph, layout=g_layout)
+        data = graph_to_json(sp_graph=graph)
         return data
 
     def compartments_data_graph(self):
@@ -156,8 +154,7 @@ class StaticViz(object):
             a cytoscapejs network.
         """
         graph = self.communities_data_graph(random_state=random_state)
-        g_layout = dot_layout(graph)
-        data = graph_to_json(sp_graph=graph, layout=g_layout)
+        data = graph_to_json(sp_graph=graph)
         return data
 
     def sp_comm_hierarchy_view(self, random_state=None):
@@ -180,8 +177,7 @@ class StaticViz(object):
             a cytoscapejs network.
         """
         graph = self.communities_data_graph(all_levels=True, random_state=random_state)
-        g_layout = dot_layout(graph)
-        data = graph_to_json(sp_graph=graph, layout=g_layout)
+        data = graph_to_json(sp_graph=graph)
         return data
 
     def communities_data_graph(self, all_levels=False, random_state=None):
@@ -256,8 +252,7 @@ class StaticViz(object):
 
         """
         graph = self.sp_rxns_bidirectional_graph()
-        g_layout = dot_layout(graph)
-        data = graph_to_json(sp_graph=graph, layout=g_layout)
+        data = graph_to_json(sp_graph=graph)
         return data
 
     def sp_rxns_view(self):
@@ -273,8 +268,7 @@ class StaticViz(object):
             a cytoscapejs network.
         """
         graph = self.sp_rxns_graph()
-        g_layout = dot_layout(graph)
-        data = graph_to_json(sp_graph=graph, layout=g_layout)
+        data = graph_to_json(sp_graph=graph)
         return data
 
     def sp_rules_view(self):
@@ -291,8 +285,7 @@ class StaticViz(object):
         """
         rules_graph = self.rules_graph()
         rules_graph = self.graph_merged_pair_edges(rules_graph)
-        g_layout = dot_layout(rules_graph)
-        data = graph_to_json(sp_graph=rules_graph, layout=g_layout)
+        data = graph_to_json(sp_graph=rules_graph)
         return data
 
     def sp_rules_fxns_view(self):
@@ -314,8 +307,7 @@ class StaticViz(object):
         unique_functions = set(rule_functions.values())
         nx.set_node_attributes(rules_graph, rule_functions, 'parent')
         rules_graph.add_nodes_from(unique_functions, NodeType='function')
-        g_layout = dot_layout(rules_graph)
-        data = graph_to_json(sp_graph=rules_graph, layout=g_layout)
+        data = graph_to_json(sp_graph=rules_graph)
         return data
 
     def sp_rules_mod_view(self):
@@ -378,8 +370,7 @@ class StaticViz(object):
         rules_graph.add_nodes_from(module_parent_nodes, NodeType='module')
         nx.set_node_attributes(rules_graph, module_parents, 'parent')
         nx.set_node_attributes(rules_graph, rules_module, 'parent')
-        g_layout = dot_layout(rules_graph)
-        data = graph_to_json(sp_graph=rules_graph, layout=g_layout)
+        data = graph_to_json(sp_graph=rules_graph)
         return data
 
     def projections_view(self, project_to='species_reactions'):
@@ -408,8 +399,7 @@ class StaticViz(object):
             raise ValueError('Projection not valid')
 
         projected_graph = self.projected_graph(bipartite_graph, project_to)
-        g_layout = dot_layout(projected_graph)
-        data = graph_to_json(sp_graph=projected_graph, layout=g_layout)
+        data = graph_to_json(sp_graph=projected_graph)
         return data
 
     def projected_species_reactions_view(self):
@@ -763,22 +753,3 @@ def graph_to_json(sp_graph, layout=None, path=''):
         with open(path + 'data.json', 'w') as outfile:
             json.dump(data, outfile)
     return data
-
-
-def dot_layout(sp_graph):
-    """
-
-    Parameters
-    ----------
-    sp_graph : nx.Digraph graph
-        Graph to layout
-
-    Returns
-    -------
-    OrderedDict 
-        Ordered Dictionary that contains the node position according to the dot layout
-    """
-
-    pos = nx.nx_pydot.graphviz_layout(sp_graph, prog='dot')
-    ordered_pos = collections.OrderedDict((node, pos[node]) for node in sp_graph.nodes())
-    return ordered_pos

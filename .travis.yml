@@ -4,7 +4,6 @@ dist: trusty
 env:
     - PYVER=3.7
 before_install:
-    - sudo apt-get install graphviz
     - wget http://repo.continuum.io/miniconda/Miniconda${PYVER:0:1}-latest-Linux-x86_64.sh
         -O miniconda.sh
     - chmod +x miniconda.sh
