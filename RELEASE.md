@@ -26,7 +26,6 @@ python setup.py bdist_wheel --universal
 git tag -a X.X.X -m "Version x.x.x release"
 ```
 
-
 Update _version.py (add 'dev' and increment minor)
 git add and git commit
 git push
