@@ -5,7 +5,7 @@ import numpy as np
 from pysb.simulator import SimulationResult
 import matplotlib.colors as colors
 import matplotlib.cm as cm
-from pyvipr.static_viz import StaticViz, graph_to_json, dot_layout
+from pyvipr.static_viz import StaticViz, graph_to_json
 
 
 class OrderedGraph(nx.DiGraph):
@@ -92,9 +92,8 @@ class DynamicViz(object):
         self.sp_graph.graph['view'] = 'dynamic'
         self.sp_graph.graph['nsims'] = self.nsims
         self.sp_graph.graph['tspan'] = self.tspan.tolist()
-        g_layout = dot_layout(self.sp_graph)
         self._add_edge_node_dynamics()
-        data = graph_to_json(sp_graph=self.sp_graph, layout=g_layout)
+        data = graph_to_json(sp_graph=self.sp_graph)
         return data
 
     def sp_comp_dyn_view(self, type_viz='consumption'):
@@ -108,9 +107,8 @@ class DynamicViz(object):
         self.sp_graph.graph['view'] = 'dynamic'
         self.sp_graph.graph['nsims'] = self.nsims
         self.sp_graph.graph['tspan'] = self.tspan.tolist()
-        g_layout = dot_layout(self.sp_graph)
         self._add_edge_node_dynamics()
-        data = graph_to_json(sp_graph=self.sp_graph, layout=g_layout)
+        data = graph_to_json(sp_graph=self.sp_graph)
         return data
 
     def sp_comm_dyn_view(self, type_viz='consumption', random_state=None):
@@ -138,9 +136,8 @@ class DynamicViz(object):
         self.sp_graph.graph['view'] = 'dynamic'
         self.sp_graph.graph['nsims'] = self.nsims
         self.sp_graph.graph['tspan'] = self.tspan.tolist()
-        g_layout = dot_layout(self.sp_graph)
         self._add_edge_node_dynamics()
-        data = graph_to_json(sp_graph=self.sp_graph, layout=g_layout)
+        data = graph_to_json(sp_graph=self.sp_graph)
         return data
 
     def _add_edge_node_dynamics(self):
