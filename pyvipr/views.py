@@ -267,7 +267,7 @@ def sp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='prese
         Layout to use
 
     """
-    return pysbViz(data=simulation, type_of_viz='sp_dyn_view', layout_name=layout_name,
+    return pysbViz(data=simulation, type_of_viz='dynamic_sp_view', layout_name=layout_name,
                    process=process, sim_idx=sim_idx)
 
 
@@ -288,7 +288,7 @@ def sp_comp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='
         Layout to use
 
     """
-    return pysbViz(data=simulation, type_of_viz='sp_comp_dyn_view', layout_name=layout_name,
+    return pysbViz(data=simulation, type_of_viz='dynamic_sp_comp_view', layout_name=layout_name,
                    process=process, sim_idx=sim_idx)
 
 
@@ -311,7 +311,7 @@ def sp_comm_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='
         Random state seed use by the community detection algorithm
 
     """
-    return pysbViz(data=simulation, type_of_viz='sp_comm_dyn_view', layout_name=layout_name,
+    return pysbViz(data=simulation, type_of_viz='dynamic_sp_comm_view', layout_name=layout_name,
                    random_state=random_state, process=process, sim_idx=sim_idx)
 
 
