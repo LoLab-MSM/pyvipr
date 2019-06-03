@@ -5,6 +5,8 @@ from pysb.importers.bngl import model_from_bngl
 from pysb.importers.sbml import model_from_sbml, model_from_biomodels
 import os
 import subprocess
+import tempfile
+import sys
 
 
 def parse_name(spec):
@@ -104,7 +106,10 @@ def find_nonimportant_nodes(model):
 
 
 def dispatch_pysb_files(value):
-    functions = {'str': _handle_model_files, 'pysb.core.Model': _handle_pysb_model}
+    functions = {'str': _handle_model_files, 'pysb.core.Model': _handle_pysb_model,
+                 'tellurium.roadrunner.extended_roadrunner.ExtendedRoadRunner': _handle_tellurium_model,
+                 'pysces.PyscesModel.PysMod': _handle_pysces_model,
+                 'ecell4_base.core.NetworkModel': _handle_ecell4_model}
     data_type = str(type(value)).split("'")[1]
     result = functions[data_type](value)
     return result
@@ -132,3 +137,32 @@ def _handle_model_files(value):
 def _handle_pysb_model(value):
     return value
 
+
+def _handle_tellurium_model(value):
+    f_sbml = tempfile.NamedTemporaryFile(suffix='.sbml')
+    value.exportToSBML(f_sbml.name)
+    model = model_from_sbml(f_sbml.name)
+    return model
+
+
+def _handle_pysces_model(value):
+    # Note: Importing a pysces model to sbml doesn't work in python 3.7
+    pysces = sys.modules['pysces']
+    f_sbml = tempfile.NamedTemporaryFile(suffix='.sbml')
+    pysces.interface.writeMod2SBML(value, f_sbml.name)
+    model = model_from_sbml(f_sbml.name)
+    return model
+
+
+def _handle_ecell4_model(value):
+    ecell4 = sys.modules['ecell4']
+    f_sbml = tempfile.NamedTemporaryFile(suffix='.sbml')
+    # In ecell4 species don't have initial conditions as attributes. Hence, the
+    # initial conditions are passed as a dictionary to the save_sbml function.
+    # If no initial conditions are passed ecell4 sets the initial condition of the
+    # species to 0, and PySB throws an error when the initial condition of all the species
+    # are zero. For visualization purposes we then set the initial conditions to 1.
+    y0 = {sp.serial(): 1 for sp in value.list_species()}
+    ecell4.util.ports.save_sbml(f_sbml.name, value, y0=y0)
+    model = model_from_sbml(f_sbml.name)
+    return model
