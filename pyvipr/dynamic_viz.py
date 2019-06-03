@@ -59,7 +59,6 @@ class DynamicViz(object):
         param_values = simulation.param_values[sim_idx]
         self.param_dict = dict((p.name, param_values[i]) for i, p in enumerate(self.model.parameters))
         self.sp_graph = None
-        self.passengers = []
         self.type_viz = ''
 
     def sp_dyn_view(self, type_viz='consumption'):
@@ -218,7 +217,7 @@ class DynamicViz(object):
         vals_norm = np.vectorize(self.mon_normalized)
         all_products = [rx['products'] for rx in self.model.reactions_bidirectional]
         all_reactants = [rx['reactants'] for rx in self.model.reactions_bidirectional]
-        sp_imp = set(range(len(self.model.species))) - set(self.passengers)  # species with more than one edge
+        sp_imp = range(len(self.model.species))  # species indices
         # TODO: Make sure that product nodes that also have more than one incoming node, don't overwrite
         #  previous nodes edges attrs
 
@@ -316,16 +315,6 @@ class DynamicViz(object):
                         all_rate_abs_val[edges_id] = rxns_matrix[rp].tolist()
             else:
                 raise ValueError('The type of process can only be `consumption` or `production`')
-
-        for sp in self.passengers:
-            rxns_idx_reactant = [all_reactants.index(rx) for rx in all_reactants if sp in rx]
-            for rx in rxns_idx_reactant:
-                products = all_products[rx]
-                for p in products:
-                    edges_id = ('s{0}'.format(sp), 's{0}'.format(p))
-                    all_rate_colors[edges_id] = ['#A4A09F'] * len(self.tspan)
-                    all_rate_sizes[edges_id] = [0.5] * len(self.tspan)
-                    all_rate_abs_val[edges_id] = rxns_matrix[rx].tolist()
 
         return all_rate_sizes, all_rate_colors, all_rate_abs_val
 
