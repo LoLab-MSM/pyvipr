@@ -62,7 +62,7 @@ class DynamicViz(object):
         self.passengers = []
         self.type_viz = ''
 
-    def sp_dyn_view(self, type_viz='consumption'):
+    def dynamic_sp_view(self, type_viz='consumption'):
         """
         Generates a dictionary with the model dynamics data that can be converted in the Cytoscape.js JSON format
 
@@ -79,7 +79,7 @@ class DynamicViz(object):
         >>> tspan = np.linspace(0, 20000)
         >>> sim = ScipyOdeSimulator(model, tspan).run()
         >>> viz = ModelVisualization(sim)
-        >>> data = viz.sp_dyn_view()
+        >>> data = viz.dynamic_sp_view()
 
         Returns
         -------
@@ -96,7 +96,7 @@ class DynamicViz(object):
         data = graph_to_json(sp_graph=self.sp_graph)
         return data
 
-    def sp_comp_dyn_view(self, type_viz='consumption'):
+    def dynamic_sp_comp_view(self, type_viz='consumption'):
         """
         Same as :py:meth:`dynamic_view` but the species nodes are grouped
         by the compartments they belong to
@@ -111,7 +111,7 @@ class DynamicViz(object):
         data = graph_to_json(sp_graph=self.sp_graph)
         return data
 
-    def sp_comm_dyn_view(self, type_viz='consumption', random_state=None):
+    def dynamic_sp_comm_view(self, type_viz='consumption', random_state=None):
         """
         Same as :py:meth:`dynamic_view` but the species nodes are grouped
         by the communities they belong to. Communities are obtained using the 
