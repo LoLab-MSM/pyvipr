@@ -23,7 +23,7 @@ __all__ = [
 ]
 
 
-def sp_view(model, layout_name='preset'):
+def sp_view(model, layout_name='cose-bilkent'):
     """
     Render a visualization of the interactions between the species in a model.
 
@@ -97,7 +97,7 @@ def sp_comm_hierarchy_view(model, layout_name='klay', random_state=None):
     return pysbViz(data=model, type_of_viz='sp_comm_hierarchy_view', random_state=random_state, layout_name=layout_name)
 
 
-def sp_rxns_bidirectional_view(model, layout_name='preset'):
+def sp_rxns_bidirectional_view(model, layout_name='cose-bilkent'):
     """
     Render a visualization of a bipartite graph where one set of nodes
     are the molecular species in the model and the other set are the
@@ -115,7 +115,7 @@ def sp_rxns_bidirectional_view(model, layout_name='preset'):
     return pysbViz(data=model, type_of_viz='sp_rxns_bidirectional_view', layout_name=layout_name)
 
 
-def sp_rxns_view(model, layout_name='preset'):
+def sp_rxns_view(model, layout_name='cose-bilkent'):
     """
     Render a visualization of a bipartite graph where one set of nodes
     are the molecular species in the model and the other set are the
@@ -133,7 +133,7 @@ def sp_rxns_view(model, layout_name='preset'):
     return pysbViz(data=model, type_of_viz='sp_rxns_view', layout_name=layout_name)
 
 
-def sp_rules_view(model, layout_name='preset'):
+def sp_rules_view(model, layout_name='cose-bilkent'):
     """
     Render a visualization of a bipartite graph where one set of nodes
     are the molecular species in the model and the other set are the rules.
@@ -186,7 +186,7 @@ def sp_rules_mod_view(model, layout_name='cose-bilkent'):
     return pysbViz(data=model, type_of_viz='sp_rules_mod_view', layout_name=layout_name)
 
 
-def projected_species_reactions_view(model, layout_name='preset'):
+def projected_species_reactions_view(model, layout_name='cose-bilkent'):
     """
     Render a visualization of the interactions between species in a model.
 
@@ -202,7 +202,7 @@ def projected_species_reactions_view(model, layout_name='preset'):
     return pysbViz(data=model, type_of_viz='projected_species_reactions_view', layout_name=layout_name)
 
 
-def projected_reactions_view(model, layout_name='preset'):
+def projected_reactions_view(model, layout_name='cose-bilkent'):
     """
     Render a visualization of the interaction between the reaction in a model
 
@@ -218,7 +218,7 @@ def projected_reactions_view(model, layout_name='preset'):
     return pysbViz(data=model, type_of_viz='projected_reactions_view', layout_name=layout_name)
 
 
-def projected_rules_view(model, layout_name='preset'):
+def projected_rules_view(model, layout_name='cose-bilkent'):
     """
     Render a visualization of the interactions between rules in a model.
 
@@ -234,7 +234,7 @@ def projected_rules_view(model, layout_name='preset'):
     return pysbViz(data=model, type_of_viz='projected_rules_view', layout_name=layout_name)
 
 
-def projected_species_rules_view(model, layout_name='preset'):
+def projected_species_rules_view(model, layout_name='cose-bilkent'):
     """
     Render a visualization of a bipartite graph where one set of nodes
     are the molecular species in the model and the other set are the rules.
@@ -251,7 +251,7 @@ def projected_species_rules_view(model, layout_name='preset'):
     return pysbViz(data=model, type_of_viz='projected_species_rules_view', layout_name=layout_name)
 
 
-def sp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='preset'):
+def sp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='cose-bilkent'):
     """
     Render a dynamic visualization of the simulation
 
@@ -316,7 +316,7 @@ def sp_comm_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='
 
 
 def sim_model_dyn_view(model, tspan, param_values=None, type_of_viz='dynamic_view',
-                       process='consumption', layout_name='preset'):
+                       process='consumption', layout_name='cose-bilkent'):
     """
     Render a dynamic visualization of the model using the tspan and param_values
     passed to the function
