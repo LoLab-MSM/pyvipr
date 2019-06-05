@@ -12,7 +12,7 @@ __all__ = [
     'sp_rules_mod_view',
     'projected_species_reactions_view',
     'projected_reactions_view',
-    'projected_rules_view',
+    'rules_view',
     'projected_species_rules_view',
     'sp_dyn_view',
     'sp_comp_dyn_view',
@@ -218,7 +218,7 @@ def projected_reactions_view(model, layout_name='cose-bilkent'):
     return pysbViz(data=model, type_of_viz='projected_reactions_view', layout_name=layout_name)
 
 
-def projected_rules_view(model, layout_name='cose-bilkent'):
+def rules_view(model, layout_name='cose-bilkent'):
     """
     Render a visualization of the interactions between rules in a model.
 
@@ -231,7 +231,7 @@ def projected_rules_view(model, layout_name='cose-bilkent'):
         Layout to use
 
     """
-    return pysbViz(data=model, type_of_viz='projected_rules_view', layout_name=layout_name)
+    return pysbViz(data=model, type_of_viz='rules_view', layout_name=layout_name)
 
 
 def projected_species_rules_view(model, layout_name='cose-bilkent'):

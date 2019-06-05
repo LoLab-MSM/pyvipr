@@ -1,8 +1,7 @@
 from collections import OrderedDict
 import networkx as nx
 import json
-from .util_networkx import from_networkx
-import collections
+import pyvipr.util_networkx as nc
 import pysb
 import pyvipr.util as hf
 from pysb.bng import generate_equations
@@ -57,29 +56,6 @@ class StaticViz(object):
 
         for n in nodes:  # remove the merged nodes
             G.remove_node(n)
-
-    def sp_view(self):
-        """
-        Generate a dictionary that contains the species network information
-
-        Parameters
-        ----------
-
-        Examples
-        --------
-        >>> from pysb.examples.earm_1_0 import model
-        >>> viz = StaticViz(model)
-        >>> data = viz.sp_view()
-
-        Returns
-        -------
-        dict
-            A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
-            contains all the information (nodes,edges, positions) to generate a cytoscapejs network.
-        """
-        graph = self.species_graph()
-        data = graph_to_json(sp_graph=graph)
-        return data
 
     def sp_comp_view(self):
         """
@@ -251,8 +227,7 @@ class StaticViz(object):
             a cytoscapejs network.
 
         """
-        graph = self.sp_rxns_bidirectional_graph()
-        data = graph_to_json(sp_graph=graph)
+        data = nc.sp_rxns_graph_from_pysb_model(self.model, {'name': self.model.name})
         return data
 
     def sp_rxns_view(self):
@@ -408,147 +383,27 @@ class StaticViz(object):
     def projected_reactions_view(self):
         return self.projections_view('reactions')
 
-    def projected_rules_view(self):
-        return self.projections_view('rules')
+    def rules_view(self):
+        return nc.rules_graph_from_pysb_model(self.model, {'name': self.model.name})
 
     def projected_species_rules_view(self):
         return self.projections_view('species_rules')
 
-    def _sp_initial(self, sp):
+    def sp_view(self):
         """
-        Get initial condition of a species
-        Parameters
-        ----------
-        sp: pysb.ComplexPattern, pysb species
+        Generate a dictionary that contains the species network information
 
         Returns
         -------
-
+        dict
+            A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
+            contains all the information (nodes,edges, positions) to generate a cytoscapejs network.
         """
-        sp_0 = 0
-        for spInitial in self.model.initials:
-            if spInitial.pattern.is_equivalent_to(sp):
-                sp_0 = spInitial.value.value
-                break
-        return sp_0
-
-    def species_graph(self):
-        """
-        Creates a nx.DiGraph graph of the model species interactions
-
-        Returns
-        -------
-        nx.Digraph 
-            Graph that has the information for the visualization of the model
-        """
-        sp_graph = OrderedGraph(name=self.model.name, graph={'rankdir':'LR'}, paths=[])
+        data = nc.sp_graph_from_pysb_model(self.model, {'name': self.model.name})
 
         # TODO: there are reactions that generate parallel edges that are not taken into account because netowrkx
         # digraph only allows one edge between two nodes
-        for idx, sp in enumerate(self.model.species):
-            species_node = 's%d' % idx
-            color = "#2b913a"
-            # color species with an initial condition differently
-            if len([s.pattern for s in self.model.initials if s.pattern.is_equivalent_to(sp)]):
-                color = "#aaffff"
-            # Setting the information about the node
-            node_data = dict(label=hf.parse_name(sp),
-                             background_color=color,
-                             shape='ellipse',
-                             NodeType='species',
-                             spInitial=self._sp_initial(sp))
-            sp_graph.add_node(species_node, **node_data)
-
-        for reaction in self.model.reactions_bidirectional:
-            reactants = set(reaction['reactants'])
-            products = set(reaction['products'])
-            if reaction['reversible']:
-                attr_reversible = {'source_arrow_shape': 'diamond', 'target_arrow_shape': 'triangle',
-                                   'source_arrow_fill': 'hollow'}
-            else:
-                attr_reversible = {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle',
-                                      'source_arrow_fill': 'filled'}
-
-            for s in reactants:
-                for p in products:
-                    self._r_link_species(sp_graph, s, p, **attr_reversible)
-        return sp_graph
-
-    @staticmethod
-    def _r_link_species(graph, s, r, **attrs):
-        """
-        Links two nodes in a species graph
-        Parameters
-        ----------
-        s : int
-            Source node
-        r: int
-            Target node
-        attrs: dict
-            Other attributes for edges
-
-        Returns
-        -------
-
-        """
-
-        nodes = ('s{0}'.format(s), 's{0}'.format(r))
-        attrs.setdefault('arrowhead', 'normal')
-        graph.add_edge(*nodes, **attrs)
-
-    def sp_rxns_bidirectional_graph(self):
-        """
-        Creates a bipartite nx.DiGraph graph where one set of nodes is the model species
-        and the other set is the model bidirectional reactions.
-
-        Returns
-        -------
-        nx.Digraph 
-            Graph that has the information for the visualization of the model
-        """
-
-        graph = OrderedGraph(name=self.model.name, graph={'rankdir':'LR'})
-        for i, cp in enumerate(self.model.species):
-            species_node = 's%d' % i
-            slabel = hf.parse_name(cp)
-            color = "#2b913a"
-            # color species with an initial condition differently
-            if len([s.pattern for s in self.model.initials if s.pattern.is_equivalent_to(cp)]):
-                color = "#aaffff"
-            graph.add_node(species_node,
-                           label=slabel,
-                           shape="ellipse",
-                           background_color=color,
-                           NodeType='species',
-                           spInitial=self._sp_initial(cp),
-                           bipartite=0)
-        for j, reaction in enumerate(self.model.reactions_bidirectional):
-            reaction_node = 'r%d' % j
-            rule = self.model.rules.get(reaction['rule'][0])
-            graph.add_node(reaction_node,
-                           label=reaction_node,
-                           shape="roundrectangle",
-                           background_color="#d3d3d3",
-                           NodeType='reaction',
-                           kf=rule.rate_forward.value,
-                           kr=rule.rate_reverse.value if rule.rate_reverse else 'None',
-                           bipartite=1)
-            reactants = set(reaction['reactants'])
-            products = set(reaction['products'])
-            modifiers = reactants & products
-            reactants = reactants - modifiers
-            products = products - modifiers
-            attr_reversible = {'source_arrow_shape': 'triangle', 'target_arrow_shape': 'triangle',
-                               'source_arrow_fill': 'hollow'} if reaction['reversible'] \
-                                else {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle', 'source_arrow_fill': 'filled'}
-            for s in reactants:
-                self._r_link_bipartite(graph, s, j, **attr_reversible)
-            for s in products:
-                self._r_link_bipartite(graph, s, j, _flip=True, **attr_reversible)
-            for s in modifiers:
-                attr_modifiers = {'target_arrow_shape':'diamond'}
-                self._r_link_bipartite(graph, s, j, **attr_modifiers)
-        return graph
+        return data
 
     def sp_rxns_graph(self):
         """
@@ -573,7 +428,7 @@ class StaticViz(object):
                            shape="ellipse",
                            background_color=color,
                            NodeType='species',
-                           spInitial=self._sp_initial(cp),
+                           spInitial=hf.sp_initial(self.model, cp),
                            bipartite=0)
         for i, reaction in enumerate(self.model.reactions):
             reaction_node = 'r%d' % i

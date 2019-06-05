@@ -6,6 +6,7 @@ https://networkx.github.io/
 """
 
 import networkx as nx
+import pyvipr.util as hf
 
 # Special Keys
 ID = 'id'
@@ -61,10 +62,10 @@ def __build_multi_edge(edge_tuple, g):
     return {DATA: data}
 
 
-def __build_edge(edge_tuple, g):
+def __build_edge(edge_tuple):
     source = edge_tuple[0]
     target = edge_tuple[1]
-    data = edge_tuple[2]
+    data = dict(edge_tuple[2])
 
     data['source'] = str(source)
     data['target'] = str(target)
@@ -87,8 +88,8 @@ def from_networkx(g, layout=None, scale=DEF_SCALE):
 
     if layout is not None:
         pos = list(map(lambda position:
-                  {'x': position[0]*scale, 'y': position[1]*scale},
-                  layout.values()))
+                       {'x': position[0] * scale, 'y': position[1] * scale},
+                       layout.values()))
 
     nodes = g.nodes()
     if isinstance(g, nx.MultiDiGraph) or isinstance(g, nx.MultiGraph):
@@ -111,6 +112,164 @@ def from_networkx(g, layout=None, scale=DEF_SCALE):
     for edge in edges:
         cygraph['elements']['edges'].append(edge_builder(edge, g))
 
+    return cygraph
+
+
+def sp_graph_from_pysb_model(model, graph_data=None):
+    # Dictionary Object to be converted to Cytoscape.js JSON
+    cygraph = __build_empty_graph()
+
+    edge_builder = __build_edge
+
+    if graph_data is not None:
+        # Map network table data
+        cygraph[DATA] = __map_table_data(graph_data.keys(), graph_data)
+
+    for idx, sp in enumerate(model.species):
+        species_node = 's%d' % idx
+        color = "#2b913a"
+        # color species with an initial condition differently
+        if len([s.pattern for s in model.initials if s.pattern.is_equivalent_to(sp)]):
+            color = "#aaffff"
+        # Setting the information about the node
+        node_data = dict(label=hf.parse_name(sp),
+                         background_color=color,
+                         shape='ellipse',
+                         NodeType='species',
+                         spInitial=hf.sp_initial(model, sp))
+        new_node = __create_node(node_data, species_node)
+        cygraph['elements']['nodes'].append(new_node)
+
+    for reaction in model.reactions_bidirectional:
+        reactants = set(reaction['reactants'])
+        products = set(reaction['products'])
+        if reaction['reversible']:
+            attr_reversible = {'source_arrow_shape': 'diamond', 'target_arrow_shape': 'triangle',
+                               'source_arrow_fill': 'hollow'}
+        else:
+            attr_reversible = {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle',
+                               'source_arrow_fill': 'filled'}
+        for s in reactants:
+            for p in products:
+                cygraph['elements']['edges'].append(edge_builder(('s{0}'.format(s),
+                                                                  's{0}'.format(p),
+                                                                  attr_reversible)))
+
+    return cygraph
+
+
+def sp_rxns_graph_from_pysb_model(model, graph_data=None):
+    # Dictionary Object to be converted to Cytoscape.js JSON
+    cygraph = __build_empty_graph()
+
+    edge_builder = __build_edge
+
+    if graph_data is not None:
+        # Map network table data
+        cygraph[DATA] = __map_table_data(graph_data.keys(), graph_data)
+
+    for i, cp in enumerate(model.species):
+        species_node = 's%d' % i
+        slabel = hf.parse_name(cp)
+        color = "#2b913a"
+        # color species with an initial condition differently
+        if len([s.pattern for s in model.initials if s.pattern.is_equivalent_to(cp)]):
+            color = "#aaffff"
+        node_data = dict(label=slabel,
+                         shape="ellipse",
+                         background_color=color,
+                         NodeType='species',
+                         spInitial=hf.sp_initial(model, cp),
+                         bipartite=0)
+        new_node = __create_node(node_data, species_node)
+        cygraph['elements']['nodes'].append(new_node)
+
+    for j, reaction in enumerate(model.reactions_bidirectional):
+        reaction_node = 'r%d' % j
+        rule = model.rules.get(reaction['rule'][0])
+        node_data = dict(label=reaction_node,
+                         shape="roundrectangle",
+                         background_color="#d3d3d3",
+                         NodeType='reaction',
+                         kf=rule.rate_forward.value,
+                         kr=rule.rate_reverse.value if rule.rate_reverse else 'None',
+                         bipartite=1)
+        new_node = __create_node(node_data, reaction_node)
+        cygraph['elements']['nodes'].append(new_node)
+
+        reactants = set(reaction['reactants'])
+        products = set(reaction['products'])
+        modifiers = reactants & products
+        reactants = reactants - modifiers
+        products = products - modifiers
+        if reaction['reversible']:
+            attr_reversible = {'source_arrow_shape': 'triangle', 'target_arrow_shape': 'triangle',
+                               'source_arrow_fill': 'hollow', 'arrowhead': 'normal'}
+        else:
+            attr_reversible = {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle',
+                               'source_arrow_fill': 'filled', 'arrowhead': 'normal'}
+        for s in reactants:
+            cygraph['elements']['edges'].append(edge_builder(('s{0}'.format(s),
+                                                              'r{0}'.format(j),
+                                                              attr_reversible)))
+        for s in products:
+            cygraph['elements']['edges'].append(edge_builder(('r{0}'.format(j),
+                                                              's{0}'.format(s),
+                                                              attr_reversible)))
+        for s in modifiers:
+            attr_modifiers = {'target_arrow_shape': 'diamond', 'arrowhead': 'normal'}
+            cygraph['elements']['edges'].append(edge_builder(('s{0}'.format(s),
+                                                              'r{0}'.format(j),
+                                                              attr_modifiers)))
+    return cygraph
+
+
+def rules_graph_from_pysb_model(model, graph_data=None):
+    from itertools import combinations
+    from pysb.pattern import RulePatternMatcher
+    rpm = RulePatternMatcher(model)
+    # Dictionary Object to be converted to Cytoscape.js JSON
+    cygraph = __build_empty_graph()
+
+    edge_builder = __build_edge
+
+    if graph_data is not None:
+        # Map network table data
+        cygraph[DATA] = __map_table_data(graph_data.keys(), graph_data)
+
+    for rule in model.rules:
+        color = "#ff4c4c"
+        node_data = dict(label=rule.name,
+                         shape="roundrectangle",
+                         background_color=color,
+                         NodeType='rule')
+        new_node = __create_node(node_data, rule.name)
+        cygraph['elements']['nodes'].append(new_node)
+
+    for sp in model.species:
+        m_products = rpm.match_products(sp)
+        m_reactants = rpm.match_reactants(sp)
+
+        for rp in m_products:
+            for rr in m_reactants:
+                if rr.name == 'assemble_pore_sequential_Bak_2' or rp.name == 'assemble_pore_sequential_Bak_2':
+                    print('reactants', rr)
+                    print('products', rp)
+                if rp.is_reversible and rr.is_reversible:
+                    attr_reversible = {'source_arrow_shape': 'diamond', 'target_arrow_shape': 'triangle',
+                                       'source_arrow_fill': 'hollow'}
+                else:
+                    attr_reversible = {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle',
+                                       'source_arrow_fill': 'filled'}
+                cygraph['elements']['edges'].append(edge_builder((rp.name, rr.name, attr_reversible)))
+
+        reversible_rules = [mr for mr in m_reactants if mr.is_reversible]
+        comb = list(combinations(reversible_rules, 2))
+        attr_reversible = {'source_arrow_shape': 'diamond', 'target_arrow_shape': 'triangle',
+                           'source_arrow_fill': 'hollow'}
+        print(comb)
+        # for c in comb:
+        #     cygraph['elements']['edges'].append(edge_builder((c[0].name, c[1].name, attr_reversible)))
     return cygraph
 
 
@@ -213,4 +372,3 @@ def network_dynamic_data(network, tspan, node_rel=None, node_tip=None, edge_colo
     network.graph['name'] = ''
     network.graph['view'] = 'dynamic'
     network.graph['tspan'] = tspan
-

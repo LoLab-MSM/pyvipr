@@ -9,6 +9,27 @@ import tempfile
 import sys
 
 
+def sp_initial(model, sp):
+    """
+    Get initial condition of a species
+    Parameters
+    ----------
+    model: pysb.Model
+        PySB model to get initial condition from
+    sp: pysb.ComplexPattern, pysb species
+
+    Returns
+    -------
+
+    """
+    sp_0 = 0
+    for spInitial in model.initials:
+        if spInitial.pattern.is_equivalent_to(sp):
+            sp_0 = spInitial.value.value
+            break
+    return sp_0
+
+
 def parse_name(spec):
     """
     Function that writes short names of the species to name the nodes.
