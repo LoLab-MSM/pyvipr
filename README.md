@@ -72,12 +72,13 @@ using box selection (modifier key(command, alt, ctrl) + mousedown then drag)
 Static Example:
 ```python
 import pyvipr as viz
-from pyvipr.pysb_models.mm_two_paths_model import model
+from pyvipr.pysb_models.lopez_embedded import model
 
 viz.sp_view(model)
 ```
 
-![species_view](double_enzymatic_species.png)
+![species_view](earm_comms.png)
+
 Dynamic Example:
 ```python
 import pyvipr as viz
@@ -91,6 +92,16 @@ viz.sp_dyn_view(sim)
 ```
 
 ![enzymatic_reaction](pysbViz.gif)
+
+PyViPR now has basic support for the SBGN standard:
+```python
+from pyvipr.pysb_models.mm_two_paths_model import model
+import pyvipr as viz
+
+viz.sbgn_view(model)
+```
+
+![sbgn_view](sbgn_double_enzymatic.png)
 
 ## License
 

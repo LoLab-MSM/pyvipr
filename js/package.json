@@ -1,6 +1,6 @@
 {
     "name": "pyvipr",
-    "version": "0.2.3",
+    "version": "0.3.0",
     "description": "Dynamic and static visualizations of systems biology models written in SBML, BNGL, and PySB",
     "author": "Oscar Ortega",
     "main": "lib/index.js",
