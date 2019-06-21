@@ -1,7 +1,7 @@
 {
     "name": "pyvipr",
     "version": "0.2.3",
-    "description": "Dynamic and static visualizations of PySB models using cytoscape.js",
+    "description": "Dynamic and static visualizations of systems biology models written in SBML, BNGL, and PySB",
     "author": "Oscar Ortega",
     "main": "lib/index.js",
     "repository": {
@@ -9,6 +9,9 @@
         "url": "https://github.com/LoLab-VU/pyvipr.git"
     },
     "keywords": [
+        "PySB",
+        "systems-biology",
+        "visualization",
         "jupyter",
         "widgets",
         "ipython",
@@ -22,7 +25,7 @@
     ],
     "scripts": {
         "clean": "rimraf dist/",
-        "prepublish": "webpack",
+        "prepublishOnly": "webpack",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "devDependencies": {
@@ -41,13 +44,17 @@
         "cytoscape-expand-collapse": "^3.1.2",
         "cytoscape-klay": "^3.1.2",
         "cytoscape-popper": "^1.0.4",
+        "cytoscape-sbgn-stylesheet": "^4.0.1",
         "jquery": ">=3.4.1",
         "lodash": "^4.17.11",
-        "npm": "^6.9.0",
         "tippy.js": "^4.3.3",
         "typeahead.js": "^0.11.1"
     },
     "jupyterlab": {
         "extension": "lib/labplugin"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/LoLab-VU/pyvipr/issues"
     }
 }
