@@ -7,6 +7,7 @@ let coseBilkent = require('cytoscape-cose-bilkent');
 let dagre = require('cytoscape-dagre');
 let klay = require('cytoscape-klay');
 let expandCollapse = require('cytoscape-expand-collapse');
+let sbgnStylesheet = require('cytoscape-sbgn-stylesheet');
 let typeahead = require('typeahead.js');
 let $ = require('jquery');
 let semver_range = "^" + require("../package.json").version;
@@ -626,14 +627,19 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 layoutName = DEF_LAYOUT
             }
         }
+        let styleToUse = network.data.style;
+        if(styleToUse) {
+            styleToUse = sbgnStylesheet(cytoscape)
+        }
+        else {
+            styleToUse = DEF_MODELS_STYLE
+        }
 
-        // Doing a deep copy of the node positions to obtain the dot layout
-        let dot_positions = JSON.parse(JSON.stringify(network["elements"]["nodes"].map(x => x.position)));
 
         let cy = cytoscape({
             container: that.el, // container to render in
             elements: network.elements,
-            style: DEF_MODELS_STYLE,
+            style: styleToUse,
             layout: {
                 name: layoutName,
                 nodeDimensionsIncludeLabels: true

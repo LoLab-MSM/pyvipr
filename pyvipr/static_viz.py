@@ -1,23 +1,11 @@
-from collections import OrderedDict
 import networkx as nx
 import json
 from .util_networkx import from_networkx
-import collections
 import pysb
 import pyvipr.util as hf
 from pysb.bng import generate_equations
 from networkx.algorithms import bipartite
 from community import best_partition, generate_dendrogram
-
-
-class OrderedGraph(nx.DiGraph):
-    """
-    Networkx Digraph that stores the nodes in the order they are input
-    """
-    node_dict_factory = OrderedDict
-    adjlist_outer_dict_factory = OrderedDict
-    adjlist_inner_dict_factory = OrderedDict
-    edge_attr_dict_factory = OrderedDict
 
 
 class StaticViz(object):
@@ -34,7 +22,6 @@ class StaticViz(object):
         # Need to create a model visualization base and then do independent visualizations: static and dynamic
         self.model = model
         self.graph = None
-        generate_equations(self.model)
 
     @staticmethod
     def merge_nodes(G, nodes, new_node, **attr):
@@ -373,6 +360,11 @@ class StaticViz(object):
         data = graph_to_json(sp_graph=rules_graph)
         return data
 
+    def sbgn_view(self):
+        sbgn_graph = self.sbgn_graph()
+        data = graph_to_json(sbgn_graph)
+        return data
+
     def projections_view(self, project_to='species_reactions'):
         """
         Project a bipartite graph to the type of node defined in `project to`.
@@ -441,7 +433,8 @@ class StaticViz(object):
         nx.Digraph 
             Graph that has the information for the visualization of the model
         """
-        sp_graph = OrderedGraph(name=self.model.name, graph={'rankdir':'LR'}, paths=[])
+        generate_equations(self.model)
+        sp_graph = nx.DiGraph(name=self.model.name, graph={'rankdir': 'LR'}, paths=[])
 
         # TODO: there are reactions that generate parallel edges that are not taken into account because netowrkx
         # digraph only allows one edge between two nodes
@@ -467,7 +460,7 @@ class StaticViz(object):
                                    'source_arrow_fill': 'hollow'}
             else:
                 attr_reversible = {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle',
-                                      'source_arrow_fill': 'filled'}
+                                   'source_arrow_fill': 'filled'}
 
             for s in reactants:
                 for p in products:
@@ -506,8 +499,8 @@ class StaticViz(object):
         nx.Digraph 
             Graph that has the information for the visualization of the model
         """
-
-        graph = OrderedGraph(name=self.model.name, graph={'rankdir':'LR'})
+        generate_equations(self.model)
+        graph = nx.DiGraph(name=self.model.name, graph={'rankdir': 'LR'})
         for i, cp in enumerate(self.model.species):
             species_node = 's%d' % i
             slabel = hf.parse_name(cp)
@@ -540,13 +533,13 @@ class StaticViz(object):
             products = products - modifiers
             attr_reversible = {'source_arrow_shape': 'triangle', 'target_arrow_shape': 'triangle',
                                'source_arrow_fill': 'hollow'} if reaction['reversible'] \
-                                else {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle', 'source_arrow_fill': 'filled'}
+                else {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle', 'source_arrow_fill': 'filled'}
             for s in reactants:
                 self._r_link_bipartite(graph, s, j, **attr_reversible)
             for s in products:
                 self._r_link_bipartite(graph, s, j, _flip=True, **attr_reversible)
             for s in modifiers:
-                attr_modifiers = {'target_arrow_shape':'diamond'}
+                attr_modifiers = {'target_arrow_shape': 'diamond'}
                 self._r_link_bipartite(graph, s, j, **attr_modifiers)
         return graph
 
@@ -560,7 +553,8 @@ class StaticViz(object):
         nx.Digraph 
             Graph that has the information for the visualization of the model
         """
-        graph = OrderedGraph(name=self.model.name, graph={'rankdir': 'LR'})
+        generate_equations(self.model)
+        graph = nx.DiGraph(name=self.model.name, graph={'rankdir': 'LR'})
         for i, cp in enumerate(self.model.species):
             species_node = 's%d' % i
             slabel = hf.parse_name(self.model.species[i])
@@ -598,6 +592,125 @@ class StaticViz(object):
                 self._r_link_bipartite(graph, s, i, _flip=True, **attr_edges)
             for s in modifiers:
                 self._r_link_bipartite(graph, s, i, **attr_edges)
+        return graph
+
+    def sbgn_graph(self):
+        import re
+        from pysb.pattern import Pattern, Name
+        from pysb import Rule, Parameter
+        graph = nx.DiGraph(name=self.model.name, style='sbgn')
+        all_cp = []
+        cp_to_delete = []
+        rules_for_nodes = []
+        for r in self.model.rules:
+            if re.match('catalyze_.+_to_.+_.+', r.name):
+                cp_to_delete.append(r.reactant_pattern.complex_patterns[0])
+                all_cp.append([r.product_pattern.complex_patterns[1]])
+            elif re.match('bind_.+_.+_to_.+', r.name): # and r._function == 'catalyze':
+                all_cp.append(r.reactant_pattern.complex_patterns)
+                all_cp.append(r.product_pattern.complex_patterns)
+            else:
+                all_cp.append(r.reactant_pattern.complex_patterns)
+                all_cp.append(r.product_pattern.complex_patterns)
+                rules_for_nodes.append(r)
+
+        for cpd in cp_to_delete:
+            bind_cat = self.model.rules.filter(Pattern(cpd))
+            bind = bind_cat.filter(Name('^bind'))
+            cat = bind_cat.filter(Name('^catalyze'))
+            par_aux = Parameter('bla', 1, _export=False)
+            rule_aux1 = Rule('production_cat_1', bind[0].reactant_pattern.complex_patterns[1] >>
+                             cat[0].product_pattern.complex_patterns[1], par_aux, _export=False)
+            rule_aux2 = Rule('catalysis_cat_2', bind[0].reactant_pattern.complex_patterns[0] >>
+                             None, par_aux, _export=False)
+            rule_aux = {'production_cat_1': rule_aux1, 'catalysis_cat_2': rule_aux2}
+            rules_for_nodes.append(rule_aux)
+
+        all_cp = [item for sublist in all_cp for item in sublist]
+        unique_cp = []
+        for i in all_cp:
+            if not in_cp_list(i, unique_cp) and not in_cp_list(i, cp_to_delete):
+                unique_cp.append(i)
+        cp_encode = {unique_cp[idx]: idx for idx in range(len(unique_cp))}
+
+        for cp, cp_idx in cp_encode.items():
+            cp_node = 's{0}'.format(cp_idx)
+            slabel = hf.parse_name(cp)
+            color = "#2b913a"
+            cp_length = len(cp.monomer_patterns)
+            if cp_length == 1:
+                cp_class = 'macromolecule'
+                mp_node = 'mp1_{0}'.format(cp_node)
+                mp = cp.monomer_patterns[0]
+                state_variables = []
+                for s, v in mp.site_conditions.items():
+                    if isinstance(v, str):
+                        state = {'variable': s, 'value': v}
+                        state_variables.append({'id': mp_node, 'class': 'state variable', 'state': state})
+                node_data = {'label': mp.monomer.name, 'class': cp_class, 'background_color': color,
+                             'NodeType': 'macromolecule', 'stateVariables': state_variables, "unitsOfInformation": []}
+                graph.add_node(cp_node, **node_data)
+
+            elif cp_length == 2:
+                cp_class = 'complex'
+                node_data = {'label': slabel, 'class': cp_class, 'background_color': color,
+                             'NodeType': 'complex', "unitsOfInformation": []}
+                graph.add_node(cp_node, **node_data)
+                for idx, mp in enumerate(cp.monomer_patterns):
+                    mp_node = 'mp2_{0}_{1}'.format(cp_node, idx)
+                    state_variables = []
+                    for s, v in mp.site_conditions.items():
+                        if isinstance(v, str):
+                            state = {'variable': s, 'value': v}
+                            state_variables.append({'id': mp_node, 'class': 'state variable', 'state': state})
+                    graph.add_node(mp_node,
+                                   label=mp.monomer.name,
+                                   stateVariables=state_variables,
+                                   parent=cp_node)
+
+            elif cp_length >= 3:
+                cp_class = 'macromolecule multimer'
+
+        for r_idx, rule in enumerate(rules_for_nodes):
+            rule_node = 'r%d' % r_idx
+            node_data = {'label': rule_node, 'class': 'process', 'NodeType': 'process'}
+            graph.add_node(rule_node, **node_data)
+            if isinstance(rule, dict):
+                for rname, rcat in rule.items():
+                    if rname.startswith('catalysis_cat'):
+                        sbgn_class = 'catalysis'
+                    elif rcat.is_reversible:
+                        sbgn_class = 'production'
+                    else:
+                        sbgn_class = 'consumption'
+                    reactants = rcat.reactant_pattern.complex_patterns
+                    products = rcat.product_pattern.complex_patterns
+
+                    for s in reactants:
+                        reactant_node = cp_encode[s]
+                        attr_edges = {'class': sbgn_class, "cardinality": 0,
+                                      "portSource": "s{0}".format(reactant_node), "portTarget": rule_node}
+                        self._r_link_bipartite(graph, reactant_node, r_idx, **attr_edges)
+                    for s in products:
+                        p_node = cp_encode[s]
+                        attr_edges = {'class': 'production', "cardinality": 0,
+                                      "portSource": rule_node, "portTarget": "s{0}".format(p_node)}
+                        self._r_link_bipartite(graph, p_node, r_idx, _flip=True, **attr_edges)
+
+            else:
+                reactants = rule.reactant_pattern.complex_patterns
+                products = rule.product_pattern.complex_patterns
+
+                for s in reactants:
+                    reactant_node = cp_encode[s]
+                    attr_edges = {'class': 'consumption', "cardinality": 0,
+                                  "portSource": "s{0}".format(reactant_node), "portTarget": rule_node}
+                    self._r_link_bipartite(graph, reactant_node, r_idx, **attr_edges)
+                for s in products:
+                    p_node = cp_encode[s]
+                    attr_edges = {'class': 'production', "cardinality": 0,
+                                  "portSource": rule_node, "portTarget": "s{0}".format(p_node)}
+                    self._r_link_bipartite(graph, p_node, r_idx, _flip=True, **attr_edges)
         return graph
 
     def rules_graph(self):
@@ -642,9 +755,9 @@ class StaticViz(object):
             Projected graph
         """
         if project_to == 'species_reactions' or project_to == 'species_rules':
-            nodes = {n for n, d in graph.nodes(data=True) if d['bipartite']==0}
+            nodes = {n for n, d in graph.nodes(data=True) if d['bipartite'] == 0}
         elif project_to == 'reactions' or project_to == 'rules':
-            nodes = {n for n, d in graph.nodes(data=True) if d['bipartite']==1}
+            nodes = {n for n, d in graph.nodes(data=True) if d['bipartite'] == 1}
         else:
             raise ValueError('Projection not valid')
         projected_graph = bipartite.projected_graph(graph, nodes)
@@ -674,7 +787,7 @@ class StaticViz(object):
                 continue
             if graph.has_edge(*edge[::-1]):
                 attr_reversible = {'source_arrow_shape': 'triangle', 'target_arrow_shape': 'triangle',
-                               'source_arrow_fill': 'hollow'}
+                                   'source_arrow_fill': 'hollow'}
                 edges_attributes[edge] = attr_reversible
                 edges_to_delete.append(edge[::-1])
             else:
@@ -726,7 +839,7 @@ class StaticViz(object):
         if attrs.get('_flip'):
             del attrs['_flip']
             nodes = nodes[::-1]
-        attrs.setdefault('arrowhead', 'normal')
+        # attrs.setdefault('arrowhead', 'normal')
         graph.add_edge(*nodes, **attrs)
 
 
@@ -753,3 +866,10 @@ def graph_to_json(sp_graph, layout=None, path=''):
         with open(path + 'data.json', 'w') as outfile:
             json.dump(data, outfile)
     return data
+
+
+def in_cp_list(cp, cp_list):
+    if [s for s in cp_list if s.is_equivalent_to(cp)]:
+        return True
+    else:
+        return False

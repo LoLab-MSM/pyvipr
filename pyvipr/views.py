@@ -19,7 +19,8 @@ __all__ = [
     'sp_comm_dyn_view',
     'sim_model_dyn_view',
     'nx_graph_view',
-    'nx_graph_dyn_view'
+    'nx_graph_dyn_view',
+    'sbgn_view'
 ]
 
 
@@ -249,6 +250,10 @@ def projected_species_rules_view(model, layout_name='cose-bilkent'):
 
     """
     return pysbViz(data=model, type_of_viz='projected_species_rules_view', layout_name=layout_name)
+
+
+def sbgn_view(model, layout_name='cose-bilkent'):
+    return pysbViz(data=model, type_of_viz='sbgn_view', layout_name=layout_name)
 
 
 def sp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='cose-bilkent'):
