@@ -602,6 +602,8 @@ class StaticViz(object):
         all_cp = []
         cp_to_delete = []
         rules_for_nodes = []
+        # Obtain complex patterns from rules, save the complexes formed during catalysis to remove them
+        # as they don't appear in the SBGN standard, and save the rules that are not related to catalysis
         for r in self.model.rules:
             if re.match('catalyze_.+_to_.+_.+', r.name):
                 cp_to_delete.append(r.reactant_pattern.complex_patterns[0])
@@ -613,7 +615,8 @@ class StaticViz(object):
                 all_cp.append(r.reactant_pattern.complex_patterns)
                 all_cp.append(r.product_pattern.complex_patterns)
                 rules_for_nodes.append(r)
-
+        # For each complex that is formed during the catalysis, we obtain the bind and catalyze rules to generate
+        # the new rules that would give us the SBGN standard visualization
         for cpd in cp_to_delete:
             bind_cat = self.model.rules.filter(Pattern(cpd))
             bind = bind_cat.filter(Name('^bind'))
@@ -625,18 +628,17 @@ class StaticViz(object):
                              None, par_aux, _export=False)
             rule_aux = {'production_cat_1': rule_aux1, 'catalysis_cat_2': rule_aux2}
             rules_for_nodes.append(rule_aux)
-
+        # obtain unique complex patterns to add to the network
         all_cp = [item for sublist in all_cp for item in sublist]
         unique_cp = []
         for i in all_cp:
             if not in_cp_list(i, unique_cp) and not in_cp_list(i, cp_to_delete):
                 unique_cp.append(i)
-        cp_encode = {unique_cp[idx]: idx for idx in range(len(unique_cp))}
+        cp_encode = [(unique_cp[idx], idx) for idx in range(len(unique_cp))]
 
-        for cp, cp_idx in cp_encode.items():
+        for cp, cp_idx in cp_encode:
             cp_node = 's{0}'.format(cp_idx)
             slabel = hf.parse_name(cp)
-            color = "#2b913a"
             cp_length = len(cp.monomer_patterns)
             if cp_length == 1:
                 cp_class = 'macromolecule'
@@ -647,13 +649,13 @@ class StaticViz(object):
                     if isinstance(v, str):
                         state = {'variable': s, 'value': v}
                         state_variables.append({'id': mp_node, 'class': 'state variable', 'state': state})
-                node_data = {'label': mp.monomer.name, 'class': cp_class, 'background_color': color,
+                node_data = {'label': mp.monomer.name, 'class': cp_class,
                              'NodeType': 'macromolecule', 'stateVariables': state_variables, "unitsOfInformation": []}
                 graph.add_node(cp_node, **node_data)
 
             elif cp_length == 2:
                 cp_class = 'complex'
-                node_data = {'label': slabel, 'class': cp_class, 'background_color': color,
+                node_data = {'label': slabel, 'class': cp_class, 'stateVariables': [],
                              'NodeType': 'complex', "unitsOfInformation": []}
                 graph.add_node(cp_node, **node_data)
                 for idx, mp in enumerate(cp.monomer_patterns):
@@ -663,10 +665,9 @@ class StaticViz(object):
                         if isinstance(v, str):
                             state = {'variable': s, 'value': v}
                             state_variables.append({'id': mp_node, 'class': 'state variable', 'state': state})
-                    graph.add_node(mp_node,
-                                   label=mp.monomer.name,
-                                   stateVariables=state_variables,
-                                   parent=cp_node)
+                    node_data_mp = {'label': mp.monomer.name, 'stateVariables': state_variables,
+                                    'class': 'macromolecule', 'unitsOfInformation': [], 'parent': cp_node}
+                    graph.add_node(mp_node, **node_data_mp)
 
             elif cp_length >= 3:
                 cp_class = 'macromolecule multimer'
@@ -687,12 +688,12 @@ class StaticViz(object):
                     products = rcat.product_pattern.complex_patterns
 
                     for s in reactants:
-                        reactant_node = cp_encode[s]
+                        reactant_node = get_cp_idx(s, cp_encode)
                         attr_edges = {'class': sbgn_class, "cardinality": 0,
                                       "portSource": "s{0}".format(reactant_node), "portTarget": rule_node}
                         self._r_link_bipartite(graph, reactant_node, r_idx, **attr_edges)
                     for s in products:
-                        p_node = cp_encode[s]
+                        p_node = get_cp_idx(s, cp_encode)
                         attr_edges = {'class': 'production', "cardinality": 0,
                                       "portSource": rule_node, "portTarget": "s{0}".format(p_node)}
                         self._r_link_bipartite(graph, p_node, r_idx, _flip=True, **attr_edges)
@@ -700,14 +701,13 @@ class StaticViz(object):
             else:
                 reactants = rule.reactant_pattern.complex_patterns
                 products = rule.product_pattern.complex_patterns
-
                 for s in reactants:
-                    reactant_node = cp_encode[s]
+                    reactant_node = get_cp_idx(s, cp_encode)
                     attr_edges = {'class': 'consumption', "cardinality": 0,
                                   "portSource": "s{0}".format(reactant_node), "portTarget": rule_node}
                     self._r_link_bipartite(graph, reactant_node, r_idx, **attr_edges)
                 for s in products:
-                    p_node = cp_encode[s]
+                    p_node = get_cp_idx(s, cp_encode)
                     attr_edges = {'class': 'production', "cardinality": 0,
                                   "portSource": rule_node, "portTarget": "s{0}".format(p_node)}
                     self._r_link_bipartite(graph, p_node, r_idx, _flip=True, **attr_edges)
@@ -873,3 +873,13 @@ def in_cp_list(cp, cp_list):
         return True
     else:
         return False
+
+
+def get_cp_idx(cp, cp_list):
+    idx = None
+    for c, c_idx in cp_list:
+        if c.is_equivalent_to(cp):
+            idx = c_idx
+            break
+    return idx
+
