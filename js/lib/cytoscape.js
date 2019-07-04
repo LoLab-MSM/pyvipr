@@ -213,7 +213,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         that.$layoutDd = $(
             "<select class=\"select-css\" id=\"layoutList\" ><optgroup label=\"Layouts available\"></select>");
 
-        let layouts = ["cose-bilkent", "dagre", "klay", "random", "preset", "grid", "circle",
+        let layouts = ["cose-bilkent", "dagre", "klay", "random", "grid", "circle",
             "concentric", "breadthfirst", "cose"];
         $.each(layouts, function(index, value){
             that.$layoutDd.append($("<option></option>")
@@ -470,6 +470,14 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                         },
                         duration: animationDuration
                     }));
+                    ele.style(
+                        {
+                            'line-color': color,
+                            'target-arrow-color': color,
+                            'source-arrow-color': color,
+                            'width': size
+                        }
+                    )
                 }
             }
             else {
@@ -482,6 +490,11 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                         },
                         duration: animationDuration
                     }));
+                    ele.style(
+                        {
+                            'pie-1-background-size': value
+                        }
+                    )
                 }
             }
 
@@ -519,28 +532,10 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 }
             };
 
-            network.elements.edges.forEach(function(edge){
-                let source = edge.data.source;
-                let target = edge.data.target;
-                let sNode = cy.filter("node[name=" + "\""+source+"\"" +"]");
-                let tNode = cy.filter("node[name=" + "\""+target+"\"" +"]");
-                if (sNode.length > 0 || tNode.length > 0){
-                    let ele = cy.edges().filter(function(ele){
-                        let gSource;
-                        let gTarget;
-                        if (ele.hasClass('cy-expand-collapse-meta-edge')){
-                            gSource = ele.data('originalEnds').source.data('name');
-                            gTarget = ele.data('originalEnds').target.data('name');
-                        }
-                        else {
-                            gSource = ele.data('source');
-                            gTarget = ele.data('target');
-                        }
-                        return gSource === source && gTarget === target
-                    });
-                    let animationQueueEdges = animateAll(ele, edge.data);
-                    playQueue(ele, animationQueueEdges, time);
-                }
+            cy.edges().forEach(function(edge){
+                let animationQueueEdges = animateAll(edge, edge.data());
+                playQueue(edge, animationQueueEdges, time);
+
 
             });
             network.elements.nodes.forEach(function(node){
