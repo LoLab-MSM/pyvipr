@@ -5,37 +5,55 @@
 [![Build Status](https://travis-ci.org/LoLab-VU/pyvipr.svg?branch=master)](https://travis-ci.org/LoLab-VU/pyvipr)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/LoLab-VU/pyvipr/master?filepath=docs%2Ftutorial.ipynb)
 # PyViPR
-PyViPR is a Jupyter widget for the dynamic and static visualization of [PySB](http://pysb.org/), 
+PyViPR is a Jupyter widget for dynamic and static visualizations of [PySB](http://pysb.org/), 
 [BNGL](https://www.csb.pitt.edu/Faculty/Faeder/?page_id=409), and [SBML](http://sbml.org/Main_Page) 
- models using cytoscapejs.
+ models using cytoscapejs. Additionally, it can be used to visualize models defined in [Tellurium](https://github.com/sys-bio/tellurium#front-end-2-tellurium-notebook),
+ and [Ecell4](https://github.com/ecell/ecell4),
 
 ## Installation
 
 ### From conda
+
+#### To use with Jupyter Notebooks:
+
 ```bash
 > conda install pyvipr -c ortegas -c alubbock
 ```
 
+#### To use with JupyterLab:
+
+```bash
+> conda install pyvipr -c ortegas -c alubbock
+> jupyter labextension install @jupyter-widgets/jupyterlab-manager
+> jupyter labextension install pyvipr
+```
+
 ### From PyPI
+
+#### To use with Jupyter Notebooks:
 
 ```bash
 > pip install pyvipr
 ```
+
+#### To use with JupyterLab:
+
+```bash
+> pip install pyvipr
+> jupyter labextension install @jupyter-widgets/jupyterlab-manager
+> jupyter labextension install pyvipr
+```
+
 When using pip the [installation of PySB](https://pysb.readthedocs.io/en/stable/installation.html#option-1-install-pysb-natively-on-your-computer)
 requires to manually install BioNetGen into the default path for your platform 
 (/usr/local/share/BioNetGen on Mac and Linux, c:\Program Files\BioNetGen on Windows), 
 or set the BNGPATH environment variable to the BioNetGen path on your machine.
 
-# Enable it
-```bash
-> jupyter nbextension enable --py --sys-prefix pyvipr
-```
 ### From git (requires npm)
 ```bash
 $ git clone https://github.com/LoLab-VU/pyvipr.git
 $ cd pyvipr
 $ pip install .
-$ jupyter nbextension enable --py --sys-prefix pyvipr
 ```
 
 ## How to use the widget
