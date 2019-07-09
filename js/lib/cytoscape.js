@@ -533,7 +533,24 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             };
 
             cy.edges().forEach(function(edge){
-                let animationQueueEdges = animateAll(edge, edge.data());
+                let source;
+                let target;
+                let ele = network.elements.edges.filter(function (e) {
+                    let gSource = e.data.source;
+                    let gTarget = e.data.target;
+
+                    if (edge.hasClass('cy-expand-collapse-meta-edge')){
+                        source = edge.data('originalEnds').source.data('name');
+                        target = edge.data('originalEnds').target.data('name');
+                    }
+                    else {
+                        source = edge.data('source');
+                        target = edge.data('target');
+
+                    }
+                    return gSource === source && gTarget === target
+                });
+                let animationQueueEdges = animateAll(edge, ele[0].data);
                 playQueue(edge, animationQueueEdges, time);
 
 
