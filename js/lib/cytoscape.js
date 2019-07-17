@@ -446,7 +446,9 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
 
         let tspan = network.data.tspan;
         that.$slider.attr({"max": tspan.length - 1});
-        // start slider, time text and animation always at 0
+        // start slider, time text and animation always at 0 and expand nodes nodes
+        let api = cy.expandCollapse('get');
+        api.expandAll();
         let playing = false;
         let currentTime = 0;
         that.$playButton.html('<i class="fa fa-play"></i>');
