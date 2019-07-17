@@ -21,7 +21,7 @@ def data_to_json(value, widget):
     -------
 
     """
-    try:
+    if isinstance(value, (str, Model)):
         model = dispatch_pysb_files(value)
         viz = StaticViz(model)
         try:
@@ -33,13 +33,11 @@ def data_to_json(value, widget):
         except AttributeError:
             raise AttributeError('Type of static visualization not defined')
         return jsondata
-    except KeyError:
-        pass
-    try:
+    elif isinstance(value, SimulationResult):
         viz = DynamicViz(value, widget.sim_idx)
         process = widget.process
         try:
-            if widget.type_of_viz == 'dynamic_communities_view':
+            if widget.type_of_viz == 'dynamic_sp_comm_view':
                 rs = widget.random_state
                 jsondata = getattr(viz, widget.type_of_viz)(random_state=rs, type_viz=process)
             else:
@@ -47,14 +45,12 @@ def data_to_json(value, widget):
         except AttributeError:
             raise AttributeError('Type of visualization not defined')
         return jsondata
-    except TypeError:
-        pass
-    try:
+
+    elif isinstance(value, (DiGraph, Graph)):
         viz = NetworkViz(value)
         jsondata = getattr(viz, widget.type_of_viz)()
         return jsondata
-    except AttributeError:
-        pass
-    finally:
+
+    else:
         raise TypeError('Only pysb Model, pysb SimulationResult, tellurium Model, '
                         'PySCeS Model, and networkx graphs are supported')
