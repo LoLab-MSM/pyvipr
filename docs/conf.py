@@ -47,7 +47,7 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
-    'jupyter_sphinx.embed_widgets',
+    'jupyter_sphinx.execute',
     'nbsphinx',
     'sphinx.ext.napoleon',
     'sphinx.ext.viewcode',

@@ -9,7 +9,9 @@ dependencies:
   - widgetsnbextension
   - jupyter_sphinx
   - pysb
+  - pip
   - nbsphinx
   - pip:
+      - tellurium
       - pyvipr
       - python-louvain
