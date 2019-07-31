@@ -11,6 +11,7 @@ before_install:
     - export PATH="$HOME/miniconda/bin:$PATH"
     - conda env create -f test-environment.yml
     - source activate pyvipr-test
+    - pip install --upgrade pip
 install:
     - pip install .
 script:
