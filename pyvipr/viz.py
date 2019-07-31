@@ -6,8 +6,8 @@ from traitlets import Any, Unicode, Int, observe
 
 
 @widgets.register
-class pysbViz(widgets.DOMWidget):
-    """Cytoscape.js widget for simple network visualization."""
+class Viz(widgets.DOMWidget):
+    """Cytoscape.js widget for visualization of systems biology models."""
     _view_name = Unicode('CytoscapeView').tag(sync=True)
     _model_name = Unicode('CytoscapeModel').tag(sync=True)
     _view_module = Unicode('pyvipr').tag(sync=True)

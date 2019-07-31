@@ -16,4 +16,5 @@ dependencies:
   - nbval
   - pytest-cov
   - pip:
+      - tellurium
       - python-louvain

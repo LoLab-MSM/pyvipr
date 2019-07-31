@@ -5,10 +5,9 @@
 [![Build Status](https://travis-ci.org/LoLab-VU/pyvipr.svg?branch=master)](https://travis-ci.org/LoLab-VU/pyvipr)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/LoLab-VU/pyvipr/master?filepath=docs%2Ftutorial.ipynb)
 # PyViPR
-PyViPR is a Jupyter widget for dynamic and static visualizations of [PySB](http://pysb.org/), 
+PyViPR is a Jupyter widget for dynamic and static visualizations of [PySB](http://pysb.org/), [Tellurium](http://tellurium.analogmachine.org/),
 [BNGL](https://www.csb.pitt.edu/Faculty/Faeder/?page_id=409), and [SBML](http://sbml.org/Main_Page) 
- models using cytoscapejs. Additionally, it can be used to visualize models defined in [Tellurium](https://github.com/sys-bio/tellurium#front-end-2-tellurium-notebook),
- and [Ecell4](https://github.com/ecell/ecell4),
+ models using cytoscapejs. Additionally, it can be used to visualize models defined in [Ecell4](https://github.com/ecell/ecell4).
 
 ## Installation
 
@@ -17,13 +16,13 @@ PyViPR is a Jupyter widget for dynamic and static visualizations of [PySB](http:
 #### To use with Jupyter Notebooks:
 
 ```bash
-> conda install pyvipr -c ortegas -c alubbock
+> conda install pyvipr -c ortegas
 ```
 
 #### To use with JupyterLab:
 
 ```bash
-> conda install pyvipr -c ortegas -c alubbock
+> conda install pyvipr -c ortegas
 > jupyter labextension install @jupyter-widgets/jupyterlab-manager
 > jupyter labextension install pyvipr
 ```
@@ -44,11 +43,6 @@ PyViPR is a Jupyter widget for dynamic and static visualizations of [PySB](http:
 > jupyter labextension install pyvipr
 ```
 
-When using pip the [installation of PySB](https://pysb.readthedocs.io/en/stable/installation.html#option-1-install-pysb-natively-on-your-computer)
-requires to manually install BioNetGen into the default path for your platform 
-(/usr/local/share/BioNetGen on Mac and Linux, c:\Program Files\BioNetGen on Windows), 
-or set the BNGPATH environment variable to the BioNetGen path on your machine.
-
 ### From git (requires npm)
 ```bash
 $ git clone https://github.com/LoLab-VU/pyvipr.git
@@ -57,9 +51,32 @@ $ pip install .
 ```
 
 ## How to use the widget
-After installing the widget, it can be used by importing it in the notebook. The widget is simple to use with PySB 
+After installing the widget, it can be used by importing it in the Jupyter notebook. The widget is simple to use with PySB 
 models, [SimulationResult](https://pysb.readthedocs.io/en/stable/modules/simulator.html#pysb.simulator.SimulationResult) 
-objects, and BNGL & SBML files. PyViPR has the following visualization functions:
+objects, [Tellurium](http://tellurium.analogmachine.org/) models and BNGL & SBML files. 
+
+PyViPR has two main interfaces: a PySB interface and a Tellurium interface.
+
+### PySB interface
+
+PySB is needed to visualize PySB models and it is needed if you want to use the pyvipr.pysb_viz module:
+
+Installing PySB from pip:
+```bash
+> pip install pysb
+```
+
+When using pip the [installation of PySB](https://pysb.readthedocs.io/en/stable/installation.html#option-1-install-pysb-natively-on-your-computer)
+requires to manually install BioNetGen into the default path for your platform 
+(/usr/local/share/BioNetGen on Mac and Linux, c:\Program Files\BioNetGen on Windows), 
+or set the BNGPATH environment variable to the BioNetGen path on your machine.
+
+Installing PySB from conda:
+```bash
+> conda install pysb -c alubbock
+```
+
+PyViPR has the following functions to visualize PySB models and simulations:
 
 | Function                                 | Description                                           |
 |------------------------------------------|-------------------------------------------------------|
@@ -82,25 +99,41 @@ objects, and BNGL & SBML files. PyViPR has the following visualization functions
 | `nx_graph_view(graph)` | Shows a networkx graph |
 | `nx_graph_dyn_view(graph, tspan, **kwargs)`| Shows a dynamic visualization of the graph |
 
-All visualizations have a search button that can be used to find nodes in large networks. This search function displays 
-information about the node label and the type of node (species, reaction, rule, ...). Additionally, there is a fit 
-button to center the nodes into the display area. It is possible to zoom in to a node or o collection of nodes
-using box selection (modifier key(command, alt, ctrl) + mousedown then drag)
-  
-Static Example:
-```python
-import pyvipr as viz
-from pyvipr.pysb_models.lopez_embedded import model
+### Tellurium interface
 
-viz.sp_view(model)
+Tellurium is needed to visualize Tellurium models and it is needed if you want to use the pyvipr.tellurium_viz module:
+
+Installing Tellurium from pip:
+```bash
+> pip install tellurium
 ```
 
+Currently PyViPR only supports two static visualizations:
+
+* sp_view(model)
+* sp_comm(model)
+
+and one dynamic visualization:
+
+* sp_dyn_view(simulation)
+
+In the future, we plan to add more visualizations of Tellurium models
+
+## Examples
+
+#### Static Example:
+```python
+import pyvipr.pysb_viz as viz
+from pyvipr.examples_models.lopez_embedded import model
+
+viz.sp_comm_view(model, random_state=1, layout_name='klay')
+```
 ![species_view](earm_comms.png)
 
-Dynamic Example:
+#### Dynamic Example:
 ```python
-import pyvipr as viz
-from pyvipr.pysb_models.mm_two_paths_model import model
+import pyvipr.pysb_viz as viz
+from pyvipr.examples_models.mm_two_paths_model import model
 from pysb.simulator import ScipyOdeSimulator
 import numpy as np
 
@@ -111,10 +144,10 @@ viz.sp_dyn_view(sim)
 
 ![enzymatic_reaction](pysbViz.gif)
 
-PyViPR now has basic support for the SBGN standard:
+PyViPR now has basic support to visualize PySB models using the SBGN standard:
 ```python
-from pyvipr.pysb_models.mm_two_paths_model import model
-import pyvipr as viz
+from pyvipr.examples_models.mm_two_paths_model import model
+import pyvipr.pysb_viz as viz
 
 viz.sbgn_view(model)
 ```

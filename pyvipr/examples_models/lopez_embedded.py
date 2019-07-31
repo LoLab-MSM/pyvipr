@@ -4,9 +4,9 @@ model of MOMP.
 """
 
 from pysb import *
-from pyvipr.pysb_models import shared
-from pyvipr.pysb_models import lopez_modules
-from pyvipr.pysb_models import albeck_modules
+from pyvipr.examples_models import shared
+from pyvipr.examples_models import lopez_modules
+from pyvipr.examples_models import albeck_modules
 
 Model()
 

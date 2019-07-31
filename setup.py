@@ -142,7 +142,6 @@ setup_args = {
         'ipywidgets>=7.0.0',
         'networkx>=2.2',
         'numpy>=1.15.4',
-        'pysb>=1.8.0',
         'sympy>=1.3',
         'matplotlib>=3.0.2',
         'python-louvain>=0.13'

@@ -1,10 +1,6 @@
-from pyvipr.dynamic_viz import DynamicViz
-from pyvipr.network_viz import NetworkViz
-from pyvipr.static_viz import StaticViz
-from pyvipr.util import dispatch_pysb_files
-from pysb.core import Model
-from pysb.simulator.base import SimulationResult
 from networkx import Graph, DiGraph
+import os
+import sys
 
 
 def data_to_json(value, widget):
@@ -21,36 +17,161 @@ def data_to_json(value, widget):
     -------
 
     """
-    if isinstance(value, (str, Model)):
-        model = dispatch_pysb_files(value)
-        viz = StaticViz(model)
-        try:
-            if widget.type_of_viz in ['sp_comm_view', 'sp_comm_hierarchy_view']:
-                rs = widget.random_state
-                jsondata = getattr(viz, widget.type_of_viz)(random_state=rs)
-            else:
-                jsondata = getattr(viz, widget.type_of_viz)()
-        except AttributeError:
-            raise AttributeError('Type of static visualization not defined')
+
+    if is_pysb_model(value):
+        from pyvipr.pysb_viz.static_viz import PysbStaticViz
+
+        viz = PysbStaticViz(value)
+        jsondata = static_data(viz, widget)
         return jsondata
-    elif isinstance(value, SimulationResult):
-        viz = DynamicViz(value, widget.sim_idx)
-        process = widget.process
+
+    elif is_pysb_sim(value):
+        from pyvipr.pysb_viz.dynamic_viz import PysbDynamicViz
+
+        viz = PysbDynamicViz(value, widget.sim_idx)
+        jsondata = dynamic_data(viz, widget)
+        return jsondata
+
+    elif isinstance(value, str):
         try:
-            if widget.type_of_viz == 'dynamic_sp_comm_view':
-                rs = widget.random_state
-                jsondata = getattr(viz, widget.type_of_viz)(random_state=rs, type_viz=process)
-            else:
-                jsondata = getattr(viz, widget.type_of_viz)(type_viz=process)
-        except AttributeError:
-            raise AttributeError('Type of visualization not defined')
+            from pysb.importers.sbml import model_from_sbml, model_from_biomodels
+            from pysb.importers.bngl import model_from_bngl
+        except ImportError:
+            raise Exception('PySB must be installed to visualize models from files')
+        from pyvipr.pysb_viz.static_viz import PysbStaticViz
+        file_extension = os.path.splitext(value)[1]
+        if file_extension == '.bngl':
+            model = model_from_bngl(value)
+        elif file_extension in ['.sbml', '.xml']:
+            model = model_from_sbml(value)
+        elif value.startswith('BIOMD'):
+            model = model_from_biomodels(value)
+        # elif file_extension == '.ka':
+        #     subprocess.run(['truml', '-k', value])
+        #     bngl_model_path = re.sub('ka', 'bngl', value)
+        #     model = model_from_bngl(bngl_model_path)
+        #     os.remove(bngl_model_path)
+
+        else:
+            raise ValueError('Format not supported')
+        viz = PysbStaticViz(model)
+        jsondata = static_data(viz, widget)
+        return jsondata
+
+    elif is_tellurium_model(value):
+        if widget.type_of_viz.startswith('dynamic'):
+            from pyvipr.tellurium_viz.dynamic_viz import TelluriumDynamicViz
+            viz = TelluriumDynamicViz(value)
+            jsondata = dynamic_data(viz, widget)
+        else:
+            from pyvipr.tellurium_viz.static_viz import TelluriumStaticViz
+            viz = TelluriumStaticViz(value)
+            jsondata = static_data(viz, widget)
         return jsondata
 
     elif isinstance(value, (DiGraph, Graph)):
+        from pyvipr.networkx_viz.network_viz import NetworkViz
         viz = NetworkViz(value)
         jsondata = getattr(viz, widget.type_of_viz)()
+        return jsondata
+
+    elif is_ecell_model(value):
+        try:
+            from pysb.importers.sbml import model_from_sbml
+        except ImportError:
+            raise Exception('PySB must be installed to visualize models from files')
+        from pyvipr.pysb_viz.static_viz import PysbStaticViz
+        import tempfile
+        ecell4 = sys.modules['ecell4']
+        f_sbml = tempfile.NamedTemporaryFile(suffix='.sbml')
+        # In ecell4 species don't have initial conditions as attributes. Hence, the
+        # initial conditions are passed as a dictionary to the save_sbml function.
+        # If no initial conditions are passed ecell4 sets the initial condition of the
+        # species to 0, and PySB throws an error when the initial condition of all the species
+        # are zero. For visualization purposes we then set the initial conditions to 1.
+        y0 = {sp.serial(): 1 for sp in value.list_species()}
+        ecell4.util.ports.save_sbml(f_sbml.name, value, y0=y0)
+        model = model_from_sbml(f_sbml.name)
+        viz = PysbStaticViz(model)
+        jsondata = static_data(viz, widget)
+        return jsondata
+
+    elif is_pysces_model(value):
+        try:
+            from pysb.importers.sbml import model_from_sbml
+        except ImportError:
+            raise Exception('PySB must be installed to visualize models from files')
+        from pyvipr.pysb_viz.static_viz import PysbStaticViz
+        import tempfile
+        # Note: Importing a pysces model to sbml doesn't work in python 3.7
+        pysces = sys.modules['pysces']
+        f_sbml = tempfile.NamedTemporaryFile(suffix='.xml')
+        pysces.interface.writeMod2SBML(value, f_sbml.name)
+        model = model_from_sbml(f_sbml.name)
+        viz = PysbStaticViz(model)
+        jsondata = static_data(viz, widget)
         return jsondata
 
     else:
         raise TypeError('Only pysb Model, pysb SimulationResult, tellurium Model, '
                         'PySCeS Model, and networkx graphs are supported')
+
+
+def static_data(viz_obj, w):
+    try:
+        if w.type_of_viz in ['sp_comm_view', 'sp_comm_hierarchy_view']:
+            rs = w.random_state
+            jsondata = getattr(viz_obj, w.type_of_viz)(random_state=rs)
+        else:
+            jsondata = getattr(viz_obj, w.type_of_viz)()
+    except AttributeError:
+        raise AttributeError('Type of static visualization not defined')
+    return jsondata
+
+
+def dynamic_data(viz_object, w):
+    process = w.process
+    try:
+        if w.type_of_viz == 'dynamic_sp_comm_view':
+            rs = w.random_state
+            jsondata = getattr(viz_object, w.type_of_viz)(random_state=rs, type_viz=process)
+        else:
+            jsondata = getattr(viz_object, w.type_of_viz)(type_viz=process)
+    except AttributeError:
+        raise AttributeError('Type of visualization not defined')
+    return jsondata
+
+
+def is_pysb_model(obj):
+    if 'pysb.core' in sys.modules:
+        return isinstance(obj, sys.modules['pysb.core'].Model)
+    else:
+        return False
+
+
+def is_pysb_sim(obj):
+    if 'pysb.simulator' in sys.modules:
+        return isinstance(obj, sys.modules['pysb.simulator'].SimulationResult)
+    else:
+        return False
+
+
+def is_tellurium_model(obj):
+    if 'tellurium' in sys.modules:
+        return isinstance(obj, sys.modules['tellurium'].roadrunner.extended_roadrunner.ExtendedRoadRunner)
+    else:
+        return False
+
+
+def is_pysces_model(obj):
+    if 'pysces' in sys.modules:
+        return isinstance(obj, sys.modules['pysces'].PyscesModel.PysMod)
+    else:
+        return False
+
+
+def is_ecell_model(obj):
+    if 'ecell4_base' in sys.modules:
+        return isinstance(obj, sys.modules['ecell4_base'].core.NetworkModel)
+    else:
+        return False
