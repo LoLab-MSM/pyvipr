@@ -4,6 +4,7 @@ channels:
   - alubbock
 dependencies:
   - python=3.6
+  - pip
   - traitlets
   - traittypes
   - jupyter
