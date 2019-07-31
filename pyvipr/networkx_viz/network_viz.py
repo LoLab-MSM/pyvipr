@@ -1,4 +1,4 @@
-from pyvipr.static_viz import graph_to_json
+from pyvipr.util_networkx import from_networkx
 
 
 class NetworkViz(object):
@@ -7,12 +7,12 @@ class NetworkViz(object):
 
     def network_static_view(self):
         self.network.graph['name'] = ''
-        json = graph_to_json(self.network)
+        json = from_networkx(self.network)
         return json
 
     def dynamic_network_view(self):
         # This is necessary because the javascript part chooses to render
         # a static or dynamic visualization depending on the name
         # of the function.
-        data = graph_to_json(sp_graph=self.network)
+        data = from_networkx(self.network)
         return data
