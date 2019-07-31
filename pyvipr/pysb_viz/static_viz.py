@@ -1,14 +1,13 @@
 import networkx as nx
-import json
-from .util_networkx import from_networkx
+from pyvipr.util_networkx import from_networkx
 import pysb
-import pyvipr.util as hf
 from pysb.bng import generate_equations
 from networkx.algorithms import bipartite
-from community import best_partition, generate_dendrogram
+import re
+import pyvipr.util as hf
 
 
-class StaticViz(object):
+class PysbStaticViz(object):
     """
     Class to generate static visualizations of systems biology models
 
@@ -55,7 +54,7 @@ class StaticViz(object):
         Examples
         --------
         >>> from pysb.examples.earm_1_0 import model
-        >>> viz = StaticViz(model)
+        >>> viz = PysbStaticViz(model)
         >>> data = viz.sp_view()
 
         Returns
@@ -65,7 +64,7 @@ class StaticViz(object):
             contains all the information (nodes,edges, positions) to generate a cytoscapejs network.
         """
         graph = self.species_graph()
-        data = graph_to_json(sp_graph=graph)
+        data = from_networkx(graph)
         return data
 
     def sp_comp_view(self):
@@ -81,7 +80,7 @@ class StaticViz(object):
             generate a cytoscapejs network.
         """
         graph = self.compartments_data_graph()
-        data = graph_to_json(sp_graph=graph)
+        data = from_networkx(graph)
         return data
 
     def compartments_data_graph(self):
@@ -141,7 +140,7 @@ class StaticViz(object):
             a cytoscapejs network.
         """
         graph = self.communities_data_graph(random_state=random_state)
-        data = graph_to_json(sp_graph=graph)
+        data = from_networkx(graph)
         return data
 
     def sp_comm_hierarchy_view(self, random_state=None):
@@ -164,7 +163,7 @@ class StaticViz(object):
             a cytoscapejs network.
         """
         graph = self.communities_data_graph(all_levels=True, random_state=random_state)
-        data = graph_to_json(sp_graph=graph)
+        data = from_networkx(graph)
         return data
 
     def communities_data_graph(self, all_levels=False, random_state=None):
@@ -187,42 +186,8 @@ class StaticViz(object):
             to the community they belong to
         """
         graph = self.species_graph()
-        graph_communities = graph.copy().to_undirected()  # Louvain algorithm only deals with undirected graphs
-        if all_levels:
-            # We add the first communities detected, The dendrogram at level 0 contains the nodes as keys
-            # and the clusters they belong to as values.
-            dendrogram = generate_dendrogram(graph_communities, random_state=random_state)
-            partition = dendrogram[0]
-            cnodes = set(partition.values())
-            graph.add_nodes_from(cnodes, NodeType='subcommunity')
-            nx.set_node_attributes(graph, partition, 'parent')
+        hf.add_communities(graph, all_levels=all_levels, random_state=random_state)
 
-            # The dendrogram at level 1 contains the new community nodes and the clusters they belong to.
-            # We change the cluster names to differentiate them from the cluster names of the first clustering
-            # result. Then, repeat the same procedures for the next levels.
-            cluster_child_parent = dendrogram[1]
-            for key, value in cluster_child_parent.items():
-                cluster_child_parent[key] = '{0}_{1}'.format(1, value)
-            cnodes = set(cluster_child_parent.values())
-            graph.add_nodes_from(cnodes, NodeType='subcommunity')
-            nx.set_node_attributes(graph, cluster_child_parent, 'parent')
-            for level in range(2, len(dendrogram)):
-                cluster_child_parent = dendrogram[level]
-                cluster_child_parent2 = {'{0}_{1}'.format(level - 1, key): '{0}_{1}'.format(level, value) for
-                                         (key, value) in cluster_child_parent.items()}
-                cnodes = set(cluster_child_parent2.values())
-                if level < len(dendrogram) - 1:
-                    graph.add_nodes_from(cnodes, NodeType='subcommunity')
-                else:
-                    graph.add_nodes_from(cnodes, NodeType='community')
-                nx.set_node_attributes(graph, cluster_child_parent2, 'parent')
-                # Update nodes clusters
-        else:
-            communities = best_partition(graph_communities, random_state=random_state)
-            # compound nodes to add to hold communities
-            cnodes = set(communities.values())
-            graph.add_nodes_from(cnodes, NodeType='community')
-            nx.set_node_attributes(graph, communities, 'parent')
         return graph
 
     def sp_rxns_bidirectional_view(self):
@@ -239,7 +204,7 @@ class StaticViz(object):
 
         """
         graph = self.sp_rxns_bidirectional_graph()
-        data = graph_to_json(sp_graph=graph)
+        data = from_networkx(graph)
         return data
 
     def sp_rxns_view(self):
@@ -255,7 +220,7 @@ class StaticViz(object):
             a cytoscapejs network.
         """
         graph = self.sp_rxns_graph()
-        data = graph_to_json(sp_graph=graph)
+        data = from_networkx(graph)
         return data
 
     def sp_rules_view(self):
@@ -272,7 +237,7 @@ class StaticViz(object):
         """
         rules_graph = self.rules_graph()
         rules_graph = self.graph_merged_pair_edges(rules_graph)
-        data = graph_to_json(sp_graph=rules_graph)
+        data = from_networkx(rules_graph)
         return data
 
     def sp_rules_fxns_view(self):
@@ -294,7 +259,7 @@ class StaticViz(object):
         unique_functions = set(rule_functions.values())
         nx.set_node_attributes(rules_graph, rule_functions, 'parent')
         rules_graph.add_nodes_from(unique_functions, NodeType='function')
-        data = graph_to_json(sp_graph=rules_graph)
+        data = from_networkx(rules_graph)
         return data
 
     def sp_rules_mod_view(self):
@@ -357,12 +322,12 @@ class StaticViz(object):
         rules_graph.add_nodes_from(module_parent_nodes, NodeType='module')
         nx.set_node_attributes(rules_graph, module_parents, 'parent')
         nx.set_node_attributes(rules_graph, rules_module, 'parent')
-        data = graph_to_json(sp_graph=rules_graph)
+        data = from_networkx(rules_graph)
         return data
 
     def sbgn_view(self):
         sbgn_graph = self.sbgn_graph()
-        data = graph_to_json(sbgn_graph)
+        data = from_networkx(sbgn_graph)
         return data
 
     def projections_view(self, project_to='species_reactions'):
@@ -391,7 +356,7 @@ class StaticViz(object):
             raise ValueError('Projection not valid')
 
         projected_graph = self.projected_graph(bipartite_graph, project_to)
-        data = graph_to_json(sp_graph=projected_graph)
+        data = from_networkx(projected_graph)
         return data
 
     def projected_species_reactions_view(self):
@@ -434,7 +399,7 @@ class StaticViz(object):
             Graph that has the information for the visualization of the model
         """
         generate_equations(self.model)
-        sp_graph = nx.DiGraph(name=self.model.name, graph={'rankdir': 'LR'}, paths=[])
+        sp_graph = nx.DiGraph(name=self.model.name)
 
         # TODO: there are reactions that generate parallel edges that are not taken into account because netowrkx
         # digraph only allows one edge between two nodes
@@ -445,7 +410,7 @@ class StaticViz(object):
             if len([s.pattern for s in self.model.initials if s.pattern.is_equivalent_to(sp)]):
                 color = "#aaffff"
             # Setting the information about the node
-            node_data = dict(label=hf.parse_name(sp),
+            node_data = dict(label=parse_name(sp),
                              background_color=color,
                              shape='ellipse',
                              NodeType='species',
@@ -503,7 +468,7 @@ class StaticViz(object):
         graph = nx.DiGraph(name=self.model.name, graph={'rankdir': 'LR'})
         for i, cp in enumerate(self.model.species):
             species_node = 's%d' % i
-            slabel = hf.parse_name(cp)
+            slabel = parse_name(cp)
             color = "#2b913a"
             # color species with an initial condition differently
             if len([s.pattern for s in self.model.initials if s.pattern.is_equivalent_to(cp)]):
@@ -557,7 +522,7 @@ class StaticViz(object):
         graph = nx.DiGraph(name=self.model.name, graph={'rankdir': 'LR'})
         for i, cp in enumerate(self.model.species):
             species_node = 's%d' % i
-            slabel = hf.parse_name(self.model.species[i])
+            slabel = parse_name(self.model.species[i])
             color = "#2b913a"
             # color species with an initial condition differently
             if len([s.pattern for s in self.model.initials if s.pattern.is_equivalent_to(cp)]):
@@ -638,7 +603,7 @@ class StaticViz(object):
 
         for cp, cp_idx in cp_encode:
             cp_node = 's{0}'.format(cp_idx)
-            slabel = hf.parse_name(cp)
+            slabel = parse_name(cp)
             cp_length = len(cp.monomer_patterns)
             if cp_length == 1:
                 cp_class = 'macromolecule'
@@ -843,31 +808,6 @@ class StaticViz(object):
         graph.add_edge(*nodes, **attrs)
 
 
-def graph_to_json(sp_graph, layout=None, path=''):
-    """
-    Convert networkx graph to a dictionary that can be converted
-    to cytoscape.js json
-    Parameters
-    ----------
-    sp_graph : nx.Digraph graph
-        A graph to be converted into cytoscapejs json format
-    layout: str or dict
-        Name of the layout algorithm to use for the visualization
-    path: str
-        Path to save the file
-
-    Returns
-    -------
-    dict
-        A Dictionary Object that can be converted into Cytoscape.js JSON
-    """
-    data = from_networkx(sp_graph, layout=layout, scale=1)
-    if path:
-        with open(path + 'data.json', 'w') as outfile:
-            json.dump(data, outfile)
-    return data
-
-
 def in_cp_list(cp, cp_list):
     if [s for s in cp_list if s.is_equivalent_to(cp)]:
         return True
@@ -883,3 +823,46 @@ def get_cp_idx(cp, cp_list):
             break
     return idx
 
+
+def parse_name(spec):
+    """
+    Function that writes short names of the species to name the nodes.
+    It counts how many times a monomer_pattern is present in the complex pattern an its states
+    then it takes only the monomer name and its state to write a shorter name to name the nodes.
+
+    Parameters
+    ----------
+    spec : pysb.ComplexPattern
+        Name of species to parse
+
+    Returns
+    -------
+    Parsed name of species
+    """
+    m = spec.monomer_patterns
+    lis_m = []
+    name_counts = {}
+    parsed_name = ''
+    for i in range(len(m)):
+        sp_name = str(m[i]).partition('(')[0]
+        sp_comp = str(m[i]).partition('** ')[-2:]
+        sp_comp = ''.join(sp_comp)
+        sp_states = re.findall(r"['\"](.*?)['\"]", str(m[i])) # Matches strings between quotes
+        sp_states = [s.lower() for s in sp_states]
+        # tmp_2 = re.findall(r"(?<=\').+(?=\')", str(m[i]))
+        if not sp_states and not sp_comp:
+            lis_m.append(sp_name)
+        else:
+            sp_states.insert(0, sp_name)
+            sp_states.insert(0, sp_comp)
+            sp_states.reverse()
+            lis_m.append(''.join(sp_states))
+    for name in lis_m:
+        name_counts[name] = lis_m.count(name)
+
+    for sp, counts in name_counts.items():
+        if counts == 1:
+            parsed_name += sp + '-'
+        else:
+            parsed_name += str(counts) + sp + '-'
+    return parsed_name[:len(parsed_name) - 1]

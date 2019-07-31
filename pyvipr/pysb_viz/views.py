@@ -1,4 +1,4 @@
-from .pysbviz import pysbViz
+from pyvipr.viz import Viz
 
 __all__ = [
     'sp_view',
@@ -18,8 +18,6 @@ __all__ = [
     'sp_comp_dyn_view',
     'sp_comm_dyn_view',
     'sim_model_dyn_view',
-    'nx_graph_view',
-    'nx_graph_dyn_view',
     'sbgn_view'
 ]
 
@@ -38,7 +36,7 @@ def sp_view(model, layout_name='cose-bilkent'):
 
     """
 
-    return pysbViz(data=model, type_of_viz='sp_view', layout_name=layout_name)
+    return Viz(data=model, type_of_viz='sp_view', layout_name=layout_name)
 
 
 def sp_comp_view(model, layout_name='cose-bilkent'):
@@ -55,7 +53,7 @@ def sp_comp_view(model, layout_name='cose-bilkent'):
         Layout to use
 
     """
-    return pysbViz(data=model, type_of_viz='sp_comp_view', layout_name=layout_name)
+    return Viz(data=model, type_of_viz='sp_comp_view', layout_name=layout_name)
 
 
 def sp_comm_view(model, layout_name='klay', random_state=None):
@@ -75,7 +73,7 @@ def sp_comm_view(model, layout_name='klay', random_state=None):
         Random state seed use by the community detection algorithm
 
     """
-    return pysbViz(data=model, type_of_viz='sp_comm_view', random_state=random_state, layout_name=layout_name)
+    return Viz(data=model, type_of_viz='sp_comm_view', random_state=random_state, layout_name=layout_name)
 
 
 def sp_comm_hierarchy_view(model, layout_name='klay', random_state=None):
@@ -95,7 +93,7 @@ def sp_comm_hierarchy_view(model, layout_name='klay', random_state=None):
         Random state seed use by the community detection algorithm
 
     """
-    return pysbViz(data=model, type_of_viz='sp_comm_hierarchy_view', random_state=random_state, layout_name=layout_name)
+    return Viz(data=model, type_of_viz='sp_comm_hierarchy_view', random_state=random_state, layout_name=layout_name)
 
 
 def sp_rxns_bidirectional_view(model, layout_name='cose-bilkent'):
@@ -113,7 +111,7 @@ def sp_rxns_bidirectional_view(model, layout_name='cose-bilkent'):
         Layout to use
 
     """
-    return pysbViz(data=model, type_of_viz='sp_rxns_bidirectional_view', layout_name=layout_name)
+    return Viz(data=model, type_of_viz='sp_rxns_bidirectional_view', layout_name=layout_name)
 
 
 def sp_rxns_view(model, layout_name='cose-bilkent'):
@@ -131,7 +129,7 @@ def sp_rxns_view(model, layout_name='cose-bilkent'):
         Layout to use
 
     """
-    return pysbViz(data=model, type_of_viz='sp_rxns_view', layout_name=layout_name)
+    return Viz(data=model, type_of_viz='sp_rxns_view', layout_name=layout_name)
 
 
 def sp_rules_view(model, layout_name='cose-bilkent'):
@@ -148,7 +146,7 @@ def sp_rules_view(model, layout_name='cose-bilkent'):
         Layout to use
 
     """
-    return pysbViz(data=model, type_of_viz='sp_rules_view', layout_name=layout_name)
+    return Viz(data=model, type_of_viz='sp_rules_view', layout_name=layout_name)
 
 
 def sp_rules_fxns_view(model, layout_name='cose-bilkent'):
@@ -166,7 +164,7 @@ def sp_rules_fxns_view(model, layout_name='cose-bilkent'):
         Layout to use
 
     """
-    return pysbViz(data=model, type_of_viz='sp_rules_fxns_view', layout_name=layout_name)
+    return Viz(data=model, type_of_viz='sp_rules_fxns_view', layout_name=layout_name)
 
 
 def sp_rules_mod_view(model, layout_name='cose-bilkent'):
@@ -184,7 +182,7 @@ def sp_rules_mod_view(model, layout_name='cose-bilkent'):
         Layout to use
 
     """
-    return pysbViz(data=model, type_of_viz='sp_rules_mod_view', layout_name=layout_name)
+    return Viz(data=model, type_of_viz='sp_rules_mod_view', layout_name=layout_name)
 
 
 def projected_species_reactions_view(model, layout_name='cose-bilkent'):
@@ -200,7 +198,7 @@ def projected_species_reactions_view(model, layout_name='cose-bilkent'):
         Layout to use
 
     """
-    return pysbViz(data=model, type_of_viz='projected_species_reactions_view', layout_name=layout_name)
+    return Viz(data=model, type_of_viz='projected_species_reactions_view', layout_name=layout_name)
 
 
 def projected_reactions_view(model, layout_name='cose-bilkent'):
@@ -216,7 +214,7 @@ def projected_reactions_view(model, layout_name='cose-bilkent'):
         Layout to use
 
     """
-    return pysbViz(data=model, type_of_viz='projected_reactions_view', layout_name=layout_name)
+    return Viz(data=model, type_of_viz='projected_reactions_view', layout_name=layout_name)
 
 
 def projected_rules_view(model, layout_name='cose-bilkent'):
@@ -232,7 +230,7 @@ def projected_rules_view(model, layout_name='cose-bilkent'):
         Layout to use
 
     """
-    return pysbViz(data=model, type_of_viz='projected_rules_view', layout_name=layout_name)
+    return Viz(data=model, type_of_viz='projected_rules_view', layout_name=layout_name)
 
 
 def projected_species_rules_view(model, layout_name='cose-bilkent'):
@@ -249,11 +247,11 @@ def projected_species_rules_view(model, layout_name='cose-bilkent'):
         Layout to use
 
     """
-    return pysbViz(data=model, type_of_viz='projected_species_rules_view', layout_name=layout_name)
+    return Viz(data=model, type_of_viz='projected_species_rules_view', layout_name=layout_name)
 
 
 def sbgn_view(model, layout_name='cose-bilkent'):
-    return pysbViz(data=model, type_of_viz='sbgn_view', layout_name=layout_name)
+    return Viz(data=model, type_of_viz='sbgn_view', layout_name=layout_name)
 
 
 def sp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='cose-bilkent'):
@@ -272,8 +270,8 @@ def sp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='cose-
         Layout to use
 
     """
-    return pysbViz(data=simulation, type_of_viz='dynamic_sp_view', layout_name=layout_name,
-                   process=process, sim_idx=sim_idx)
+    return Viz(data=simulation, type_of_viz='dynamic_sp_view', layout_name=layout_name,
+               process=process, sim_idx=sim_idx)
 
 
 def sp_comp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='cose-bilkent'):
@@ -293,8 +291,8 @@ def sp_comp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='
         Layout to use
 
     """
-    return pysbViz(data=simulation, type_of_viz='dynamic_sp_comp_view', layout_name=layout_name,
-                   process=process, sim_idx=sim_idx)
+    return Viz(data=simulation, type_of_viz='dynamic_sp_comp_view', layout_name=layout_name,
+               process=process, sim_idx=sim_idx)
 
 
 def sp_comm_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='klay', random_state=None):
@@ -316,8 +314,8 @@ def sp_comm_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='
         Random state seed use by the community detection algorithm
 
     """
-    return pysbViz(data=simulation, type_of_viz='dynamic_sp_comm_view', layout_name=layout_name,
-                   random_state=random_state, process=process, sim_idx=sim_idx)
+    return Viz(data=simulation, type_of_viz='dynamic_sp_comm_view', layout_name=layout_name,
+               random_state=random_state, process=process, sim_idx=sim_idx)
 
 
 def sim_model_dyn_view(model, tspan, param_values=None, type_of_viz='dynamic_view',
@@ -354,64 +352,4 @@ def sim_model_dyn_view(model, tspan, param_values=None, type_of_viz='dynamic_vie
 
     model = dispatch_pysb_files(model)
     sim = ScipyOdeSimulator(model, tspan=tspan).run(param_values=param_values)
-    return pysbViz(data=sim, type_of_viz=type_of_viz, process=process, layout_name=layout_name)
-
-
-def nx_graph_view(graph, layout_name='cose'):
-    """
-    Render a networkx Graph or DiGraph
-
-    Parameters
-    ----------
-    graph: nx.Graph or nx.DiGraph
-        Graph to render
-    layout_name: str
-        Layout to use
-
-    Returns
-    -------
-
-    """
-    return pysbViz(data=graph, type_of_viz='network_static_view', layout_name=layout_name)
-
-
-def nx_graph_dyn_view(graph, tspan, node_rel=None, node_tip=None, edge_colors=None, edge_sizes=None,
-                      edge_tips=None, layout_name='cose'):
-    """
-    Render a dynamic visualization of a networkx graph
-
-    Parameters
-    ----------
-    graph: nx.DiGraph or nx.Graph
-    tspan: vector-like, optional
-        Time values over which to simulate. The first and last values define
-    node_rel: dict
-        A dictionary where the keys are the node ids and the values are
-        lists that contain (0-100) values that are represented in a
-        pie chart within the node
-    node_tip: dict
-        A dictionary where the keys are the node ids and the values are
-        lists that contain any value that can be accessed
-        as a tooltip in the rendered network
-    edge_colors: dict
-        A dictionary where the keys are the edge ids and the values are
-        lists that contain any hexadecimal color value that are
-        represented in the edge colors
-    edge_sizes: dict
-        A dictionary where the keys are the edge ids and the values are
-        lists that contain any numerical value that are
-        represented in the edge size
-    edge_tips: dict
-        A dictionary where the keys are the edge ids and the values are
-        lists that contain any value that can be accessed
-        as a tooltip in the rendered network
-    layout_name: str
-        Layout to use
-
-    """
-    from pyvipr.util_networkx import network_dynamic_data
-
-    network_dynamic_data(graph, tspan, node_rel, node_tip, edge_colors, edge_sizes,
-                         edge_tips)
-
-    return pysbViz(data=graph, type_of_viz='dynamic_network_view', layout_name=layout_name)
+    return Viz(data=sim, type_of_viz=type_of_viz, process=process, layout_name=layout_name)

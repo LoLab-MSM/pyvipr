@@ -1,40 +1,13 @@
-from collections import OrderedDict
 import networkx as nx
 import sympy
 import numpy as np
 from pysb.simulator import SimulationResult
-import matplotlib.colors as colors
-import matplotlib.cm as cm
-from pyvipr.static_viz import StaticViz, graph_to_json
+from pyvipr.pysb_viz.static_viz import PysbStaticViz
+import pyvipr.util as hf
+from pyvipr.util_networkx import from_networkx
 
 
-class OrderedGraph(nx.DiGraph):
-    """
-    Networkx Digraph that stores the nodes in the order they are input
-    """
-    node_dict_factory = OrderedDict
-    adjlist_outer_dict_factory = OrderedDict
-    adjlist_inner_dict_factory = OrderedDict
-    edge_attr_dict_factory = OrderedDict
-
-
-class MidpointNormalize(colors.Normalize):
-    """
-    A class which, when called, can normalize data into the [vmin,midpoint,vmax] interval
-    """
-
-    def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
-        self.midpoint = midpoint
-        colors.Normalize.__init__(self, vmin, vmax, clip)
-
-    def __call__(self, value, clip=None):
-        # I'm ignoring masked values and all kinds of edge cases to make a
-        # simple example...
-        x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
-        return np.ma.masked_array(np.interp(value, x, y))
-
-
-class DynamicViz(object):
+class PysbDynamicViz(object):
     """
     Class to visualize the dynamics of systems biology models defined in PySB format.
 
@@ -74,11 +47,12 @@ class DynamicViz(object):
         --------
         >>> from pysb.examples.earm_1_0 import model
         >>> from pysb.simulator import ScipyOdeSimulator
+        >>> import pyvipr.pysb_viz.dynamic_viz as viz
         >>> import numpy as np
         >>> tspan = np.linspace(0, 20000)
         >>> sim = ScipyOdeSimulator(model, tspan).run()
-        >>> viz = ModelVisualization(sim)
-        >>> data = viz.dynamic_sp_view()
+        >>> dyn_viz = viz.PysbDynamicViz(sim)
+        >>> data = dyn_viz.dynamic_sp_view()
 
         Returns
         -------
@@ -87,12 +61,11 @@ class DynamicViz(object):
             can be converted into Cytoscape.js JSON to be visualized
         """
         self.type_viz = type_viz
-        self.sp_graph = StaticViz(self.model).species_graph()
-        self.sp_graph.graph['view'] = 'dynamic'
+        self.sp_graph = PysbStaticViz(self.model).species_graph()
         self.sp_graph.graph['nsims'] = self.nsims
         self.sp_graph.graph['tspan'] = self.tspan.tolist()
         self._add_edge_node_dynamics()
-        data = graph_to_json(sp_graph=self.sp_graph)
+        data = from_networkx(self.sp_graph)
         return data
 
     def dynamic_sp_comp_view(self, type_viz='consumption'):
@@ -102,12 +75,11 @@ class DynamicViz(object):
 
         """
         self.type_viz = type_viz
-        self.sp_graph = StaticViz(self.model).compartments_data_graph()
-        self.sp_graph.graph['view'] = 'dynamic'
+        self.sp_graph = PysbStaticViz(self.model).compartments_data_graph()
         self.sp_graph.graph['nsims'] = self.nsims
         self.sp_graph.graph['tspan'] = self.tspan.tolist()
         self._add_edge_node_dynamics()
-        data = graph_to_json(sp_graph=self.sp_graph)
+        data = from_networkx(self.sp_graph)
         return data
 
     def dynamic_sp_comm_view(self, type_viz='consumption', random_state=None):
@@ -131,12 +103,11 @@ class DynamicViz(object):
             can be converted into Cytoscape.js JSON to be visualized
         """
         self.type_viz = type_viz
-        self.sp_graph = StaticViz(self.model).communities_data_graph(random_state=random_state)
-        self.sp_graph.graph['view'] = 'dynamic'
+        self.sp_graph = PysbStaticViz(self.model).communities_data_graph(random_state=random_state)
         self.sp_graph.graph['nsims'] = self.nsims
         self.sp_graph.graph['tspan'] = self.tspan.tolist()
         self._add_edge_node_dynamics()
-        data = graph_to_json(sp_graph=self.sp_graph)
+        data = from_networkx(self.sp_graph)
         return data
 
     def _add_edge_node_dynamics(self):
@@ -146,26 +117,14 @@ class DynamicViz(object):
         -------
 
         """
-        # in networkx 2.0 the order is G, values, names
-        # in networkx 1.11 the order is G, names, values
-        if float(nx.__version__) >= 2:
-            edge_sizes, edge_colors, edge_qtips = self.edges_colors_sizes()
-            nx.set_edge_attributes(self.sp_graph, edge_colors, 'edge_color')
-            nx.set_edge_attributes(self.sp_graph, edge_sizes, 'edge_size')
-            nx.set_edge_attributes(self.sp_graph, edge_qtips, 'edge_qtip')
+        edge_sizes, edge_colors, edge_qtips = self.edges_colors_sizes()
+        nx.set_edge_attributes(self.sp_graph, edge_colors, 'edge_color')
+        nx.set_edge_attributes(self.sp_graph, edge_sizes, 'edge_size')
+        nx.set_edge_attributes(self.sp_graph, edge_qtips, 'edge_qtip')
 
-            node_abs, node_rel = self.node_data()
-            nx.set_node_attributes(self.sp_graph, node_abs, 'abs_value')
-            nx.set_node_attributes(self.sp_graph, node_rel, 'rel_value')
-        else:
-            edge_sizes, edge_colors, edge_qtips = self.edges_colors_sizes()
-            nx.set_edge_attributes(self.sp_graph, 'edge_color', edge_colors)
-            nx.set_edge_attributes(self.sp_graph, 'edge_size', edge_sizes)
-            nx.set_edge_attributes(self.sp_graph, 'edge_qtip', edge_qtips)
-
-            node_abs, node_rel = self.node_data()
-            nx.set_node_attributes(self.sp_graph, 'abs_value', node_abs)
-            nx.set_node_attributes(self.sp_graph, 'rel_value', node_rel)
+        node_abs, node_rel = self.node_data()
+        nx.set_node_attributes(self.sp_graph, node_abs, 'abs_value')
+        nx.set_node_attributes(self.sp_graph, node_rel, 'rel_value')
 
     def matrix_bidirectional_rates(self):
         """
@@ -214,7 +173,6 @@ class DynamicViz(object):
         all_rate_abs_val = {}
 
         rxns_matrix = self.matrix_bidirectional_rates()
-        vals_norm = np.vectorize(self.mon_normalized)
         all_products = [rx['products'] for rx in self.model.reactions_bidirectional]
         all_reactants = [rx['reactants'] for rx in self.model.reactions_bidirectional]
         sp_imp = range(len(self.model.species))  # species indices
@@ -222,7 +180,8 @@ class DynamicViz(object):
         #  previous nodes edges attrs
 
         for sp in sp_imp:
-            # Getting the indices of the reactions_bidirectional in which sp is a reactant and a product, respectively
+            # Getting the indices of the reactions_bidirectional in which sp is either
+            # a reactant or a product, respectively
             rxns_idx_reactant = [i for i, rx in enumerate(all_reactants) if sp in rx]
             rxns_idx_product = [i for i, rx in enumerate(all_products) if sp in rx]
             repeated_rxn = set(rxns_idx_reactant) & set(rxns_idx_product)
@@ -259,12 +218,15 @@ class DynamicViz(object):
                     products = all_products[rx]
                     for p in products:
                         # Normalizing by the total flux in a node
-                        react_rate_color = rxns_matrix[rx] / rxn_val_pos_total
-                        rxn_neg_idx = np.where(react_rate_color < 0)
-                        react_rate_color[rxn_neg_idx] = (
-                                    rxns_matrix[rx][rxn_neg_idx] / rxn_val_neg_total[rxn_neg_idx])
+                        # We ignore division by zero and invalid value in less than function warnings
+                        # as they are handled later on by converting nan values to 0
+                        with np.errstate(divide='ignore', invalid='ignore'):
+                            react_rate_color = rxns_matrix[rx] / rxn_val_pos_total
+                            rxn_neg_idx = np.where(react_rate_color < 0)
+                            react_rate_color[rxn_neg_idx] = (
+                                        rxns_matrix[rx][rxn_neg_idx] / rxn_val_neg_total[rxn_neg_idx])
                         np.nan_to_num(react_rate_color, copy=False)
-                        rate_colors = self.f2hex_edges(react_rate_color)
+                        rate_colors = hf.f2hex_edges(react_rate_color)
 
                         rxn_eps = sp_rr_dom[rx_idx] + self.mach_eps  # rxns_matrix[rx] + self.mach_eps
                         react_rate_size = np.zeros(len(rxn_eps))
@@ -272,14 +234,16 @@ class DynamicViz(object):
                         tro_neg_idx = np.where(rxn_eps < 0)[0]
 
                         if tro_neg_idx.size != 0:
-                            react_rate_size[tro_neg_idx] = vals_norm(np.abs(rxn_eps[tro_neg_idx]),
-                                                                     np.amax(np.abs(rxn_eps[tro_neg_idx])))
+                            rxn_neg_max = np.amax(np.abs(rxn_eps[tro_neg_idx]))
+                            react_rate_size[tro_neg_idx] = np.array([rxn_neg/rxn_neg_max for
+                                                                     rxn_neg in np.abs(rxn_eps[tro_neg_idx])])
 
                         if tro_pos_idx.size != 0:
-                            react_rate_size[tro_pos_idx] = vals_norm(rxn_eps[tro_pos_idx],
-                                                                     np.amax(rxn_eps[tro_pos_idx]))
+                            rxn_pos_max = np.amax(rxn_eps[tro_pos_idx])
+                            react_rate_size[tro_pos_idx] = np.array([rxn_pos/rxn_pos_max for
+                                                                     rxn_pos in rxn_eps[tro_pos_idx]])
 
-                        rate_sizes = self.range_normalization(react_rate_size, min_x=0, max_x=1)
+                        rate_sizes = hf.range_normalization(react_rate_size, min_x=0, max_x=1)
                         edges_id = ('s{0}'.format(sp), 's{0}'.format(p))
                         all_rate_colors[edges_id] = rate_colors
                         all_rate_sizes[edges_id] = rate_sizes.tolist()
@@ -289,11 +253,13 @@ class DynamicViz(object):
                 for rp_idx, rp in enumerate(rxns_idx_product):
                     reactants = all_reactants[rp]
                     for r in reactants:
-                        preact_rate_color = rxns_matrix[rp] / rxn_val_neg_total
-                        prxns_neg_idx = np.where(preact_rate_color < 0)
-                        preact_rate_color[prxns_neg_idx] = (
-                                rxns_matrix[rp][prxns_neg_idx] / rxn_val_pos_total[prxns_neg_idx])
-                        prate_colors = self.f2hex_edges(preact_rate_color)
+                        with np.errstate(divide='ignore', invalid='ignore'):
+                            preact_rate_color = rxns_matrix[rp] / rxn_val_neg_total
+                            prxns_neg_idx = np.where(preact_rate_color < 0)
+                            preact_rate_color[prxns_neg_idx] = (
+                                    rxns_matrix[rp][prxns_neg_idx] / rxn_val_pos_total[prxns_neg_idx])
+                        np.nan_to_num(preact_rate_color, copy=False)
+                        prate_colors = hf.f2hex_edges(preact_rate_color)
 
                         prxn_eps = sp_prr_dom[rp_idx] + self.mach_eps
                         preact_rate_size = np.zeros(len(prxn_eps))
@@ -301,14 +267,16 @@ class DynamicViz(object):
                         ptro_neg_idx = np.where(prxn_eps < 0)[0]
 
                         if ptro_neg_idx.size != 0:
-                            preact_rate_size[ptro_neg_idx] = vals_norm(np.abs(prxn_eps[ptro_neg_idx]),
-                                                                       np.amax(np.abs(prxn_eps[ptro_neg_idx])))
+                            prxn_neg_max = np.amax(np.abs(prxn_eps[ptro_neg_idx]))
+                            preact_rate_size[ptro_neg_idx] = np.array([prxn_neg/prxn_neg_max for
+                                                                       prxn_neg in np.abs(prxn_eps[ptro_neg_idx])])
 
                         if ptro_pos_idx.size != 0:
-                            preact_rate_size[ptro_pos_idx] = vals_norm(prxn_eps[ptro_pos_idx],
-                                                                       np.amax(prxn_eps[ptro_pos_idx]))
+                            prxn_pos_max = np.amax(prxn_eps[ptro_pos_idx])
+                            preact_rate_size[ptro_pos_idx] = np.array([prxn_pos/prxn_pos_max for
+                                                                       prxn_pos in prxn_eps[ptro_pos_idx]])
 
-                        prate_sizes = self.range_normalization(preact_rate_size, min_x=0, max_x=1)
+                        prate_sizes = hf.range_normalization(preact_rate_size, min_x=0, max_x=1)
                         edges_id = ('s{0}'.format(r), 's{0}'.format(sp))
                         all_rate_colors[edges_id] = prate_colors
                         all_rate_sizes[edges_id] = prate_sizes.tolist()
@@ -339,59 +307,3 @@ class DynamicViz(object):
 
         # all_nodes_values = pandas.DataFrame(all_rate_colors)
         return node_absolute, node_relative
-
-    @staticmethod
-    def f2hex_edges(fx, vmin=-0.99, vmax=0.99):
-        """
-        Converts reaction rates values to f2hex colors
-        
-        Parameters
-        ----------
-        fx: vector-like
-            Vector of reaction rates(flux)
-        vmin: float
-            Value of the minimum for normalization
-        vmax: float
-            Value of the maximum for normalization
-
-        Returns
-        -------
-        list
-            A vector of colors in hex format that encodes the reaction rate values
-        """
-        norm = MidpointNormalize(vmin=vmin, vmax=vmax, midpoint=0)
-        f2rgb = cm.ScalarMappable(norm=norm, cmap=cm.get_cmap('RdBu_r'))
-        rgb = [f2rgb.to_rgba(rate)[:3] for rate in fx]
-        colors_hex = [0] * (len(rgb))
-        for i, color in enumerate(rgb):
-            colors_hex[i] = '#{0:02x}{1:02x}{2:02x}'.format(*tuple([int(255 * fc) for fc in color]))
-        return colors_hex
-
-    @staticmethod
-    def range_normalization(x, min_x, max_x, a=0.5, b=10):
-        """
-        Normalize vector to the [0.5, 10] range
-        
-        Parameters
-        ----------
-        x: vector-like
-            Vector of values to be normalized
-        min_x: float
-            Minimum value in vector x
-        max_x: float
-            Maximum value in vector x
-        a: float
-            Value of minimum used for the normalization
-        b: float
-            Value of maximum used for the normalization
-
-        Returns
-        -------
-        Normalized vector
-        """
-        return a + (x - min_x) * (b - a) / (max_x - min_x)
-
-    @staticmethod
-    def mon_normalized(x, max_value):
-        return x / max_value
-
