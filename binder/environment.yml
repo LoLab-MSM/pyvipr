@@ -8,6 +8,8 @@ dependencies:
   - pysb
   - atomizer
   - graphviz
+  - pip
   - pip:
+      - tellurium
       - python-louvain
       - pyvipr
