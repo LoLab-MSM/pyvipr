@@ -2,6 +2,7 @@ from pyvipr.viz import Viz
 
 __all__ = [
     'sp_view',
+    'sp_rxns_view',
     'sp_comm_view',
     'sp_dyn_view'
 ]
@@ -13,8 +14,8 @@ def sp_view(model, layout_name='cose-bilkent'):
 
     Parameters
     ----------
-    model: pysb.model or str
-        Model to visualize. It can be a pysb model, or the file path to an
+    model: tellurium model
+        Model to visualize.
         an SBML or BNGL model
     layout_name: str
         Layout to use
@@ -24,14 +25,31 @@ def sp_view(model, layout_name='cose-bilkent'):
     return Viz(data=model, type_of_viz='sp_view', layout_name=layout_name)
 
 
+def sp_rxns_view(model, layout_name='cose-bilkent'):
+    """
+    Render a visualization of the interactions between the species and reactions in a model.
+
+    Parameters
+    ----------
+    model: tellurium model
+        Model to visualize.
+        an SBML or BNGL model
+    layout_name: str
+        Layout to use
+
+    """
+
+    return Viz(data=model, type_of_viz='sp_rxns_view', layout_name=layout_name)
+
+
 def sp_dyn_view(simulation, process='consumption', layout_name='cose-bilkent'):
     """
     Render a dynamic visualization of the simulation
 
     Parameters
     ----------
-    simulation : pysb.SimulationResult
-        Simulation result to visualize
+    simulation : tellurium simulation
+        Simulation to visualize
     process : str
         Type of the dynamic visualization, it can be 'consumption' or 'production'
     layout_name : str
@@ -50,9 +68,8 @@ def sp_comm_view(model, layout_name='klay', random_state=None):
 
     Parameters
     ----------
-    model: pysb.model or str
-        Model to visualize. It can be a pysb model, or the file path to an
-        an SBML or BNGL model
+    model: tellurium model
+        Model to visualize.
     layout_name: str
         Layout to use
     random_state: int
