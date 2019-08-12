@@ -421,7 +421,7 @@ class PysbStaticViz(object):
             reactants = set(reaction['reactants'])
             products = set(reaction['products'])
             if reaction['reversible']:
-                attr_reversible = {'source_arrow_shape': 'diamond', 'target_arrow_shape': 'triangle',
+                attr_reversible = {'source_arrow_shape': 'triangle', 'target_arrow_shape': 'triangle',
                                    'source_arrow_fill': 'hollow'}
             else:
                 attr_reversible = {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle',
@@ -496,15 +496,16 @@ class PysbStaticViz(object):
             modifiers = reactants & products
             reactants = reactants - modifiers
             products = products - modifiers
-            attr_reversible = {'source_arrow_shape': 'triangle', 'target_arrow_shape': 'triangle',
-                               'source_arrow_fill': 'hollow'} if reaction['reversible'] \
+            attr_edge = {'source_arrow_shape': 'triangle', 'target_arrow_shape': 'triangle',
+                         'source_arrow_fill': 'hollow'} if reaction['reversible'] \
                 else {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle', 'source_arrow_fill': 'filled'}
+            attr_modifiers = {'source_arrow_shape': 'diamond', 'target_arrow_shape': 'diamond',
+                              'source_arrow_fill': 'filled'}
             for s in reactants:
-                self._r_link_bipartite(graph, s, j, **attr_reversible)
+                self._r_link_bipartite(graph, s, j, **attr_edge)
             for s in products:
-                self._r_link_bipartite(graph, s, j, _flip=True, **attr_reversible)
+                self._r_link_bipartite(graph, s, j, _flip=True, **attr_edge)
             for s in modifiers:
-                attr_modifiers = {'target_arrow_shape': 'diamond'}
                 self._r_link_bipartite(graph, s, j, **attr_modifiers)
         return graph
 
@@ -573,7 +574,7 @@ class PysbStaticViz(object):
             if re.match('catalyze_.+_to_.+_.+', r.name):
                 cp_to_delete.append(r.reactant_pattern.complex_patterns[0])
                 all_cp.append([r.product_pattern.complex_patterns[1]])
-            elif re.match('bind_.+_.+_to_.+', r.name): # and r._function == 'catalyze':
+            elif re.match('bind_.+_.+_to_.+', r.name):  # and r._function == 'catalyze':
                 all_cp.append(r.reactant_pattern.complex_patterns)
                 all_cp.append(r.product_pattern.complex_patterns)
             else:
@@ -847,7 +848,7 @@ def parse_name(spec):
         sp_name = str(m[i]).partition('(')[0]
         sp_comp = str(m[i]).partition('** ')[-2:]
         sp_comp = ''.join(sp_comp)
-        sp_states = re.findall(r"['\"](.*?)['\"]", str(m[i])) # Matches strings between quotes
+        sp_states = re.findall(r"['\"](.*?)['\"]", str(m[i]))  # Matches strings between quotes
         sp_states = [s.lower() for s in sp_states]
         # tmp_2 = re.findall(r"(?<=\').+(?=\')", str(m[i]))
         if not sp_states and not sp_comp:
