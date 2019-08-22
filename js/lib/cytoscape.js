@@ -729,10 +729,11 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                     node_degree.push([node, node.degree()])
                 });
                 node_degree.sort(function(a, b){return b[1]-a[1]});
-                if (node_degree[0][1] === node_degree[1][1]){
-                    community.data('label', `${community.data('id')}: ${node_degree[0][0].data('label')} \n${node_degree[1][0].data('label')} regulation`)
-
-
+                if (node_degree.length > 1) {
+                    if (node_degree[0][1] === node_degree[1][1]) {
+                        community.data('label', `${community.data('id')}: ${node_degree[0][0].data('label')} \n${node_degree[1][0].data('label')} regulation`)
+                    }
+                    else {community.data('label', community.data('id') +': ' +node_degree[0][0].data('label') + ' regulation')}
                 }
                 else {community.data('label', community.data('id') +': ' +node_degree[0][0].data('label') + ' regulation')}
             })
