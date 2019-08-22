@@ -385,7 +385,10 @@ class PysbStaticViz(object):
         sp_0 = 0
         for spInitial in self.model.initials:
             if spInitial.pattern.is_equivalent_to(sp):
-                sp_0 = spInitial.value.value
+                if isinstance(spInitial.value, pysb.core.Parameter):
+                    sp_0 = spInitial.value.get_value()
+                else:
+                    sp_0 = float(spInitial.value.get_value())
                 break
         return sp_0
 
@@ -480,6 +483,7 @@ class PysbStaticViz(object):
                            NodeType='species',
                            spInitial=self._sp_initial(cp),
                            bipartite=0)
+
         for j, reaction in enumerate(self.model.reactions_bidirectional):
             reaction_node = 'r%d' % j
             rule = self.model.rules.get(reaction['rule'][0])
@@ -488,8 +492,10 @@ class PysbStaticViz(object):
                            shape="roundrectangle",
                            background_color="#d3d3d3",
                            NodeType='reaction',
-                           kf=rule.rate_forward.value,
-                           kr=rule.rate_reverse.value if rule.rate_reverse else 'None',
+                           kf=rule.rate_forward.value if isinstance(rule.rate_forward,
+                                                                    pysb.core.Parameter) else 'None',
+                           kr=rule.rate_reverse.value if isinstance(rule.rate_reverse,
+                                                                    pysb.core.Parameter) else 'None',
                            bipartite=1)
             reactants = set(reaction['reactants'])
             products = set(reaction['products'])
@@ -501,6 +507,20 @@ class PysbStaticViz(object):
                 else {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle', 'source_arrow_fill': 'filled'}
             attr_modifiers = {'source_arrow_shape': 'diamond', 'target_arrow_shape': 'diamond',
                               'source_arrow_fill': 'filled'}
+            attr_expr = {'source_arrow_shape': 'none', 'target_arrow_shape': 'square', 'source_arrow_fill': 'filled'}
+
+            sps_forward = set()
+            if isinstance(rule.rate_forward, pysb.core.Expression):
+                sps_forward = hf.sp_from_expression(rule.rate_forward)
+                for s in sps_forward:
+                    self._r_link_bipartite(graph, s, j, **attr_expr)
+
+            if isinstance(rule.rate_reverse, pysb.core.Expression):
+                sps_reverse = hf.sp_from_expression(rule.rate_reverse)
+                sps_reverse = set(sps_reverse) - set(sps_forward)
+                for s in sps_reverse:
+                    self._r_link_bipartite(graph, s, j, **attr_expr)
+
             for s in reactants:
                 self._r_link_bipartite(graph, s, j, **attr_edge)
             for s in products:
