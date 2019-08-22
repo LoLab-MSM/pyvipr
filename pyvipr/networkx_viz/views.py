@@ -1,8 +1,10 @@
 from pyvipr.viz import Viz
+from pyvipr.networkx_viz.network_viz import NetworkViz
 
 __all__ = [
     'nx_graph_view',
     'nx_graph_dyn_view',
+    'nx_function_view'
 ]
 
 
@@ -19,6 +21,12 @@ def nx_graph_view(graph, layout_name='cose'):
     -------
     """
     return Viz(data=graph, type_of_viz='network_static_view', layout_name=layout_name)
+
+
+def nx_function_view(graph, nx_function, layout_name='cose', **kwargs):
+    nv = NetworkViz(graph)
+    data = nv.nx_function_view(nx_function, **kwargs)
+    return Viz(data=data, type_of_viz='', layout_name=layout_name)
 
 
 def nx_graph_dyn_view(graph, tspan, node_rel=None, node_tip=None, edge_colors=None, edge_sizes=None,

@@ -69,10 +69,13 @@ def data_to_json(value, widget):
             jsondata = static_data(viz, widget)
         return jsondata
 
-    elif isinstance(value, (DiGraph, Graph)):
+    elif isinstance(value, (DiGraph, Graph, dict)):
         from pyvipr.networkx_viz.network_viz import NetworkViz
         viz = NetworkViz(value)
-        jsondata = getattr(viz, widget.type_of_viz)()
+        if widget.type_of_viz:
+            jsondata = getattr(viz, widget.type_of_viz)()
+        else:
+            jsondata = value
         return jsondata
 
     elif is_ecell_model(value):
