@@ -19,7 +19,7 @@ class Viz(widgets.DOMWidget):
     data = Any().tag(sync=True, to_json=data_to_json)
     type_of_viz = Unicode('species_view').tag(sync=True, o=True)
     visual_style = Any().tag(sync=True, o=True)
-    format = Unicode('cyjs').tag(sync=True, o=True)
+    cmap = Unicode('RdBu_r').tag(sync=True, o=True)
     layout_name = Unicode().tag(sync=True, o=True)
     background = Unicode('#FFFFFF').tag(sync=True, o=True)
     random_state = Int(default_value=None, allow_none=True)  # This is necessary only for viz with communities

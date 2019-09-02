@@ -16,10 +16,13 @@ class PysbDynamicViz(object):
     simulation : pysb SimulationResult
         A SimulationResult instance of the model that is going to be visualized.
     sim_idx : Index of simulation to be visualized
+    cmap : str or Colormap instance
+        The colormap used to map the reaction rate values to RGBA colors. For more information
+        visit: https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html
     """
     mach_eps = np.finfo(float).eps
 
-    def __init__(self, simulation, sim_idx=0):
+    def __init__(self, simulation, sim_idx=0, cmap='RdBu_r'):
         if not isinstance(simulation, SimulationResult):
             raise TypeError('Argument must be a pysb SimulationResult object')
         self.model = simulation._model
@@ -33,6 +36,7 @@ class PysbDynamicViz(object):
         self.param_dict = dict((p.name, param_values[i]) for i, p in enumerate(self.model.parameters))
         self.sp_graph = None
         self.type_viz = ''
+        self.cmap = cmap
 
     def dynamic_sp_view(self, type_viz='consumption'):
         """
@@ -226,7 +230,7 @@ class PysbDynamicViz(object):
                             react_rate_color[rxn_neg_idx] = (
                                         rxns_matrix[rx][rxn_neg_idx] / rxn_val_neg_total[rxn_neg_idx])
                         np.nan_to_num(react_rate_color, copy=False)
-                        rate_colors = hf.f2hex_edges(react_rate_color)
+                        rate_colors = hf.f2hex_edges(react_rate_color, cmap=self.cmap)
 
                         rxn_eps = sp_rr_dom[rx_idx] + self.mach_eps  # rxns_matrix[rx] + self.mach_eps
                         react_rate_size = np.zeros(len(rxn_eps))
@@ -259,7 +263,7 @@ class PysbDynamicViz(object):
                             preact_rate_color[prxns_neg_idx] = (
                                     rxns_matrix[rp][prxns_neg_idx] / rxn_val_pos_total[prxns_neg_idx])
                         np.nan_to_num(preact_rate_color, copy=False)
-                        prate_colors = hf.f2hex_edges(preact_rate_color)
+                        prate_colors = hf.f2hex_edges(preact_rate_color, cmap=self.cmap)
 
                         prxn_eps = sp_prr_dom[rp_idx] + self.mach_eps
                         preact_rate_size = np.zeros(len(prxn_eps))

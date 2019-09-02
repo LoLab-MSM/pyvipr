@@ -28,7 +28,7 @@ def data_to_json(value, widget):
     elif is_pysb_sim(value):
         from pyvipr.pysb_viz.dynamic_viz import PysbDynamicViz
 
-        viz = PysbDynamicViz(value, widget.sim_idx)
+        viz = PysbDynamicViz(value, widget.sim_idx, widget.cmap)
         jsondata = dynamic_data(viz, widget)
         return jsondata
 
@@ -61,7 +61,7 @@ def data_to_json(value, widget):
     elif is_tellurium_model(value):
         if widget.type_of_viz.startswith('dynamic'):
             from pyvipr.tellurium_viz.dynamic_viz import TelluriumDynamicViz
-            viz = TelluriumDynamicViz(value)
+            viz = TelluriumDynamicViz(value, widget.cmap)
             jsondata = dynamic_data(viz, widget)
         else:
             from pyvipr.tellurium_viz.static_viz import TelluriumStaticViz

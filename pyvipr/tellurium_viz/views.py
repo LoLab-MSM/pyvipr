@@ -42,7 +42,7 @@ def sp_rxns_view(model, layout_name='cose-bilkent'):
     return Viz(data=model, type_of_viz='sp_rxns_view', layout_name=layout_name)
 
 
-def sp_dyn_view(simulation, process='consumption', layout_name='cose-bilkent'):
+def sp_dyn_view(simulation, process='consumption', layout_name='cose-bilkent', cmap='RdBu_r'):
     """
     Render a dynamic visualization of the simulation
 
@@ -54,10 +54,13 @@ def sp_dyn_view(simulation, process='consumption', layout_name='cose-bilkent'):
         Type of the dynamic visualization, it can be 'consumption' or 'production'
     layout_name : str
         Layout to use
+    cmap : str or Colormap instance
+        The colormap used to map the reaction rate values to RGBA colors. For more information
+        visit: https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html
 
     """
     return Viz(data=simulation, type_of_viz='dynamic_sp_view', layout_name=layout_name,
-               process=process)
+               process=process, cmap=cmap)
 
 
 def sp_comm_view(model, layout_name='klay', random_state=None):

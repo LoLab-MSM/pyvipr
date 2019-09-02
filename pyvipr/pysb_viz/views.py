@@ -254,7 +254,7 @@ def sbgn_view(model, layout_name='cose-bilkent'):
     return Viz(data=model, type_of_viz='sbgn_view', layout_name=layout_name)
 
 
-def sp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='cose-bilkent'):
+def sp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='cose-bilkent', cmap='RdBu_r'):
     """
     Render a dynamic visualization of the simulation
 
@@ -268,13 +268,16 @@ def sp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='cose-
         Type of the dynamic visualization, it can be 'consumption' or 'production'
     layout_name : str
         Layout to use
+    cmap : str or Colormap instance
+        The colormap used to map the reaction rate values to RGBA colors. For more information
+        visit: https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html
 
     """
     return Viz(data=simulation, type_of_viz='dynamic_sp_view', layout_name=layout_name,
-               process=process, sim_idx=sim_idx)
+               process=process, sim_idx=sim_idx, cmap=cmap)
 
 
-def sp_comp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='cose-bilkent'):
+def sp_comp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='cose-bilkent', cmap='RdBu_r'):
     """
     Render a dynamic visualization of the simulation. The species nodes are grouped
     by the compartments they belong to.
@@ -289,13 +292,17 @@ def sp_comp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='
         Type of the dynamic visualization, it can be 'consumption' or 'production'
     layout_name: str
         Layout to use
+    cmap : str or Colormap instance
+        The colormap used to map the reaction rate values to RGBA colors. For more information
+        visit: https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html
 
     """
     return Viz(data=simulation, type_of_viz='dynamic_sp_comp_view', layout_name=layout_name,
-               process=process, sim_idx=sim_idx)
+               process=process, sim_idx=sim_idx, cmap=cmap)
 
 
-def sp_comm_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='klay', random_state=None):
+def sp_comm_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='klay',
+                     cmap='RdBu_r', random_state=None):
     """
     Render a dynamic visualization of the simulation. The species nodes are grouped
     by the communities detected by the Louvain algorithm
@@ -310,16 +317,19 @@ def sp_comm_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='
         Type of the dynamic visualization, it can be 'consumption' or 'production'
     layout_name: str
         Layout to use
+    cmap : str or Colormap instance
+        The colormap used to map the reaction rate values to RGBA colors. For more information
+        visit: https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html
     random_state: int
         Random state seed use by the community detection algorithm
 
     """
     return Viz(data=simulation, type_of_viz='dynamic_sp_comm_view', layout_name=layout_name,
-               random_state=random_state, process=process, sim_idx=sim_idx)
+               random_state=random_state, process=process, sim_idx=sim_idx, cmap=cmap)
 
 
-def sim_model_dyn_view(model, tspan, param_values=None, type_of_viz='dynamic_view',
-                       process='consumption', layout_name='cose-bilkent'):
+def sim_model_dyn_view(model, tspan, param_values=None, type_of_viz='dynamic_view', process='consumption',
+                       cmap='RdBu_r', layout_name='cose-bilkent'):
     """
     Render a dynamic visualization of the model using the tspan and param_values
     passed to the function
@@ -343,6 +353,9 @@ def sim_model_dyn_view(model, tspan, param_values=None, type_of_viz='dynamic_vie
         or `sp_comm_dyn_view`
     process : str
         Type of the dynamic visualization, it can be 'consumption' or 'production'
+    cmap : str or Colormap instance
+        The colormap used to map the reaction rate values to RGBA colors. For more information
+        visit: https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html
     layout_name : str
         Layout name to use
 
@@ -352,4 +365,4 @@ def sim_model_dyn_view(model, tspan, param_values=None, type_of_viz='dynamic_vie
 
     model = dispatch_pysb_files(model)
     sim = ScipyOdeSimulator(model, tspan=tspan).run(param_values=param_values)
-    return Viz(data=sim, type_of_viz=type_of_viz, process=process, layout_name=layout_name)
+    return Viz(data=sim, type_of_viz=type_of_viz, process=process, layout_name=layout_name, cmap=cmap)

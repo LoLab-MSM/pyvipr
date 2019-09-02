@@ -45,7 +45,7 @@ def range_normalization(x, min_x, max_x, a=0.5, b=10):
     return a + (x - min_x) * (b - a) / (max_x - min_x)
 
 
-def f2hex_edges(fx, vmin=-0.99, vmax=0.99):
+def f2hex_edges(fx, vmin=-0.99, vmax=0.99, cmap='RdBu_r'):
     """
     Converts reaction rates values to f2hex colors
 
@@ -57,6 +57,8 @@ def f2hex_edges(fx, vmin=-0.99, vmax=0.99):
         Value of the minimum for normalization
     vmax: float
         Value of the maximum for normalization
+    cmap: str or Colormap instance
+        The colormap used to map normalized data values to RGBA colors
 
     Returns
     -------
@@ -64,7 +66,7 @@ def f2hex_edges(fx, vmin=-0.99, vmax=0.99):
         A vector of colors in hex format that encodes the reaction rate values
     """
     norm = MidpointNormalize(vmin=vmin, vmax=vmax, midpoint=0)
-    f2rgb = cm.ScalarMappable(norm=norm, cmap=cm.get_cmap('RdBu_r'))
+    f2rgb = cm.ScalarMappable(norm=norm, cmap=cm.get_cmap(cmap))
     rgb = [f2rgb.to_rgba(rate)[:3] for rate in fx]
     colors_hex = [0] * (len(rgb))
     for i, color in enumerate(rgb):

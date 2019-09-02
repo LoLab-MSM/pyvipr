@@ -18,10 +18,13 @@ class TelluriumDynamicViz(object):
     ----------
     sim_model: tellurium roadrunner
         A roadrunner instance after a simulation
+    cmap : str or Colormap instance
+        The colormap used to map the reaction rate values to RGBA colors. For more information
+        visit: https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html
     """
     mach_eps = np.finfo(float).eps
 
-    def __init__(self, sim_model):
+    def __init__(self, sim_model, cmap='RdBu_r'):
         if isinstance(sim_model, tellurium.roadrunner.extended_roadrunner.ExtendedRoadRunner):
             model_sbml = sim_model.getSBML()
             self.doc = libsbml.readSBMLFromString(model_sbml)
@@ -39,7 +42,8 @@ class TelluriumDynamicViz(object):
                              'this simulator selection \n {0}'.format(required_selections))
         self.y = sim_model.getSimulationData()
         self.sp_graph = None
-        self.type_viz = 'consumption'
+        self.type_viz = ''
+        self.cmap = cmap
 
     def dynamic_sp_view(self, type_viz='consumption'):
         """
@@ -138,7 +142,7 @@ class TelluriumDynamicViz(object):
                             react_rate_color[rxn_neg_idx] = (
                                     rxns_matrix[rx][rxn_neg_idx] / rxn_val_neg_total[rxn_neg_idx])
                         np.nan_to_num(react_rate_color, copy=False)
-                        rate_colors = hf.f2hex_edges(react_rate_color)
+                        rate_colors = hf.f2hex_edges(react_rate_color, cmap=self.cmap)
 
                         rxn_eps = sp_rr_dom[rx_idx] + self.mach_eps  # rxns_matrix[rx] + self.mach_eps
                         react_rate_size = np.zeros(len(rxn_eps))
@@ -173,7 +177,7 @@ class TelluriumDynamicViz(object):
                             preact_rate_color[prxns_neg_idx] = (
                                     rxns_matrix[rp][prxns_neg_idx] / rxn_val_pos_total[prxns_neg_idx])
                         np.nan_to_num(preact_rate_color, copy=False)
-                        prate_colors = hf.f2hex_edges(preact_rate_color)
+                        prate_colors = hf.f2hex_edges(preact_rate_color, cmap=self.cmap)
 
                         prxn_eps = sp_prr_dom[rp_idx] + self.mach_eps
                         preact_rate_size = np.zeros(len(prxn_eps))
