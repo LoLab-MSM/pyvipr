@@ -686,8 +686,9 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             cy_json = network.elements;
         }
         else if (type_viz === 'json'){
-            styleToUse = DEF_MODELS_STYLE;
-            cy_json = JSON.parse(network).elements
+            let cydata = JSON.parse(network);
+            styleToUse = cydata.style;
+            cy_json = cydata.elements
         }
         else{
             // pysb adds the file path to the model name. Here we removed the path info to only use the model name
@@ -992,7 +993,10 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 URL.revokeObjectURL(blobUrl);
             }
             if (this.value === 'json') {
-                let blob = new Blob([JSON.stringify(cy.json())], {type: "text/plain;charset=utf-8;"});
+                let blob = new Blob([JSON.stringify(cy.json(), function(key, val){
+                    if (key !== 'tip')
+                        return val;
+                    })], {type: "text/plain;charset=utf-8;"});
                 let blobUrl = URL.createObjectURL(blob);
                 saveAs(blobUrl, 'graph.json');
                 URL.revokeObjectURL(blobUrl);
