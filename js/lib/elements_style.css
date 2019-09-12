@@ -10,12 +10,12 @@
 
 #dbutton{
     position: absolute;
-    width: 3em;
+    width: 7em;
     margin: 0.5em;
     top: 0;
     z-index: 9999;
-    right: 3em;
-    height: 1.8em;
+    right: 3.2em;
+    height: 2em;
 }
 
 .tt-menu {

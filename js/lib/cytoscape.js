@@ -6,26 +6,28 @@ let popper = require('cytoscape-popper');
 let coseBilkent = require('cytoscape-cose-bilkent');
 let dagre = require('cytoscape-dagre');
 let klay = require('cytoscape-klay');
+let cise = require('cytoscape-cise');
+let fcose = require('cytoscape-fcose');
 let expandCollapse = require('cytoscape-expand-collapse');
+let graphml = require('cytoscape-graphml');
+let convert = require('sbgnml-to-cytoscape');
+let SIFJS = require('./sif.js');
 let sbgnStylesheet = require('cytoscape-sbgn-stylesheet');
 let typeahead = require('typeahead.js');
 let $ = require('jquery');
 let semver_range = "^" + require("../package.json").version;
+cytoscape.use(fcose);
+cytoscape.use(cise);
 cytoscape.use(popper);
 cytoscape.use(coseBilkent);
 cytoscape.use(dagre);
 cytoscape.use(klay);
 expandCollapse( cytoscape, $ ); // register extension
+graphml( cytoscape, $ );
 
 // Load CSS
 require('./cytoscape.css');
 require('./elements_style.css');
-
-const FORMAT = {
-    CX: 'cx',
-    CYJS: 'cyjs',
-    EDGELIST: 'el',
-};
 
 const DEF_BG = '#FFFFFF';
 const DEF_LAYOUT = 'cose';
@@ -51,7 +53,8 @@ const DEF_STYLE = [{
             'width': 1,
             'line-color': '#37474F',
             'target-arrow-color': '#37474F',
-            'target-arrow-shape': 'triangle'
+            'target-arrow-shape': 'triangle',
+            'curve-style': 'bezier'
         }
     }
 ];
@@ -214,12 +217,22 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             "<select class=\"select-css\" id=\"layoutList\" ><optgroup label=\"Layouts available\"></select>");
 
         let layouts = ["cose-bilkent", "dagre", "klay", "random", "grid", "circle",
-            "concentric", "breadthfirst", "cose"];
+            "concentric", "breadthfirst", "cose", "fcose"];
         $.each(layouts, function(index, value){
             that.$layoutDd.append($("<option></option>")
                 .attr("value", value)
                 .text(value));
         });
+        // Download options
+        that.$downloadButton = $(
+            "<select class=\"select-css\" id=\"dbutton\" >" +
+            "<option value=\"\" disabled selected value>Download</option>" +
+            "<option value=\"png\">png</option>" +
+            "<option value=\"sif\">sif</option>" +
+            "<option value=\"graphml\">graphml</option>" +
+            "<option value=\"json\">json</option>" +
+            "</select>");
+
         // Model title
         that.$model_title = $("<h1></h1>")
             .css({'font-size': '16px', 'margin-top': '10px'});
@@ -245,9 +258,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
 
         // Fit button to fit network to cell space
         that.$fitButton = $("<button id='fitbuttonid'><i class=\"fa fa-arrows-h\"></i></button>");
-
-        // Download button
-        that.$downloadButton = $("<button id='dbutton'><i class=\"fa fa-download\" aria-hidden=\"true\"></i></button>");
 
         // Controls section
         that.$ControlSection = $("<div id='controlid'></div>")
@@ -613,12 +623,18 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         // Remove tippy elements that might be present from previous run
         const tippies = document.getElementsByClassName("tippy-popper");
         while (tippies.length > 0) tippies[0].remove();
-        var that = this;
+        let that = this;
 
         // Extract parameters
         // const data = that.model.get('data');
-        const format = that.model.get('format');
-        let layoutName = that.model.get('layout_name');
+        let layoutArgs;
+        let type_viz = that.model.get('type_of_viz');
+        if (type_viz === 'sp_cise_view'){
+            layoutArgs = {name: 'cise', clusters: function (node) {return node.data('cluster_id')}}
+        }
+        else {
+            layoutArgs = {name: that.model.get('layout_name'), nodeDimensionsIncludeLabels: true};
+        }
 
         let network = that.networkData;
         let visualStyle = null;
@@ -633,32 +649,68 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             visualStyle = DEF_STYLE;
         }
 
-        if (!layoutName || typeof layoutName !== 'string') {
+        if (!layoutArgs.name || typeof layoutArgs.name !== 'string') {
             if (this.checkPositions(network.elements)) {
                 // This network has layout information
-                layoutName = 'preset'
+                layoutArgs = {name: 'preset'}
             } else {
-                layoutName = DEF_LAYOUT
+                layoutArgs = {name: DEF_LAYOUT}
             }
         }
-        let styleToUse = network.data.style;
-        if(styleToUse) {
-            styleToUse = sbgnStylesheet(cytoscape)
-        }
-        else {
-            styleToUse = DEF_MODELS_STYLE
-        }
 
+        let cy;
+        let cy_json;
+        let styleToUse;
+        if (type_viz === 'graphml'){
+            cy = cytoscape({
+                container: that.el,
+                style: DEF_STYLE,
+                ready: function () {
+                    this.graphml({layoutBy: 'cose'});
+                    this.graphml(network);
+                }
 
-        let cy = cytoscape({
-            container: that.el, // container to render in
-            elements: network.elements,
-            style: styleToUse,
-            layout: {
-                name: layoutName,
-                nodeDimensionsIncludeLabels: true
+            })
+        }
+        else if (type_viz === 'sif'){
+            styleToUse = DEF_STYLE;
+            cy_json = SIFJS.parseCyjson(network);
+
+        }
+        else if (type_viz === 'sbgn_xml'){
+            styleToUse = sbgnStylesheet(cytoscape);
+            cy_json = convert(network);
+        }
+        else if (type_viz === 'network_static_view'){
+            styleToUse = DEF_STYLE;
+            cy_json = network.elements;
+        }
+        else if (type_viz === 'json'){
+            styleToUse = DEF_MODELS_STYLE;
+            cy_json = JSON.parse(network).elements
+        }
+        else{
+            // pysb adds the file path to the model name. Here we removed the path info to only use the model name
+            let name_spl = network.data.name.split(".");
+            that.$model_title.text(name_spl[name_spl.length - 1]);
+            cy_json = network.elements;
+
+            styleToUse = network.data.style;
+            if(styleToUse) {
+                styleToUse = sbgnStylesheet(cytoscape)
             }
-        });
+            else {
+                styleToUse = DEF_MODELS_STYLE
+            }
+        }
+        if (type_viz !== 'graphml') {
+            cy = cytoscape({
+                container: that.el, // container to render in
+                elements: cy_json,
+                style: styleToUse,
+                layout: layoutArgs
+            });
+        }
         this.cyObj = cy;
         // console.log(cy.elements().components()); this could be potentially used to find
         // disjoint subnetworks within a model network
@@ -681,7 +733,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 .on('click', function(){
                     let api_options = {
                         layoutBy: {
-                            name: layoutName,
+                            name: layoutArgs.name,
                             animate: "end",
                             randomize: false,
                             fit: true
@@ -739,7 +791,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             })
         }
 
-        // Group selected species, rules, or reaction nodes
+        // Manually group selected species, rules, or reaction nodes
         let compartments_check = cy.nodes('[NodeType = "compartment"]').empty(),
             functions_check = cy.nodes('[NodeType = "function"]').empty(),
             modules_check = cy.nodes('[NodeType = "module"]').empty();
@@ -749,7 +801,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             that.groupSelected = $("<button id='groupSel'>Group</button>")
                 .css({
                     'position': 'absolute',
-                    'right': '6em',
+                    'right': '9.4em',
                     'top': '0',
                     'zIndex': '999',
                     'height': '1.8em',
@@ -798,6 +850,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         }
 
         // Finds nodes with no edges
+        //TODO: make a distinction of sbgn compound gliphs so they don't show up as disconnected nodes
         let sp_nodes = cy.nodes().filter(function(ele){
             let n;
             n = !(ele.isParent());
@@ -904,34 +957,58 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 easing: easing
             }).play();
         });
-        that.$downloadButton.on('click', function(){
+        let saveAs = function(data, name){
             let element = document.createElement('a');
-            element.setAttribute('href', cy.png({scale: 1}));
-            element.setAttribute('download', 'graph.png');
+            element.setAttribute('href', data);
+            element.setAttribute('download', name);
             element.style.display = 'none';
             document.body.appendChild(element);
             element.click();
             document.body.removeChild(element);
+        };
+        that.$downloadButton.on('change', function(){
+            if (this.value === 'png') {
+                saveAs(cy.png({scale:1}), 'graph.png')
+            }
+            if (this.value === 'sif') {
+                let sif = [];
+                cy.edges().forEach(function( ele ){
+                    sif.push(ele.source().id() + '\t' + ele.data('type') + '\t' + ele.target().id());
+                });
+                let sifTxt = sif.join('\n');
+                // console.log(sifTxt);
+                let blob = new Blob([sifTxt], {
+                    type: "text/plain;charset=utf-8;"
+                });
+                let blobUrl = URL.createObjectURL(blob);
+                saveAs(blobUrl, 'graph.sif');
+                URL.revokeObjectURL(blobUrl);
+
+            }
+            if (this.value === 'graphml') {
+                let blob = new Blob([cy.graphml()], {type: "text/plain;charset=utf-8;"});
+                let blobUrl = URL.createObjectURL(blob);
+                saveAs(blobUrl, 'graph.graphml');
+                URL.revokeObjectURL(blobUrl);
+            }
+            if (this.value === 'json') {
+                let blob = new Blob([JSON.stringify(cy.json())], {type: "text/plain;charset=utf-8;"});
+                let blobUrl = URL.createObjectURL(blob);
+                saveAs(blobUrl, 'graph.json');
+                URL.revokeObjectURL(blobUrl);
+            }
         });
 
-        that.$layoutDd.val(layoutName);
+        that.$layoutDd.val(layoutArgs.name);
         that.$layoutDd.on('change', function() {
-            layoutName = this.value;
+            layoutArgs.name = this.value;
             let layout = cy.layout({
-                name: layoutName,
+                name: layoutArgs.name,
                 nodeDimensionsIncludeLabels: true,
-                positions: function(node){
-                    let idx = parseInt(node.id().match(/\d+/),10);
-                    return dot_positions[idx];
-                },
             });
             layout.run();
 
         });
-        // pysb adds the file path to the model name. Here we removed the path info to only use the model name
-        let name_spl = network.data.name.split(".");
-        that.$model_title.text(name_spl[name_spl.length - 1]);
-
         // info.id = 'infoid';
         // that.el.parentElement.appendChild(info);
 

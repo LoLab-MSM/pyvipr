@@ -1,10 +1,18 @@
 from pyvipr.viz import Viz
 from pyvipr.networkx_viz.network_viz import NetworkViz
+import networkx as nx
 
 __all__ = [
     'nx_graph_view',
     'nx_graph_dyn_view',
-    'nx_function_view'
+    'nx_function_view',
+    'graphml_view',
+    'sif_view',
+    'sbgn_xml_view',
+    'json_view',
+    'gexf_view',
+    'gml_view',
+    'yaml_view'
 ]
 
 
@@ -67,3 +75,35 @@ def nx_graph_dyn_view(graph, tspan, node_rel=None, node_tip=None, edge_colors=No
                          edge_tips)
 
     return Viz(data=graph, type_of_viz='dynamic_network_view', layout_name=layout_name)
+
+
+def graphml_view(file, layout_name):
+    return Viz(data=file, type_of_viz='graphml', layout_name=layout_name)
+
+
+def sif_view(file, layout_name):
+    return Viz(data=file, type_of_viz='sif', layout_name=layout_name)
+
+
+def sbgn_xml_view(file, layout_name):
+    return Viz(data=file, type_of_viz='sbgn_xml', layout_name=layout_name)
+
+
+def json_view(file, layout_name='fcose'):
+    return Viz(data=file, type_of_viz='json', layout_name=layout_name)
+
+
+def gexf_view(file, node_type=None, relabel=False, version='1.2draft', layout_name='fcose'):
+    # Edge ids must be different than the ids assigned to nodes. Otherwise the visualization won't work
+    graph = nx.read_gexf(file, node_type=node_type, relabel=relabel, version=version)
+    return Viz(data=graph, type_of_viz='network_static_view', layout_name=layout_name)
+
+
+def gml_view(file, label='label', destringizer=None, layout_name='fcose'):
+    graph = nx.read_gml(file, label=label, destringizer=destringizer)
+    return Viz(data=graph, type_of_viz='network_static_view', layout_name=layout_name)
+
+
+def yaml_view(file, layout_name='fcose'):
+    graph = nx.read_yaml(file)
+    return Viz(data=graph, type_of_viz='network_static_view', layout_name=layout_name)

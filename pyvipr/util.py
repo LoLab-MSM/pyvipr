@@ -112,3 +112,10 @@ def add_communities(graph, all_levels=False, random_state=None):
         graph.add_nodes_from(cnodes, NodeType='community')
         nx.set_node_attributes(graph, communities, 'parent')
     return graph
+
+
+def add_community_id(graph, random_state=None):
+    graph_communities = graph.copy().to_undirected()  # Louvain algorithm only deals with undirected graphs
+    communities = best_partition(graph_communities, random_state=random_state)
+    nx.set_node_attributes(graph, communities, 'cluster_id')
+    return graph

@@ -1,6 +1,6 @@
-from networkx import Graph, DiGraph
 import os
 import sys
+import networkx as nx
 
 
 def data_to_json(value, widget):
@@ -42,10 +42,19 @@ def data_to_json(value, widget):
         file_extension = os.path.splitext(value)[1]
         if file_extension == '.bngl':
             model = model_from_bngl(value)
-        elif file_extension in ['.sbml', '.xml']:
+        elif file_extension in ['.sbml', '.xml'] and widget.type_of_viz != 'sbgn_xml':
             model = model_from_sbml(value)
         elif value.startswith('BIOMD'):
             model = model_from_biomodels(value)
+        elif file_extension in ['.graphml', '.json'] or widget.type_of_viz == 'sbgn_xml':
+            with open(value, 'r') as file:
+                data = file.read().replace('\n', '')
+            return data
+        elif file_extension == '.sif':
+            with open(value, 'r') as file:
+                data = file.read()
+            data = data.rstrip('\n')
+            return data
         # elif file_extension == '.ka':
         #     subprocess.run(['truml', '-k', value])
         #     bngl_model_path = re.sub('ka', 'bngl', value)
@@ -69,7 +78,7 @@ def data_to_json(value, widget):
             jsondata = static_data(viz, widget)
         return jsondata
 
-    elif isinstance(value, (DiGraph, Graph, dict)):
+    elif isinstance(value, (nx.DiGraph, nx.Graph, nx.MultiDiGraph, nx.MultiGraph, dict)):
         from pyvipr.networkx_viz.network_viz import NetworkViz
         viz = NetworkViz(value)
         if widget.type_of_viz:
