@@ -18,7 +18,9 @@ __all__ = [
     'sp_comp_dyn_view',
     'sp_comm_dyn_view',
     'sim_model_dyn_view',
-    'sbgn_view'
+    'sbgn_view',
+    'sp_cise_view',
+    'atom_rules_view'
 ]
 
 
@@ -250,8 +252,16 @@ def projected_species_rules_view(model, layout_name='cose-bilkent'):
     return Viz(data=model, type_of_viz='projected_species_rules_view', layout_name=layout_name)
 
 
+def atom_rules_view(model, layout_name='fcose'):
+    return Viz(data=model, type_of_viz='', layout_name=layout_name)
+
+
 def sbgn_view(model, layout_name='cose-bilkent'):
     return Viz(data=model, type_of_viz='sbgn_view', layout_name=layout_name)
+
+
+def sp_cise_view(model):
+    return Viz(data=model, type_of_viz='sp_cise_view')
 
 
 def sp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='cose-bilkent', cmap='RdBu_r'):

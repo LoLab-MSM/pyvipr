@@ -1,10 +1,13 @@
 import networkx as nx
-from pyvipr.util_networkx import from_networkx
+from pyvipr.util_networkx import from_networkx, map_edge_data_gml, map_node_data_gml
 import pysb
 from pysb.bng import generate_equations
+from pysb.pattern import match_complex_pattern
 from networkx.algorithms import bipartite
 import re
 import pyvipr.util as hf
+from pysb.bng import BngFileInterface
+from pysb.logging import get_logger, EXTENDED_DEBUG
 
 
 class PysbStaticViz(object):
@@ -120,6 +123,12 @@ class PysbStaticViz(object):
             sp_compartment['s{0}'.format(idx)] = smallest_comp
         nx.set_node_attributes(graph, sp_compartment, 'parent')
         return graph
+
+    def sp_cise_view(self, random_state=None):
+        graph = self.species_graph()
+        hf.add_community_id(graph, random_state=random_state)
+        data = from_networkx(graph)
+        return data
 
     def sp_comm_view(self, random_state=None):
         """
@@ -323,6 +332,46 @@ class PysbStaticViz(object):
         nx.set_node_attributes(rules_graph, module_parents, 'parent')
         nx.set_node_attributes(rules_graph, rules_module, 'parent')
         data = from_networkx(rules_graph)
+        return data
+
+    def atom_rules_view(self, visualize_args, rule_name=None, verbose=False, cleanup=True):
+        """
+        Uses the BioNetGen atom-rules to visualize rule-base models
+        Parameters.
+        ----------
+        visualize_args: dict
+            Contains all the arguments that will be passed to the BioNetGen visualize function.
+            The following key, value pairs are available: `type`: `conventional`
+
+        verbose
+        cleanup
+
+        Returns
+        -------
+
+        """
+        # TODO: add more information regarding the visualize_args
+        bng_action_debug = verbose if isinstance(verbose, bool) else \
+            verbose <= EXTENDED_DEBUG
+
+        visualize_args['verbose'] = visualize_args.get('verbose',
+                                                       bng_action_debug)
+
+        file_name = '_{0}'.format(visualize_args['type'])
+        if rule_name:
+            file_name += {'_{0}'.format(rule_name)}
+        if visualize_args['suffix']:
+            file_name += '_{0}'.format(visualize_args['suffix'])
+        file_name += '.gml'
+
+        with BngFileInterface(self.model, verbose=verbose, cleanup=cleanup) as bngfile:
+            bngfile.action('visualize', **visualize_args)
+            bngfile.execute()
+            output = bngfile.base_filename + file_name
+            g = nx.read_gml(output)
+        g.graph['name'] = self.model.name
+        g.graph['style'] = 'atom'
+        data = from_networkx(g, map_node_data=map_node_data_gml, map_edge_data=map_edge_data_gml)
         return data
 
     def sbgn_view(self):
@@ -594,7 +643,7 @@ class PysbStaticViz(object):
             if re.match('catalyze_.+_to_.+_.+', r.name):
                 cp_to_delete.append(r.reactant_pattern.complex_patterns[0])
                 all_cp.append([r.product_pattern.complex_patterns[1]])
-            elif re.match('bind_.+_.+_to_.+', r.name):  # and r._function == 'catalyze':
+            elif re.match('bind_.+_.+_to_.+', r.name) and r._function == 'catalyze':
                 all_cp.append(r.reactant_pattern.complex_patterns)
                 all_cp.append(r.product_pattern.complex_patterns)
             else:
@@ -657,6 +706,19 @@ class PysbStaticViz(object):
 
             elif cp_length >= 3:
                 cp_class = 'macromolecule multimer'
+                node_data = {'label': slabel, 'class': cp_class, 'stateVariables': [],
+                             'NodeType': 'complex', "unitsOfInformation": []}
+                graph.add_node(cp_node, **node_data)
+                for idx, mp in enumerate(cp.monomer_patterns):
+                    mp_node = 'mp{0}_{1}_{2}'.format(cp_length, cp_node, idx)
+                    state_variables = []
+                    for s, v in mp.site_conditions.items():
+                        if isinstance(v, str):
+                            state = {'variable': s, 'value': v}
+                            state_variables.append({'id': mp_node, 'class': 'state variable', 'state': state})
+                    node_data_mp = {'label': mp.monomer.name, 'stateVariables': state_variables,
+                                    'class': 'macromolecule', 'unitsOfInformation': [], 'parent': cp_node}
+                    graph.add_node(mp_node, **node_data_mp)
 
         for r_idx, rule in enumerate(rules_for_nodes):
             rule_node = 'r%d' % r_idx
@@ -830,7 +892,7 @@ class PysbStaticViz(object):
 
 
 def in_cp_list(cp, cp_list):
-    if [s for s in cp_list if s.is_equivalent_to(cp)]:
+    if [s for s in cp_list if match_complex_pattern(s, cp, exact=False)]:
         return True
     else:
         return False
@@ -839,7 +901,7 @@ def in_cp_list(cp, cp_list):
 def get_cp_idx(cp, cp_list):
     idx = None
     for c, c_idx in cp_list:
-        if c.is_equivalent_to(cp):
+        if match_complex_pattern(c, cp, exact=False):
             idx = c_idx
             break
     return idx

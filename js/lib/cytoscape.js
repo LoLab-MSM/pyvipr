@@ -1,21 +1,21 @@
-let widgets = require('@jupyter-widgets/base');
-let _ = require('lodash');
-let cytoscape = require('cytoscape');
-let tippy = require('tippy.js/umd/index.all.js');
-let popper = require('cytoscape-popper');
-let coseBilkent = require('cytoscape-cose-bilkent');
-let dagre = require('cytoscape-dagre');
-let klay = require('cytoscape-klay');
-let cise = require('cytoscape-cise');
-let fcose = require('cytoscape-fcose');
-let expandCollapse = require('cytoscape-expand-collapse');
-let graphml = require('cytoscape-graphml');
-let convert = require('sbgnml-to-cytoscape');
-let SIFJS = require('./sif.js');
-let sbgnStylesheet = require('cytoscape-sbgn-stylesheet');
-let typeahead = require('typeahead.js');
-let $ = require('jquery');
-let semver_range = "^" + require("../package.json").version;
+const widgets = require('@jupyter-widgets/base');
+const _ = require('lodash');
+const cytoscape = require('cytoscape');
+const tippy = require('tippy.js/umd/index.all.js');
+const popper = require('cytoscape-popper');
+const coseBilkent = require('cytoscape-cose-bilkent');
+const dagre = require('cytoscape-dagre');
+const klay = require('cytoscape-klay');
+const cise = require('cytoscape-cise');
+const fcose = require('cytoscape-fcose');
+const expandCollapse = require('cytoscape-expand-collapse');
+const graphml = require('cytoscape-graphml');
+const convert = require('sbgnml-to-cytoscape');
+const SIFJS = require('./sif.js');
+const sbgnStylesheet = require('cytoscape-sbgn-stylesheet');
+const typeahead = require('typeahead.js');
+const $ = require('jquery');
+const semver_range = "^" + require("../package.json").version;
 cytoscape.use(fcose);
 cytoscape.use(cise);
 cytoscape.use(popper);
@@ -48,12 +48,29 @@ const DEF_STYLE = [{
     }
 },
     {
+        selector: 'node[background_color][shape]',
+        style: {
+            'background-color': 'data(background_color)',
+            'shape': 'data(shape)',
+        }
+    },
+    {
         selector: 'edge',
         style: {
             'width': 1,
             'line-color': '#37474F',
             'target-arrow-color': '#37474F',
             'target-arrow-shape': 'triangle',
+            'curve-style': 'bezier'
+        }
+    },
+    {
+        selector: 'edge[line_style][line_color]',
+        style: {
+            'line-color': 'data(line_color)',
+            'line-style': 'data(line_style)',
+            'target-arrow-shape': 'data(target_arrow_shape)',
+            'source-arrow-shape': 'data(source_arrow_shape)',
             'curve-style': 'bezier'
         }
     }
@@ -131,7 +148,7 @@ const DEF_MODELS_STYLE = [{
 
 // When serialiazing the entire widget state for embedding, only values that
 // differ from the defaults will be specified.
-var CytoscapeModel = widgets.DOMWidgetModel.extend({
+let CytoscapeModel = widgets.DOMWidgetModel.extend({
     defaults: _.extend(widgets.DOMWidgetModel.prototype.defaults(), {
         _model_name: 'CytoscapeModel',
         _view_name: 'CytoscapeView',
@@ -143,7 +160,7 @@ var CytoscapeModel = widgets.DOMWidgetModel.extend({
 });
 
 // Custom View. Renders the widget model.
-var CytoscapeView = widgets.DOMWidgetView.extend({
+let CytoscapeView = widgets.DOMWidgetView.extend({
     callback_process:function(formElement){
         this.model.set({'process':formElement});  // update the JS model with the current view value
         this.touch();   // sync the JS model with the Python backend
@@ -211,7 +228,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
     },
 
     renderButtons: function(){
-        var that = this;
+        let that = this;
         // Layout options
         that.$layoutDd = $(
             "<select class=\"select-css\" id=\"layoutList\" ><optgroup label=\"Layouts available\"></select>");
@@ -697,8 +714,11 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             cy_json = network.elements;
 
             styleToUse = network.data.style;
-            if(styleToUse) {
+            if(styleToUse === 'sbgn') {
                 styleToUse = sbgnStylesheet(cytoscape)
+            }
+            else if (styleToUse === 'atom'){
+                styleToUse = DEF_STYLE
             }
             else {
                 styleToUse = DEF_MODELS_STYLE
@@ -853,9 +873,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         // Finds nodes with no edges
         //TODO: make a distinction of sbgn compound gliphs so they don't show up as disconnected nodes
         let sp_nodes = cy.nodes().filter(function(ele){
-            let n;
-            n = !(ele.isParent());
-            return n
+            return !(ele.isParent())
         });
         const nodesWithoutEdges = sp_nodes.filter(node => node.connectedEdges(":visible").size() === 0);
         if (nodesWithoutEdges.length > 0){
@@ -996,7 +1014,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 let blob = new Blob([JSON.stringify(cy.json(), function(key, val){
                     if (key !== 'tip')
                         return val;
-                    })], {type: "text/plain;charset=utf-8;"});
+                })], {type: "text/plain;charset=utf-8;"});
                 let blobUrl = URL.createObjectURL(blob);
                 saveAs(blobUrl, 'graph.json');
                 URL.revokeObjectURL(blobUrl);
@@ -1088,11 +1106,11 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                         return str.match( q );
                     }
 
-                    var fields = ['label', 'id', 'NodeType'];
+                    let fields = ['label', 'id', 'NodeType'];
 
                     function anyFieldMatches( n ){
-                        for( var i = 0; i < fields.length; i++ ){
-                            var f = fields[i];
+                        for( let i = 0; i < fields.length; i++ ){
+                            let f = fields[i];
 
                             if( matches( n.data(f), query ) ){
                                 return true;
@@ -1118,7 +1136,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                         return 0;
                     }
 
-                    var res = allNodes.stdFilter( anyFieldMatches ).sort( sortByName ).map( getData );
+                    let res = allNodes.stdFilter( anyFieldMatches ).sort( sortByName ).map( getData );
 
                     cb( res );
                 },
@@ -1126,7 +1144,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                     suggestion: infoTemplate
                 }
             }).on('typeahead:selected', function(e, entry, dataset){
-            var n = cy.getElementById(entry.id);
+            let n = cy.getElementById(entry.id);
 
             cy.batch(function(){
                 allNodes.unselect();
@@ -1136,7 +1154,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
 
             showNodeInfo( n );
         }).on('keydown keypress keyup change', _.debounce(function(e){
-            var thisSearch = that.$search.val();
+            let thisSearch = that.$search.val();
 
             if( thisSearch !== lastSearch ){
                 $('.tt-dropdown-menu').scrollTop(0);

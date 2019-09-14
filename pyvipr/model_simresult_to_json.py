@@ -33,19 +33,25 @@ def data_to_json(value, widget):
         return jsondata
 
     elif isinstance(value, str):
-        try:
-            from pysb.importers.sbml import model_from_sbml, model_from_biomodels
-            from pysb.importers.bngl import model_from_bngl
-        except ImportError:
-            raise Exception('PySB must be installed to visualize models from files')
-        from pyvipr.pysb_viz.static_viz import PysbStaticViz
         file_extension = os.path.splitext(value)[1]
-        if file_extension == '.bngl':
-            model = model_from_bngl(value)
-        elif file_extension in ['.sbml', '.xml'] and widget.type_of_viz != 'sbgn_xml':
-            model = model_from_sbml(value)
-        elif value.startswith('BIOMD'):
-            model = model_from_biomodels(value)
+        if file_extension in ['.bngl', '.sbml', '.xml'] or value.startswith('BIOMED'):
+            try:
+                from pysb.importers.sbml import model_from_sbml, model_from_biomodels
+                from pysb.importers.bngl import model_from_bngl
+            except ImportError:
+                raise Exception('PySB must be installed to visualize models from files')
+            from pyvipr.pysb_viz.static_viz import PysbStaticViz
+
+            if file_extension == '.bngl':
+                model = model_from_bngl(value)
+            elif file_extension in ['.sbml', '.xml'] and widget.type_of_viz != 'sbgn_xml':
+                model = model_from_sbml(value)
+            elif value.startswith('BIOMD'):
+                model = model_from_biomodels(value)
+            viz = PysbStaticViz(model)
+            jsondata = static_data(viz, widget)
+            return jsondata
+
         elif file_extension in ['.graphml', '.json'] or widget.type_of_viz == 'sbgn_xml':
             with open(value, 'r') as file:
                 data = file.read().replace('\n', '')
@@ -63,9 +69,6 @@ def data_to_json(value, widget):
 
         else:
             raise ValueError('Format not supported')
-        viz = PysbStaticViz(model)
-        jsondata = static_data(viz, widget)
-        return jsondata
 
     elif is_tellurium_model(value):
         if widget.type_of_viz.startswith('dynamic'):

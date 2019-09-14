@@ -33,10 +33,34 @@ def __map_table_data(columns, graph_obj):
     return data
 
 
-def __create_node(node, node_id):
+def map_node_data_gml(columns, graph_obj):
+    data = {}
+
+    if graph_obj['isGroup']:
+        data['parent'] = graph_obj['gid']
+
+    data['shape'] = graph_obj['graphics']['type']
+    data['background_color'] = graph_obj['graphics']['fill']
+    return data
+
+
+CY_GML_ARROWS = {'standard': 'triangle', 'none': 'none'}
+CY_GML_LINE_STYLE = {'line': 'solid', 'dotted': 'dotted', 'dashed': 'dashed'}
+
+
+def map_edge_data_gml(edge_data):
+    line_style = edge_data['graphics']['style']
+    source_arrow = edge_data['graphics']['sourceArrow']
+    target_arrow = edge_data['graphics']['targetArrow']
+    data = {'line_style': CY_GML_LINE_STYLE[line_style], 'line_color': edge_data['graphics']['fill'],
+            'source_arrow_shape': CY_GML_ARROWS[source_arrow], 'target_arrow_shape': CY_GML_ARROWS[target_arrow]}
+    return data
+
+
+def __create_node(node, node_id, map_data):
     new_node = {}
     node_columns = node.keys()
-    data = __map_table_data(node_columns, node)
+    data = map_data(node_columns, node)
     # Override special keys
     data[ID] = str(node_id)
     data[NAME] = str(node_id)
@@ -49,11 +73,14 @@ def __create_node(node, node_id):
     return new_node
 
 
-def __build_multi_edge(edge_tuple, g):
+def __build_multi_edge(edge_tuple, map_data=None):
     source = edge_tuple[0]
     target = edge_tuple[1]
     key = edge_tuple[2]
-    data = edge_tuple[3]
+    if map_data is not None:
+        data = map_data(edge_tuple[2])
+    else:
+        data = edge_tuple[2]
 
     data['source'] = str(source)
     data['target'] = str(target)
@@ -61,10 +88,13 @@ def __build_multi_edge(edge_tuple, g):
     return {DATA: data}
 
 
-def __build_edge(edge_tuple, g):
+def __build_edge(edge_tuple, map_data=None):
     source = edge_tuple[0]
     target = edge_tuple[1]
-    data = edge_tuple[2]
+    if map_data is not None:
+        data = map_data(edge_tuple[2])
+    else:
+        data = edge_tuple[2]
 
     data['source'] = str(source)
     data['target'] = str(target)
@@ -81,8 +111,10 @@ def __build_empty_graph():
     }
 
 
-def from_networkx(g, layout=None, scale=DEF_SCALE):
+def from_networkx(g, layout=None, scale=DEF_SCALE, map_node_data=None, map_edge_data=None):
     # Dictionary Object to be converted to Cytoscape.js JSON
+    if map_node_data is None:
+        map_node_data = __map_table_data
     cygraph = __build_empty_graph()
 
     if layout is not None:
@@ -102,14 +134,14 @@ def from_networkx(g, layout=None, scale=DEF_SCALE):
     cygraph[DATA] = __map_table_data(g.graph.keys(), g.graph)
 
     for i, node_id in enumerate(nodes):
-        new_node = __create_node(g.node[node_id], node_id)
+        new_node = __create_node(g.node[node_id], node_id, map_node_data)
         if layout is not None:
             new_node['position'] = pos[i]
 
         cygraph['elements']['nodes'].append(new_node)
 
     for edge in edges:
-        cygraph['elements']['edges'].append(edge_builder(edge, g))
+        cygraph['elements']['edges'].append(edge_builder(edge, map_edge_data))
 
     return cygraph
 
