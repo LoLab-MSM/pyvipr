@@ -34,7 +34,7 @@ def data_to_json(value, widget):
 
     elif isinstance(value, str):
         file_extension = os.path.splitext(value)[1]
-        if file_extension in ['.bngl', '.sbml', '.xml'] or value.startswith('BIOMED'):
+        if file_extension in ['.bngl', '.sbml', '.xml'] or value.startswith('BIOMD'):
             try:
                 from pysb.importers.sbml import model_from_sbml, model_from_biomodels
                 from pysb.importers.bngl import model_from_bngl
