@@ -7,7 +7,7 @@ from networkx.algorithms import bipartite
 import re
 import pyvipr.util as hf
 from pysb.bng import BngFileInterface
-from pysb.logging import get_logger, EXTENDED_DEBUG
+from pysb.logging import EXTENDED_DEBUG
 
 
 class PysbStaticViz(object):
@@ -23,29 +23,7 @@ class PysbStaticViz(object):
     def __init__(self, model):
         # Need to create a model visualization base and then do independent visualizations: static and dynamic
         self.model = model
-        self.graph = None
-
-    @staticmethod
-    def merge_nodes(G, nodes, new_node, **attr):
-        """
-        Merges the selected `nodes` of the graph G into one `new_node`,
-        meaning that all the edges that pointed to or from one of these
-        `nodes` will point to or from the `new_node`.
-        attr_dict and `**attr` are defined as in `G.add_node`.
-        """
-        G.add_node(new_node, **attr)  # Add the 'merged' node
-        newG = G.copy()
-
-        for n1, n2, data in newG.edges(data=True):
-            # For all edges related to one of the nodes to merge,
-            # make an edge going to or coming from the `new gene`.
-            if n1 in nodes:
-                G.add_edge(new_node, n2, **data)
-            elif n2 in nodes:
-                G.add_edge(n1, new_node, **data)
-
-        for n in nodes:  # remove the merged nodes
-            G.remove_node(n)
+        generate_equations(self.model)
 
     def sp_view(self):
         """
@@ -85,44 +63,6 @@ class PysbStaticViz(object):
         graph = self.compartments_data_graph()
         data = from_networkx(graph)
         return data
-
-    def compartments_data_graph(self):
-        """
-        Create a networkx DiGraph. Check for compartments in a model and add 
-        the compartments as compound nodes where the species are located
-
-        Returns
-        -------
-        nx.Digraph
-            Graph with model species and compartments
-        
-        Raises
-        ------
-        ValueError
-            Model has not compartments
-        """
-        # Check if model has comparments
-        if not self.model.compartments:
-            raise ValueError('Model has no compartments')
-        graph = self.species_graph()
-        compartment_nodes = []
-        for c in self.model.compartments:
-            if c.parent is not None:
-                compartment_nodes.append((c.name, dict(parent=c.parent.name)))
-            else:
-                compartment_nodes.append(c.name)
-
-        graph.add_nodes_from(compartment_nodes, NodeType='compartment')
-        # Determining compartment node family tree
-        # Determine species compartment
-        sp_compartment = {}
-        for idx, sp in enumerate(self.model.species):
-            monomers = sp.monomer_patterns
-            monomers_comp = {m.compartment.name: m.compartment.size for m in monomers}
-            smallest_comp = min(monomers_comp, key=monomers_comp.get)
-            sp_compartment['s{0}'.format(idx)] = smallest_comp
-        nx.set_node_attributes(graph, sp_compartment, 'parent')
-        return graph
 
     def sp_cise_view(self, random_state=None):
         graph = self.species_graph()
@@ -175,30 +115,6 @@ class PysbStaticViz(object):
         data = from_networkx(graph)
         return data
 
-    def communities_data_graph(self, all_levels=False, random_state=None):
-        """
-        Create a networkx DiGraph. It applies the Louvain algorithm to detect
-        communities and add that information to the graph
-        
-        Parameters
-        ----------
-        all_levels : bool
-            Indicates if the generated graph contains the information about the
-            clusters obtained at each iteration of the Louvain algorithm
-        random_state : int, optional
-            Random state seed use by the community detection algorithm, by default None
-        
-        Returns
-        -------
-        nx.DiGraph
-            A networkx DiGraph where the nodes have a `parent` property that correspond
-            to the community they belong to
-        """
-        graph = self.species_graph()
-        hf.add_communities(graph, all_levels=all_levels, random_state=random_state)
-
-        return graph
-
     def sp_rxns_bidirectional_view(self):
         """
         Generate a dictionary with the info of a bipartite graph where one set of
@@ -236,7 +152,7 @@ class PysbStaticViz(object):
         """
         Generates a dictionary with the info of a bipartite graph where one set of nodes is the model species
         and the other set is the model rules
-        
+
         Returns
         -------
         dict
@@ -244,7 +160,7 @@ class PysbStaticViz(object):
             contains all the information (nodes,edges, parent nodes, positions) to generate
             a cytoscapejs network.
         """
-        rules_graph = self.rules_graph()
+        rules_graph = self.sp_rules_graph()
         rules_graph = self.graph_merged_pair_edges(rules_graph)
         data = from_networkx(rules_graph)
         return data
@@ -254,7 +170,7 @@ class PysbStaticViz(object):
         Generates a dictionary with the info of a bipartite graph where one set of nodes is the model species
         and the other set is the model rules. Additionally, it adds information of the functions from which
         the rules come from.
-        
+
         Returns
         -------
         dict
@@ -262,7 +178,7 @@ class PysbStaticViz(object):
             contains all the information (nodes,edges, parent nodes, positions) to generate
             a cytoscapejs network.
         """
-        rules_graph = self.rules_graph()
+        rules_graph = self.sp_rules_graph()
         rules_graph = self.graph_merged_pair_edges(rules_graph)
         rule_functions = {rule.name: rule._function for rule in self.model.rules}
         unique_functions = set(rule_functions.values())
@@ -276,7 +192,7 @@ class PysbStaticViz(object):
         Generates a dictionary with the info of a bipartite graph where one set of nodes is the model species
         and the other set is the model rules. Additionally, it adds information of the modules from which
         the rules come from.
-        
+
         Returns
         -------
         dict
@@ -284,7 +200,8 @@ class PysbStaticViz(object):
             contains all the information (nodes,edges, parent nodes, positions) to generate
             a cytoscapejs network.
         """
-        rules_graph = self.rules_graph()
+        # TODO: This works with the latest (unreleased pysb) we should wait until committing this change
+        rules_graph = self.sp_rules_graph()
         rules_graph = self.graph_merged_pair_edges(rules_graph)
 
         # Unique modules used in the model
@@ -292,6 +209,7 @@ class PysbStaticViz(object):
         # Remove outer model file to not look further modules that are not related to
         # the model
         unique_modules.remove(self.model.name)
+        unique_modules.remove('pysb.macros')
         module_parents = {}
         # pysb components have a modules list that starts from the inner frame
         # to the outer frame.
@@ -315,12 +233,17 @@ class PysbStaticViz(object):
                     module_parents[module + str(idx)] = p
             else:
                 module_parents[module] = total_parents[0]
-
         rules_module = {}
         for rule in self.model.rules:
-            m = rule._modules[0]
+            rule_modules = list(dict.fromkeys(rule._modules))
+            mod_initial_idx = 0
+            if rule_modules[mod_initial_idx] != 'pysb.macros':
+                m = rule_modules[mod_initial_idx]
+            else:
+                mod_initial_idx = 1
+                m = rule_modules[mod_initial_idx]
             if m not in module_parents.keys():
-                m_parent = rule._modules[1]
+                m_parent = rule_modules[mod_initial_idx + 1]
                 m_parent_child = list(module_parents.keys())[list(module_parents.values()).index(m_parent)]
                 rules_module[rule.name] = m_parent_child
             else:
@@ -379,7 +302,7 @@ class PysbStaticViz(object):
         data = from_networkx(sbgn_graph)
         return data
 
-    def projections_view(self, project_to='species_reactions'):
+    def _projections_view(self, project_to='species_reactions'):
         """
         Project a bipartite graph to the type of node defined in `project to`.
         Generates a dictionary with the info of a graph representing the PySB model.
@@ -388,7 +311,10 @@ class PysbStaticViz(object):
         ----------
         project_to: str
             Nodes to which the graph is going to be projected. Options are:
-            'species_reactions', 'reactions', 'rules', 'species_rules'
+            'species_reactions' to project to a species graph from a species&reactions graph,
+            'species_rules' to project to a species graph from a species&rules graph,
+            'reactions' to project to a reactions graph from a species&reaction graph,
+            'rules' to project to a rules graph from a species&rules graph
 
         Returns
         -------
@@ -400,7 +326,7 @@ class PysbStaticViz(object):
         if project_to == 'species_reactions' or project_to == 'reactions':
             bipartite_graph = self.sp_rxns_bidirectional_graph()
         elif project_to == 'rules' or project_to == 'species_rules':
-            bipartite_graph = self.rules_graph()
+            bipartite_graph = self.sp_rules_graph()
         else:
             raise ValueError('Projection not valid')
 
@@ -409,37 +335,78 @@ class PysbStaticViz(object):
         return data
 
     def projected_species_reactions_view(self):
-        return self.projections_view('species_reactions')
+        return self._projections_view('species_reactions')
 
     def projected_reactions_view(self):
-        return self.projections_view('reactions')
+        return self._projections_view('reactions')
 
     def projected_rules_view(self):
-        return self.projections_view('rules')
+        return self._projections_view('rules')
 
     def projected_species_rules_view(self):
-        return self.projections_view('species_rules')
+        return self._projections_view('species_rules')
 
-    def _sp_initial(self, sp):
+    def compartments_data_graph(self):
         """
-        Get initial condition of a species
-        Parameters
-        ----------
-        sp: pysb.ComplexPattern, pysb species
+        Create a networkx DiGraph. Check for compartments in a model and add 
+        the compartments as compound nodes where the species are located
 
         Returns
         -------
-
+        nx.Digraph
+            Graph with model species and compartments
+        
+        Raises
+        ------
+        ValueError
+            Model has not compartments
         """
-        sp_0 = 0
-        for spInitial in self.model.initials:
-            if spInitial.pattern.is_equivalent_to(sp):
-                if isinstance(spInitial.value, pysb.core.Parameter):
-                    sp_0 = spInitial.value.get_value()
-                else:
-                    sp_0 = float(spInitial.value.get_value())
-                break
-        return sp_0
+        # Check if model has compartments
+        if not self.model.compartments:
+            raise ValueError('Model has no compartments')
+        graph = self.species_graph()
+        compartment_nodes = []
+        for c in self.model.compartments:
+            if c.parent is not None:
+                compartment_nodes.append((c.name, dict(parent=c.parent.name)))
+            else:
+                compartment_nodes.append(c.name)
+
+        graph.add_nodes_from(compartment_nodes, NodeType='compartment')
+        # Determining compartment node family tree
+        # Determine species compartment
+        sp_compartment = {}
+        for idx, sp in enumerate(self.model.species):
+            monomers = sp.monomer_patterns
+            monomers_comp = {m.compartment.name: m.compartment.size for m in monomers}
+            smallest_comp = min(monomers_comp, key=monomers_comp.get)
+            sp_compartment['s{0}'.format(idx)] = smallest_comp
+        nx.set_node_attributes(graph, sp_compartment, 'parent')
+        return graph
+
+    def communities_data_graph(self, all_levels=False, random_state=None):
+        """
+        Create a networkx DiGraph. It applies the Louvain algorithm to detect
+        communities and add that information to the graph
+        
+        Parameters
+        ----------
+        all_levels : bool
+            Indicates if the generated graph contains the information about the
+            clusters obtained at each iteration of the Louvain algorithm
+        random_state : int, optional
+            Random state seed use by the community detection algorithm, by default None
+        
+        Returns
+        -------
+        nx.DiGraph
+            A networkx DiGraph where the nodes have a `parent` property that correspond
+            to the community they belong to
+        """
+        graph = self.species_graph()
+        hf.add_communities(graph, all_levels=all_levels, random_state=random_state)
+
+        return graph
 
     def species_graph(self):
         """
@@ -450,7 +417,6 @@ class PysbStaticViz(object):
         nx.Digraph 
             Graph that has the information for the visualization of the model
         """
-        generate_equations(self.model)
         sp_graph = nx.DiGraph(name=self.model.name)
 
         # TODO: there are reactions that generate parallel edges that are not taken into account because netowrkx
@@ -516,7 +482,6 @@ class PysbStaticViz(object):
         nx.Digraph 
             Graph that has the information for the visualization of the model
         """
-        generate_equations(self.model)
         graph = nx.DiGraph(name=self.model.name, graph={'rankdir': 'LR'})
         for i, cp in enumerate(self.model.species):
             species_node = 's%d' % i
@@ -542,9 +507,9 @@ class PysbStaticViz(object):
                            background_color="#d3d3d3",
                            NodeType='reaction',
                            kf=rule.rate_forward.value if isinstance(rule.rate_forward,
-                                                                    pysb.core.Parameter) else 'None',
+                                                                    pysb.Parameter) else 'None',
                            kr=rule.rate_reverse.value if isinstance(rule.rate_reverse,
-                                                                    pysb.core.Parameter) else 'None',
+                                                                    pysb.Parameter) else 'None',
                            bipartite=1)
             reactants = set(reaction['reactants'])
             products = set(reaction['products'])
@@ -559,12 +524,12 @@ class PysbStaticViz(object):
             attr_expr = {'source_arrow_shape': 'none', 'target_arrow_shape': 'square', 'source_arrow_fill': 'filled'}
 
             sps_forward = set()
-            if isinstance(rule.rate_forward, pysb.core.Expression):
+            if isinstance(rule.rate_forward, pysb.Expression):
                 sps_forward = hf.sp_from_expression(rule.rate_forward)
                 for s in sps_forward:
                     self._r_link_bipartite(graph, s, j, **attr_expr)
 
-            if isinstance(rule.rate_reverse, pysb.core.Expression):
+            if isinstance(rule.rate_reverse, pysb.Expression):
                 sps_reverse = hf.sp_from_expression(rule.rate_reverse)
                 sps_reverse = set(sps_reverse) - set(sps_forward)
                 for s in sps_reverse:
@@ -588,7 +553,6 @@ class PysbStaticViz(object):
         nx.Digraph 
             Graph that has the information for the visualization of the model
         """
-        generate_equations(self.model)
         graph = nx.DiGraph(name=self.model.name, graph={'rankdir': 'LR'})
         for i, cp in enumerate(self.model.species):
             species_node = 's%d' % i
@@ -761,7 +725,7 @@ class PysbStaticViz(object):
                     self._r_link_bipartite(graph, p_node, r_idx, _flip=True, **attr_edges)
         return graph
 
-    def rules_graph(self):
+    def sp_rules_graph(self):
         """
         Creates a bipartite nx.DiGraph graph where one set of nodes is the model species
         and the other set is the model rules.
@@ -785,7 +749,7 @@ class PysbStaticViz(object):
             self.merge_nodes(graph, rxns, rule_info[0], **node_attrs)
         return graph
 
-    def projected_graph(self, graph, project_to='species'):
+    def projected_graph(self, graph, project_to='species_reactions'):
         """
         Project a bipartite graph into one of the sets of nodes
 
@@ -794,8 +758,7 @@ class PysbStaticViz(object):
         graph: nx.DiGraph
             a networkx bipartite graph
         project_to: str
-            One of the following options `species_reactions`, `species_rules`,
-            `reactions`, `rules`
+            One of the following options `species_reactions`, `species_rules`, `reactions`, `rules`
 
         Returns
         -------
@@ -812,6 +775,27 @@ class PysbStaticViz(object):
         projected_graph = self.graph_merged_pair_edges(projected_graph)
 
         return projected_graph
+
+    def _sp_initial(self, sp):
+        """
+        Get initial condition of a species
+        Parameters
+        ----------
+        sp: pysb.ComplexPattern, pysb species
+
+        Returns
+        -------
+
+        """
+        sp_0 = 0
+        for spInitial in self.model.initials:
+            if spInitial.pattern.is_equivalent_to(sp):
+                if isinstance(spInitial.value, pysb.Parameter):
+                    sp_0 = spInitial.value.get_value()
+                else:
+                    sp_0 = float(spInitial.value.get_value())
+                break
+        return sp_0
 
     @staticmethod
     def graph_merged_pair_edges(graph):
@@ -864,6 +848,28 @@ class PysbStaticViz(object):
                     rxns.append('r{0}'.format(i))
             rxn_per_rule[(rule.name, r_idx)] = rxns
         return rxn_per_rule
+
+    @staticmethod
+    def merge_nodes(G, nodes, new_node, **attr):
+        """
+        Merges the selected `nodes` of the graph G into one `new_node`,
+        meaning that all the edges that pointed to or from one of these
+        `nodes` will point to or from the `new_node`.
+        attr_dict and `**attr` are defined as in `G.add_node`.
+        """
+        G.add_node(new_node, **attr)  # Add the 'merged' node
+        newG = G.copy()
+
+        for n1, n2, data in newG.edges(data=True):
+            # For all edges related to one of the nodes to merge,
+            # make an edge going to or coming from the `new gene`.
+            if n1 in nodes:
+                G.add_edge(new_node, n2, **data)
+            elif n2 in nodes:
+                G.add_edge(n1, new_node, **data)
+
+        for n in nodes:  # remove the merged nodes
+            G.remove_node(n)
 
     @staticmethod
     def _r_link_bipartite(graph, s, r, **attrs):
