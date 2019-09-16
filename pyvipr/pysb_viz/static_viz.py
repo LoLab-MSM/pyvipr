@@ -209,7 +209,8 @@ class PysbStaticViz(object):
         # Remove outer model file to not look further modules that are not related to
         # the model
         unique_modules.remove(self.model.name)
-        unique_modules.remove('pysb.macros')
+        if 'pysb.macros' in unique_modules:
+            unique_modules.remove('pysb.macros')
         module_parents = {}
         # pysb components have a modules list that starts from the inner frame
         # to the outer frame.
