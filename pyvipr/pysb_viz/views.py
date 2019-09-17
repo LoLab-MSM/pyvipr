@@ -252,8 +252,11 @@ def projected_species_rules_view(model, layout_name='cose-bilkent'):
     return Viz(data=model, type_of_viz='projected_species_rules_view', layout_name=layout_name)
 
 
-def atom_rules_view(model, layout_name='fcose'):
-    return Viz(data=model, type_of_viz='', layout_name=layout_name)
+def atom_rules_view(model, visualize_args, rule_name=None, verbose=False, cleanup=True, layout_name='fcose'):
+    from pyvipr.pysb_viz.static_viz import PysbStaticViz
+    pviz = PysbStaticViz(model, generate_eqs=False)
+    data = pviz.atom_rules_view(visualize_args, rule_name, verbose, cleanup)
+    return Viz(data=data, type_of_viz='', layout_name=layout_name)
 
 
 def sbgn_view(model, layout_name='cose-bilkent'):

@@ -78,9 +78,9 @@ def __build_multi_edge(edge_tuple, map_data=None):
     target = edge_tuple[1]
     key = edge_tuple[2]
     if map_data is not None:
-        data = map_data(edge_tuple[2])
+        data = map_data(edge_tuple[3])
     else:
-        data = edge_tuple[2]
+        data = edge_tuple[3]
 
     data['source'] = str(source)
     data['target'] = str(target)

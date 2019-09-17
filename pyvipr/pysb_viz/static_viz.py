@@ -18,12 +18,15 @@ class PysbStaticViz(object):
     ----------
     model : pysb.Model
         PySB Model to visualize.
+    generate_eqs : bool
+        If True, generate math expressions for reaction rates and species in a model
     """
 
-    def __init__(self, model):
+    def __init__(self, model, generate_eqs=True):
         # Need to create a model visualization base and then do independent visualizations: static and dynamic
         self.model = model
-        generate_equations(self.model)
+        if generate_eqs:
+            generate_equations(self.model)
 
     def sp_view(self):
         """
@@ -292,7 +295,16 @@ class PysbStaticViz(object):
             bngfile.action('visualize', **visualize_args)
             bngfile.execute()
             output = bngfile.base_filename + file_name
-            g = nx.read_gml(output)
+            try:
+                g = nx.read_gml(output)
+            except nx.NetworkXError:
+                with open(output, "r") as f:
+                    contents = f.readlines()
+                contents[1] = '[multigraph 1\n'
+                with open(output, "w") as f:
+                    f.writelines(contents)
+                g = nx.read_gml(output)
+
         g.graph['name'] = self.model.name
         g.graph['style'] = 'atom'
         data = from_networkx(g, map_node_data=map_node_data_gml, map_edge_data=map_edge_data_gml)
