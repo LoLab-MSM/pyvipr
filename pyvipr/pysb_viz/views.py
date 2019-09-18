@@ -3,8 +3,13 @@ from pyvipr.viz import Viz
 __all__ = [
     'sp_view',
     'sp_comp_view',
-    'sp_comm_view',
-    'sp_comm_hierarchy_view',
+    'sp_comm_louvain_view',
+    'sp_comm_louvain_hierarchy_view',
+    'sp_comm_greedy_view',
+    'sp_comm_asyn_lpa_view',
+    'sp_comm_label_propagation_view',
+    'sp_comm_girvan_newman_view',
+    'sp_comm_asyn_fluidc',
     'sp_rxns_bidirectional_view',
     'sp_rxns_view',
     'sp_rules_view',
@@ -14,12 +19,12 @@ __all__ = [
     'projected_reactions_view',
     'projected_rules_view',
     'projected_species_rules_view',
+    'cluster_rxns_by_rules_view',
     'sp_dyn_view',
     'sp_comp_dyn_view',
     'sp_comm_dyn_view',
     'sim_model_dyn_view',
     'sbgn_view',
-    'sp_cise_view',
     'atom_rules_view'
 ]
 
@@ -58,7 +63,7 @@ def sp_comp_view(model, layout_name='cose-bilkent'):
     return Viz(data=model, type_of_viz='sp_comp_view', layout_name=layout_name)
 
 
-def sp_comm_view(model, layout_name='klay', random_state=None):
+def sp_comm_louvain_view(model, layout_name='klay', random_state=None):
     """
     Render a visualization of the interactions between the species in a model.
     The species nodes are grouped by the communities detected by the 
@@ -75,10 +80,10 @@ def sp_comm_view(model, layout_name='klay', random_state=None):
         Random state seed use by the community detection algorithm
 
     """
-    return Viz(data=model, type_of_viz='sp_comm_view', random_state=random_state, layout_name=layout_name)
+    return Viz(data=model, type_of_viz='sp_comm_louvain_view', random_state=random_state, layout_name=layout_name)
 
 
-def sp_comm_hierarchy_view(model, layout_name='klay', random_state=None):
+def sp_comm_louvain_hierarchy_view(model, layout_name='klay', random_state=None):
     """
     Render a visualization of the interactions between the species in a model.
     The species nodes are grouped by the communities detected by the
@@ -95,7 +100,35 @@ def sp_comm_hierarchy_view(model, layout_name='klay', random_state=None):
         Random state seed use by the community detection algorithm
 
     """
-    return Viz(data=model, type_of_viz='sp_comm_hierarchy_view', random_state=random_state, layout_name=layout_name)
+    return Viz(data=model, type_of_viz='sp_comm_louvain_hierarchy_view',
+               random_state=random_state, layout_name=layout_name)
+
+
+def sp_comm_greedy_view(model, layout_name='klay'):
+    return Viz(data=model, type_of_viz='sp_comm_greedy_view', layout_name=layout_name)
+
+
+def sp_comm_asyn_lpa_view(model, layout_name='klay'):
+    return Viz(data=model, type_of_viz='sp_comm_asyn_lpa_view', layout_name=layout_name)
+
+
+def sp_comm_label_propagation_view(model, layout_name='klay'):
+    return Viz(data=model, type_of_viz='sp_comm_label_propagation_view', layout_name=layout_name)
+
+
+def sp_comm_girvan_newman_view(model, layout_name='klay'):
+    return Viz(data=model, type_of_viz='sp_comm_girvan_newman_view', layout_name=layout_name)
+
+
+def sp_comm_asyn_fluidc(model, k, max_iter=100, seed=None, layout_name='fcose'):
+    from pyvipr.pysb_viz.static_viz import PysbStaticViz
+    pviz = PysbStaticViz(model, generate_eqs=False)
+    data = pviz.sp_comm_asyn_fluidc(k, max_iter, seed)
+    return Viz(data=data, type_of_viz='', layout_name=layout_name)
+
+
+def cluster_rxns_by_rules_view(model, layout_name='fcose'):
+    return Viz(data=model, type_of_viz='cluster_rxns_by_rules_view', layout_name=layout_name)
 
 
 def sp_rxns_bidirectional_view(model, layout_name='cose-bilkent'):
@@ -261,10 +294,6 @@ def atom_rules_view(model, visualize_args, rule_name=None, verbose=False, cleanu
 
 def sbgn_view(model, layout_name='cose-bilkent'):
     return Viz(data=model, type_of_viz='sbgn_view', layout_name=layout_name)
-
-
-def sp_cise_view(model):
-    return Viz(data=model, type_of_viz='sp_cise_view')
 
 
 def sp_dyn_view(simulation, sim_idx=0, process='consumption', layout_name='cose-bilkent', cmap='RdBu_r'):

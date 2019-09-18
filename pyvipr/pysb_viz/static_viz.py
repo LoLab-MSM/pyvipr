@@ -67,13 +67,7 @@ class PysbStaticViz(object):
         data = from_networkx(graph)
         return data
 
-    def sp_cise_view(self, random_state=None):
-        graph = self.species_graph()
-        hf.add_community_id(graph, random_state=random_state)
-        data = from_networkx(graph)
-        return data
-
-    def sp_comm_view(self, random_state=None):
+    def sp_comm_louvain_view(self, random_state=None):
         """
         Use the Louvain algorithm https://en.wikipedia.org/wiki/Louvain_Modularity
         for community detection to find groups of nodes that are densely connected.
@@ -95,7 +89,7 @@ class PysbStaticViz(object):
         data = from_networkx(graph)
         return data
 
-    def sp_comm_hierarchy_view(self, random_state=None):
+    def sp_comm_louvain_hierarchy_view(self, random_state=None):
         """
         Use the Louvain algorithm https://en.wikipedia.org/wiki/Louvain_Modularity
         for community detection to find groups of nodes that are densely connected.
@@ -115,6 +109,36 @@ class PysbStaticViz(object):
             a cytoscapejs network.
         """
         graph = self.communities_data_graph(all_levels=True, random_state=random_state)
+        data = from_networkx(graph)
+        return data
+
+    def sp_comm_greedy_view(self):
+        graph = self.species_graph()
+        hf.add_greedy_modularity_communities(graph)
+        data = from_networkx(graph)
+        return data
+
+    def sp_comm_asyn_lpa_view(self):
+        graph = self.species_graph()
+        hf.add_asyn_lpa_communities(graph)
+        data = from_networkx(graph)
+        return data
+
+    def sp_comm_label_propagation_view(self):
+        graph = self.species_graph()
+        hf.add_label_propagation_communities(graph)
+        data = from_networkx(graph)
+        return data
+
+    def sp_comm_girvan_newman_view(self):
+        graph = self.species_graph()
+        hf.add_girvan_newman(graph)
+        data = from_networkx(graph)
+        return data
+
+    def sp_comm_asyn_fluidc(self, k, max_iter=100, seed=None):
+        graph = self.species_graph()
+        hf.add_asyn_fluidc(graph, k, max_iter, seed)
         data = from_networkx(graph)
         return data
 
@@ -316,6 +340,16 @@ class PysbStaticViz(object):
         data = from_networkx(sbgn_graph)
         return data
 
+    def cluster_rxns_by_rules_view(self):
+        bigraph = self.sp_rxns_graph()
+        rxns_graph = self.projected_graph(bigraph, 'reactions')
+        rxns_rule = {'r{0}'.format(i): j['rule'][0] for i, j in enumerate(self.model.reactions)}
+        cnodes = set(rxns_rule.values())
+        rxns_graph.add_nodes_from(cnodes, NodeType='rule')
+        nx.set_node_attributes(rxns_graph, rxns_rule, 'parent')
+        data = from_networkx(rxns_graph)
+        return data
+
     def _projections_view(self, project_to='species_reactions'):
         """
         Project a bipartite graph to the type of node defined in `project to`.
@@ -338,7 +372,7 @@ class PysbStaticViz(object):
             a cytoscapejs network.
         """
         if project_to == 'species_reactions' or project_to == 'reactions':
-            bipartite_graph = self.sp_rxns_bidirectional_graph()
+            bipartite_graph = self.sp_rxns_graph()
         elif project_to == 'rules' or project_to == 'species_rules':
             bipartite_graph = self.sp_rules_graph()
         else:
@@ -349,6 +383,13 @@ class PysbStaticViz(object):
         return data
 
     def projected_species_reactions_view(self):
+        """
+        This is a projection from the species-reactions graph, where the reactions
+        are unidirectional
+        Returns
+        -------
+
+        """
         return self._projections_view('species_reactions')
 
     def projected_reactions_view(self):
@@ -418,7 +459,7 @@ class PysbStaticViz(object):
             to the community they belong to
         """
         graph = self.species_graph()
-        hf.add_communities(graph, all_levels=all_levels, random_state=random_state)
+        hf.add_louvain_communities(graph, all_levels=all_levels, random_state=random_state)
 
         return graph
 

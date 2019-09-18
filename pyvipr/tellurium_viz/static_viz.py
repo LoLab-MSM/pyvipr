@@ -182,7 +182,7 @@ class TelluriumStaticViz(object):
             to the community they belong to
         """
         graph = self.species_graph()
-        hf.add_communities(graph, all_levels=all_levels, random_state=random_state)
+        hf.add_louvain_communities(graph, all_levels=all_levels, random_state=random_state)
         return graph
 
     def sp_comm_view(self, random_state=None):

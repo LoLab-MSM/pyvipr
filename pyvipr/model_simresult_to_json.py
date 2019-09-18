@@ -134,7 +134,7 @@ def data_to_json(value, widget):
 
 def static_data(viz_obj, w):
     try:
-        if w.type_of_viz in ['sp_comm_view', 'sp_comm_hierarchy_view']:
+        if w.type_of_viz in ['sp_comm_louvain_view', 'sp_comm_louvain_hierarchy_view']:
             rs = w.random_state
             jsondata = getattr(viz_obj, w.type_of_viz)(random_state=rs)
         else:
