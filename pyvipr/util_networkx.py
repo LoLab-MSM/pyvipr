@@ -21,6 +21,10 @@ TARGET = 'target'
 
 DEF_SCALE = 100
 
+CY_GML_NODE_STYLE = {'ellipse': 'ellipse', 'roundrectangle': 'round-rectangle'}
+CY_GML_ARROWS = {'standard': 'triangle', 'none': 'none'}
+CY_GML_LINE_STYLE = {'line': 'solid', 'dotted': 'dotted', 'dashed': 'dashed'}
+
 
 def __map_table_data(columns, graph_obj):
     data = {}
@@ -36,23 +40,27 @@ def __map_table_data(columns, graph_obj):
 def map_node_data_gml(columns, graph_obj):
     data = {}
 
-    if graph_obj['isGroup']:
+    if graph_obj['gid'] != '':
         data['parent'] = graph_obj['gid']
 
-    data['shape'] = graph_obj['graphics']['type']
-    data['background_color'] = graph_obj['graphics']['fill']
+    shape = graph_obj['graphics']['type']
+    shape = shape
+
+    background_color = graph_obj['graphics']['fill']
+    background_color = background_color
+    data['label'] = graph_obj['label']
+    data['border_color'] = graph_obj['graphics']['outline']
+    data['shape'] = CY_GML_NODE_STYLE[shape]
+    data['background_color'] = background_color
     return data
-
-
-CY_GML_ARROWS = {'standard': 'triangle', 'none': 'none'}
-CY_GML_LINE_STYLE = {'line': 'solid', 'dotted': 'dotted', 'dashed': 'dashed'}
 
 
 def map_edge_data_gml(edge_data):
     line_style = edge_data['graphics']['style']
     source_arrow = edge_data['graphics']['sourceArrow']
     target_arrow = edge_data['graphics']['targetArrow']
-    data = {'line_style': CY_GML_LINE_STYLE[line_style], 'line_color': edge_data['graphics']['fill'],
+    line_color = edge_data['graphics']['fill']
+    data = {'line_style': CY_GML_LINE_STYLE[line_style], 'line_color': line_color,
             'source_arrow_shape': CY_GML_ARROWS[source_arrow], 'target_arrow_shape': CY_GML_ARROWS[target_arrow]}
     return data
 

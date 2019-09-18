@@ -286,8 +286,8 @@ class PysbStaticViz(object):
 
         file_name = '_{0}'.format(visualize_args['type'])
         if rule_name:
-            file_name += {'_{0}'.format(rule_name)}
-        if visualize_args['suffix']:
+            file_name += '_{0}'.format(rule_name)
+        if 'suffix' in visualize_args.keys():
             file_name += '_{0}'.format(visualize_args['suffix'])
         file_name += '.gml'
 
@@ -296,14 +296,15 @@ class PysbStaticViz(object):
             bngfile.execute()
             output = bngfile.base_filename + file_name
             try:
-                g = nx.read_gml(output)
-            except nx.NetworkXError:
-                with open(output, "r") as f:
-                    contents = f.readlines()
-                contents[1] = '[multigraph 1\n'
-                with open(output, "w") as f:
-                    f.writelines(contents)
-                g = nx.read_gml(output)
+                g = nx.read_gml(output, label='id')
+            except nx.NetworkXError as e:
+                if 'multigraph' in str(e):
+                    with open(output, "r") as f:
+                        contents = f.readlines()
+                    contents[1] = '[multigraph 1\n'
+                    with open(output, "w") as f:
+                        f.writelines(contents)
+                    g = nx.read_gml(output, label='id')
 
         g.graph['name'] = self.model.name
         g.graph['style'] = 'atom'

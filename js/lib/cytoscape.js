@@ -52,6 +52,18 @@ const DEF_STYLE = [{
         style: {
             'background-color': 'data(background_color)',
             'shape': 'data(shape)',
+            'label': 'data(label)',
+            'border-color': 'data(border_color)',
+            'border-width': 1
+        }
+    },
+        {
+        selector: ':parent',
+        style: {
+            'background-opacity': '0.5',
+            'shape': 'data(shape)',
+            'label': 'data(label)',
+            'border-color': 'data(border_color)'
         }
     },
     {
@@ -73,7 +85,14 @@ const DEF_STYLE = [{
             'source-arrow-shape': 'data(source_arrow_shape)',
             'curve-style': 'bezier'
         }
-    }
+    },
+        {
+        selector: '.faded',
+        style: {
+            'opacity': 0.25,
+            'text-opacity': 0
+        }
+    },
 ];
 
 const DEF_MODELS_STYLE = [{
