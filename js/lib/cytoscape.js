@@ -763,7 +763,7 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
             that.expandButton = $("<button id='expandid'>Collapse nodes</button>")
                 .css({
                     'position': 'absolute',
-                    'right': '6em',
+                    'right': '9.4em',
                     'top': '0',
                     'width': '9em',
                     'height': '1.8em',
@@ -796,7 +796,7 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
             that.expandEdges = $("<button id='expandedgesid'>Collapse edges</button>")
                 .css({
                     'position': 'absolute',
-                    'right': '15em',
+                    'right': '18.4em',
                     'top': '0',
                     'width': '9em',
                     'height': '1.8em',
