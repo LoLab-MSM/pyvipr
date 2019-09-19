@@ -458,14 +458,15 @@ class PysbStaticViz(object):
             species_node = 's%d' % idx
             color = "#2b913a"
             # color species with an initial condition differently
-            if len([s.pattern for s in self.model.initials if s.pattern.is_equivalent_to(sp)]):
+            sp_initial = self._sp_initial(sp)
+            if sp_initial != 0:
                 color = "#aaffff"
             # Setting the information about the node
             node_data = dict(label=parse_name(sp),
                              background_color=color,
                              shape='ellipse',
                              NodeType='species',
-                             spInitial=self._sp_initial(sp))
+                             spInitial=sp_initial)
             sp_graph.add_node(species_node, **node_data)
 
         for reaction in self.model.reactions_bidirectional:
@@ -521,14 +522,15 @@ class PysbStaticViz(object):
             slabel = parse_name(cp)
             color = "#2b913a"
             # color species with an initial condition differently
-            if len([s.pattern for s in self.model.initials if s.pattern.is_equivalent_to(cp)]):
+            sp_initial = self._sp_initial(cp)
+            if sp_initial != 0:
                 color = "#aaffff"
             graph.add_node(species_node,
                            label=slabel,
                            shape="ellipse",
                            background_color=color,
                            NodeType='species',
-                           spInitial=self._sp_initial(cp),
+                           spInitial=sp_initial,
                            bipartite=0)
 
         for j, reaction in enumerate(self.model.reactions_bidirectional):
