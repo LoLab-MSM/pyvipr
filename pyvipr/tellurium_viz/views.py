@@ -3,8 +3,13 @@ from pyvipr.viz import Viz
 __all__ = [
     'sp_view',
     'sp_rxns_view',
-    'sp_comm_view',
-    'sp_dyn_view'
+    'sp_comm_louvain_view',
+    'sp_dyn_view',
+    'sp_comm_greedy_view',
+    'sp_comm_asyn_lpa_view',
+    'sp_comm_label_propagation_view',
+    'sp_comm_girvan_newman_view',
+    'sp_comm_asyn_fluidc_view'
 ]
 
 
@@ -63,7 +68,7 @@ def sp_dyn_view(simulation, process='consumption', layout_name='cose-bilkent', c
                process=process, cmap=cmap)
 
 
-def sp_comm_view(model, layout_name='klay', random_state=None):
+def sp_comm_louvain_view(model, layout_name='klay', random_state=None):
     """
     Render a visualization of the interactions between the species in a model.
     The species nodes are grouped by the communities detected by the
@@ -79,4 +84,27 @@ def sp_comm_view(model, layout_name='klay', random_state=None):
         Random state seed use by the community detection algorithm
 
     """
-    return Viz(data=model, type_of_viz='sp_comm_view', random_state=random_state, layout_name=layout_name)
+    return Viz(data=model, type_of_viz='sp_comm_louvain_view', random_state=random_state, layout_name=layout_name)
+
+
+def sp_comm_greedy_view(model, layout_name='klay'):
+    return Viz(data=model, type_of_viz='sp_comm_greedy_view', layout_name=layout_name)
+
+
+def sp_comm_asyn_lpa_view(model, layout_name='klay'):
+    return Viz(data=model, type_of_viz='sp_comm_asyn_lpa_view', layout_name=layout_name)
+
+
+def sp_comm_label_propagation_view(model, layout_name='klay'):
+    return Viz(data=model, type_of_viz='sp_comm_label_propagation_view', layout_name=layout_name)
+
+
+def sp_comm_girvan_newman_view(model, layout_name='klay'):
+    return Viz(data=model, type_of_viz='sp_comm_girvan_newman_view', layout_name=layout_name)
+
+
+def sp_comm_asyn_fluidc_view(model, k, max_iter=100, seed=None, layout_name='fcose'):
+    from pyvipr.tellurium_viz.static_viz import TelluriumStaticViz
+    tviz = TelluriumStaticViz(model)
+    data = tviz.sp_comm_asyn_fluidc_view(k, max_iter, seed)
+    return Viz(data=data, type_of_viz='', layout_name=layout_name)

@@ -162,7 +162,7 @@ class TelluriumStaticViz(object):
         data = from_networkx(graph)
         return data
 
-    def communities_data_graph(self, all_levels=False, random_state=None):
+    def louvain_communities_graph(self, all_levels=False, random_state=None):
         """
         Create a networkx DiGraph. It applies the Louvain algorithm to detect
         communities and add that information to the graph
@@ -185,7 +185,7 @@ class TelluriumStaticViz(object):
         hf.add_louvain_communities(graph, all_levels=all_levels, random_state=random_state)
         return graph
 
-    def sp_comm_view(self, random_state=None):
+    def sp_comm_louvain_view(self, random_state=None):
         """
         Use the Louvain algorithm https://en.wikipedia.org/wiki/Louvain_Modularity
         for community detection to find groups of nodes that are densely connected.
@@ -203,6 +203,36 @@ class TelluriumStaticViz(object):
             contains all the information (nodes,edges, parent nodes, positions) to generate
             a cytoscapejs network.
         """
-        graph = self.communities_data_graph(random_state=random_state)
+        graph = self.louvain_communities_graph(random_state=random_state)
+        data = from_networkx(graph)
+        return data
+
+    def sp_comm_greedy_view(self):
+        graph = self.species_graph()
+        hf.add_greedy_modularity_communities(graph)
+        data = from_networkx(graph)
+        return data
+
+    def sp_comm_asyn_lpa_view(self):
+        graph = self.species_graph()
+        hf.add_asyn_lpa_communities(graph)
+        data = from_networkx(graph)
+        return data
+
+    def sp_comm_label_propagation_view(self):
+        graph = self.species_graph()
+        hf.add_label_propagation_communities(graph)
+        data = from_networkx(graph)
+        return data
+
+    def sp_comm_girvan_newman_view(self):
+        graph = self.species_graph()
+        hf.add_girvan_newman(graph)
+        data = from_networkx(graph)
+        return data
+
+    def sp_comm_asyn_fluidc_view(self, k, max_iter=100, seed=None):
+        graph = self.species_graph()
+        hf.add_asyn_fluidc(graph, k, max_iter, seed)
         data = from_networkx(graph)
         return data
