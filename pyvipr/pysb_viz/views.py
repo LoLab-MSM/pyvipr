@@ -9,7 +9,7 @@ __all__ = [
     'sp_comm_asyn_lpa_view',
     'sp_comm_label_propagation_view',
     'sp_comm_girvan_newman_view',
-    'sp_comm_asyn_fluidc',
+    'sp_comm_asyn_fluidc_view',
     'sp_rxns_bidirectional_view',
     'sp_rxns_view',
     'sp_rules_view',
@@ -120,10 +120,10 @@ def sp_comm_girvan_newman_view(model, layout_name='klay'):
     return Viz(data=model, type_of_viz='sp_comm_girvan_newman_view', layout_name=layout_name)
 
 
-def sp_comm_asyn_fluidc(model, k, max_iter=100, seed=None, layout_name='fcose'):
+def sp_comm_asyn_fluidc_view(model, k, max_iter=100, seed=None, layout_name='fcose'):
     from pyvipr.pysb_viz.static_viz import PysbStaticViz
     pviz = PysbStaticViz(model, generate_eqs=False)
-    data = pviz.sp_comm_asyn_fluidc(k, max_iter, seed)
+    data = pviz.sp_comm_asyn_fluidc_view(k, max_iter, seed)
     return Viz(data=data, type_of_viz='', layout_name=layout_name)
 
 
