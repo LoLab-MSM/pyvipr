@@ -85,7 +85,8 @@ class PysbStaticViz(object):
             contains all the information (nodes,edges, parent nodes, positions) to generate
             a cytoscapejs network.
         """
-        graph = self.communities_data_graph(random_state=random_state)
+        graph = self.species_graph()
+        hf.add_louvain_communities(graph, all_levels=False, random_state=random_state)
         data = from_networkx(graph)
         return data
 
@@ -108,7 +109,8 @@ class PysbStaticViz(object):
             contains all the information (nodes,edges, parent nodes, positions) to generate
             a cytoscapejs network.
         """
-        graph = self.communities_data_graph(all_levels=True, random_state=random_state)
+        graph = self.species_graph()
+        hf.add_louvain_communities(graph, all_levels=True, random_state=random_state)
         data = from_networkx(graph)
         return data
 
@@ -136,7 +138,7 @@ class PysbStaticViz(object):
         data = from_networkx(graph)
         return data
 
-    def sp_comm_asyn_fluidc(self, k, max_iter=100, seed=None):
+    def sp_comm_asyn_fluidc_view(self, k, max_iter=100, seed=None):
         graph = self.species_graph()
         hf.add_asyn_fluidc(graph, k, max_iter, seed)
         data = from_networkx(graph)
@@ -437,30 +439,6 @@ class PysbStaticViz(object):
             smallest_comp = min(monomers_comp, key=monomers_comp.get)
             sp_compartment['s{0}'.format(idx)] = smallest_comp
         nx.set_node_attributes(graph, sp_compartment, 'parent')
-        return graph
-
-    def communities_data_graph(self, all_levels=False, random_state=None):
-        """
-        Create a networkx DiGraph. It applies the Louvain algorithm to detect
-        communities and add that information to the graph
-        
-        Parameters
-        ----------
-        all_levels : bool
-            Indicates if the generated graph contains the information about the
-            clusters obtained at each iteration of the Louvain algorithm
-        random_state : int, optional
-            Random state seed use by the community detection algorithm, by default None
-        
-        Returns
-        -------
-        nx.DiGraph
-            A networkx DiGraph where the nodes have a `parent` property that correspond
-            to the community they belong to
-        """
-        graph = self.species_graph()
-        hf.add_louvain_communities(graph, all_levels=all_levels, random_state=random_state)
-
         return graph
 
     def species_graph(self):
