@@ -51,6 +51,70 @@ class PysbStaticViz(object):
         data = from_networkx(graph)
         return data
 
+    def highlight_nodes_view(self, species=None, reactions=None):
+        """
+        Highlights the species and/or reactions passed as arguments
+
+        Parameters
+        ----------
+        species: list-like
+            It can be a vector with the indices of the species to be highlighted,
+            or a vector with the concrete pysb.ComplexPattern species to be highlighted
+        reactions: list-like
+            A vector of tuples of length 2, where the first entry is the edge source
+            and the second entry is the edge target.
+
+        Returns
+        -------
+        dict
+            A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
+            contains all the information (nodes,edges, positions) to generate a cytoscapejs network.
+        """
+        graph = self.species_graph()
+        if species is not None:
+            if all(isinstance(x, int) for x in species):
+                sp_new_shape = {'s{0}'.format(sp): {'border_width': 4, 'border_color': '#D81B60',
+                                                    'highlight_nodes': 'yes'} for sp in species}
+            elif all(isinstance(x, pysb.ComplexPattern) for x in species):
+                sp_new_shape = {'s{0}'.format(self.model.species.index(sp)):
+                                    {'border_width': 4, 'border_color': '#D81B60',
+                                     'highlight_nodes': 'yes'} for sp in species}
+            else:
+                raise ValueError
+            nx.set_node_attributes(graph, sp_new_shape)
+        if reactions is not None:
+            if all(isinstance(x, int) for x in reactions):
+                edge_new_style = {}
+                for rxn in reactions:
+                    reaction = self.model.reactions_bidirectional[rxn]
+                    reactants = set(reaction['reactants'])
+                    products = set(reaction['products'])
+                    for s in reactants:
+                        for p in products:
+                            edge_new_style[('s{0}'.format(s), 's{0}'.format(p))] = {'line_color': '#D81B60',
+                                                                                    'highlight_edges': 'yes'}
+            elif all(isinstance(x, tuple) for x in reactions):
+                edge_new_style = {self._process_incoming_edge(rxn):
+                                      {'line_color': '#D81B60', 'highlight_edges': 'yes'} for rxn in reactions}
+            else:
+                raise ValueError
+            nx.set_edge_attributes(graph, edge_new_style)
+        data = from_networkx(graph)
+        return data
+
+    def _process_incoming_edge(self, edge):
+        source = edge[0]
+        target = edge[1]
+        if isinstance(source, int):
+            source = 's{0}'.format(source)
+        elif isinstance(source, pysb.ComplexPattern):
+            source = 's{0}'.format(self.model.species.index(source))
+        if isinstance(target, int):
+            target = 's{0}'.format(target)
+        elif isinstance(target, pysb.ComplexPattern):
+            target = 's{0}'.format(self.model.species.index(target))
+        return source, target
+
     def sp_comp_view(self):
         """
         Generate a dictionary that contains the information about the species 

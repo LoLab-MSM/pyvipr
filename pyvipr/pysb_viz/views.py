@@ -25,7 +25,8 @@ __all__ = [
     'sp_comm_dyn_view',
     'sim_model_dyn_view',
     'sbgn_view',
-    'atom_rules_view'
+    'atom_rules_view',
+    'highlight_nodes_view'
 ]
 
 
@@ -289,6 +290,13 @@ def atom_rules_view(model, visualize_args, rule_name=None, verbose=False, cleanu
     from pyvipr.pysb_viz.static_viz import PysbStaticViz
     pviz = PysbStaticViz(model, generate_eqs=False)
     data = pviz.atom_rules_view(visualize_args, rule_name, verbose, cleanup)
+    return Viz(data=data, type_of_viz='', layout_name=layout_name)
+
+
+def highlight_nodes_view(model, species=None, reactions=None, layout_name='fcose'):
+    from pyvipr.pysb_viz.static_viz import PysbStaticViz
+    pviz = PysbStaticViz(model)
+    data = pviz.highlight_nodes_view(species, reactions)
     return Viz(data=data, type_of_viz='', layout_name=layout_name)
 
 

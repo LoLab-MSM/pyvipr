@@ -57,7 +57,7 @@ const DEF_STYLE = [{
             'border-width': 1
         }
     },
-        {
+    {
         selector: ':parent',
         style: {
             'background-opacity': '0.5',
@@ -86,7 +86,7 @@ const DEF_STYLE = [{
             'curve-style': 'bezier'
         }
     },
-        {
+    {
         selector: '.faded',
         style: {
             'opacity': 0.25,
@@ -95,18 +95,26 @@ const DEF_STYLE = [{
     },
 ];
 
-const DEF_MODELS_STYLE = [{
-    selector: 'node[shape]',
-    style: {
-        'label': 'data(label)',
-        'shape': 'data(shape)',
-        'pie-size': '80%',
-        'pie-1-background-color': 'data(background_color)',
-        'pie-1-background-size': '100',
-        'pie-2-background-color': '#dddcd4',
-        'pie-2-background-size': '100'
-    }
-},
+const DEF_MODELS_STYLE = [
+    {
+        selector: 'node[shape]',
+        style: {
+            'label': 'data(label)',
+            'shape': 'data(shape)',
+            'pie-size': '80%',
+            'pie-1-background-color': 'data(background_color)',
+            'pie-1-background-size': '100',
+            'pie-2-background-color': '#dddcd4',
+            'pie-2-background-size': '100'
+        }
+    },
+    {
+        selector: 'node[highlight_nodes]',
+        style: {
+            'border-width': 'data(border_width)',
+            'border-color': 'data(border_color)'
+        }
+    },
     {
 
         selector: 'edge[source_arrow_shape]',
@@ -115,6 +123,13 @@ const DEF_MODELS_STYLE = [{
             'target-arrow-shape': 'data(target_arrow_shape)',
             'source-arrow-shape': 'data(source_arrow_shape)',
             'source-arrow-fill': 'data(source_arrow_fill)'
+        }
+    },
+        {
+
+        selector: 'edge[highlight_edges]',
+        style: {
+            'line-color': 'data(line_color)',
         }
     },
     {

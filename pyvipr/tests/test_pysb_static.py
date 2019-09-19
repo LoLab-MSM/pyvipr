@@ -22,7 +22,6 @@ def test_graphs(viz_model):
     g_proj_rxns = viz_model.projected_graph(g_rxn_bi, 'reactions')
     g_proj_sp2 = viz_model.projected_graph(g_rules, 'species_rules')
     g_proj_rules = viz_model.projected_graph(g_rules, 'rules')
-    g_comm = viz_model.communities_data_graph(random_state=1)
 
     n_species = len(viz_model.model.species)
     assert len(g_sp.nodes()) == n_species
@@ -33,7 +32,6 @@ def test_graphs(viz_model):
     assert len(g_proj_rxns.nodes()) == len(viz_model.model.reactions_bidirectional)
     assert len(g_proj_sp2.nodes()) == n_species
     assert len(g_proj_rules.nodes()) == len(viz_model.model.rules)
-    assert len(g_comm.nodes(data='parent')) == n_species + 9
 
 
 def test_wrong_projection(viz_model):
