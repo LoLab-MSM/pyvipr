@@ -125,7 +125,7 @@ const DEF_MODELS_STYLE = [
             'source-arrow-fill': 'data(source_arrow_fill)'
         }
     },
-        {
+    {
 
         selector: 'edge[highlight_edges]',
         style: {
@@ -158,7 +158,6 @@ const DEF_MODELS_STYLE = [
         }
     },
     {
-        // TODO: Make this as an option?
         selector:'edge.edges_expanded_collapsed',
         style: {
             'curve-style': 'unbundled-bezier',
@@ -349,17 +348,28 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
             that.$nsimb.val(sim_idx);
 
             let process = that.model.get('process');
-            let processes = ['consumption', 'production'];
-            let unusedprocess = processes.filter(function (e) {
-                return e !== process
-            });
-            that.$processid = $(
-                "<select class =\"select-css\" id=\"myprocesses\" >\n" +
-                "<optgroup label=\"Process\">\n" +
-                "  <option value='" + process + "'>" + process + "</option>\n" +
-                "  <option value='" + unusedprocess[0] + "'>" + unusedprocess[0] + "</option>\n" +
-                "</select>\n")
-                .appendTo(that.$ControlSection);
+            if (process === 'json_process'){
+                let json_process = that.networkData.data.process;
+                that.$processid = $(
+                    "<select class =\"select-css\" id=\"myprocesses\" >\n" +
+                    "<optgroup label=\"Process\">\n" +
+                    "  <option value='" + json_process + "'>" + json_process + "</option>\n" +
+                    "</select>\n")
+                    .appendTo(that.$ControlSection);
+            }
+            else{
+                let processes = ['consumption', 'production'];
+                let unusedprocess = processes.filter(function (e) {
+                    return e !== process
+                });
+                that.$processid = $(
+                    "<select class =\"select-css\" id=\"myprocesses\" >\n" +
+                    "<optgroup label=\"Process\">\n" +
+                    "  <option value='" + process + "'>" + process + "</option>\n" +
+                    "  <option value='" + unusedprocess[0] + "'>" + unusedprocess[0] + "</option>\n" +
+                    "</select>\n")
+                    .appendTo(that.$ControlSection);
+            }
 
             // Defining player buttons
             that.$playButton = $("<button id='dbutton'><i class=\"fa fa-play\"></i></button>")
@@ -372,8 +382,6 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
                     "background": "#fffffff7",
                     "left": "0"
                 });
-            // playButton.style.left='100px';
-            // that.el.parentElement.appendChild(playButton);
 
             that.$slider = $('<input type="range" value="0" min="0" max="50" step="1" id="sliderid">')
                 .css({
@@ -384,9 +392,6 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
                     "border": "none"
                 });
 
-            // slider.style.left = '150px';
-            // that.el.parentElement.appendChild(slider);
-
             that.$slider_text = $($('<input type="text" size="400" value="0" id="textid">'))
                 .css({
                     "width": "50px",
@@ -396,7 +401,6 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
                     "position": "absolute",
                     "border": "none"
                 });
-            // that.el.parentElement.appendChild(slider_text);
 
             that.$resetButton = $("<button id='dbutton'><i class=\"fa fa-refresh\"></i>'</button>")
                 .css({
@@ -407,7 +411,6 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
                     "position": "absolute",
                     "border": "none"
                 });
-            // that.el.parentElement.appendChild(resetButton);
 
             that.$playerSection = $("<div id='playerid'></div>")
                 .css({
@@ -421,7 +424,6 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
                 .append(that.$slider_text)
                 .append(that.$resetButton)
                 .appendTo(that.el.parentElement);
-            // playerSection.style.boxSizing = 'border-box';
         }
 
     },
@@ -736,10 +738,9 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
             styleToUse = DEF_STYLE;
             cy_json = network.elements;
         }
-        else if (type_viz === 'json'){
-            let cydata = JSON.parse(network);
-            styleToUse = cydata.style;
-            cy_json = cydata.elements
+        else if (type_viz === 'json' || type_viz === 'dynamic_json'){
+            styleToUse = network.style;
+            cy_json = network.elements
         }
         else{
             // pysb adds the file path to the model name. Here we removed the path info to only use the model name
@@ -904,42 +905,48 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
             return index;
         }
 
-        // Finds nodes with no edges
-        //TODO: make a distinction of sbgn compound gliphs so they don't show up as disconnected nodes
-        let sp_nodes = cy.nodes().filter(function(ele){
-            return !(ele.isParent())
-        });
-        const nodesWithoutEdges = sp_nodes.filter(node => node.connectedEdges(":visible").size() === 0);
-        if (nodesWithoutEdges.length > 0){
-            let message = "The following components are not connected and will be highlighted in the graph:<br />";
-            highlight(nodesWithoutEdges);
-            let n_name;
-            let n_id;
-            nodesWithoutEdges.forEach(function(n){
-                n_name = n.data('label');
-                n_id = component_idx(n.data());
-                message += n_id + ": " + n_name + "<br />"
+        // Finds nodes with no edges in the following visualization views
+        let vizCheckNoEdges = ['sp_view', 'sp_comp_view', 'sp_comm_louvain_view', 'sp_comm_louvain_hierarchy_view',
+            'sp_comm_greedy_view', 'sp_comm_asyn_lpa_view', 'sp_comm_label_propagation_view',
+            'sp_comm_girvan_newman_view', 'sp_comm_asyn_fluidc_view', 'sp_rxns_bidirectional_view', 'sp_rxns_view',
+            'sp_rules_view', 'sp_rules_fxns_view', 'sp_rules_mod_view'];
+        if (vizCheckNoEdges.includes(type_viz)){
+            let sp_nodes = cy.nodes().filter(function(ele){
+                return !(ele.isParent())
             });
-            // Popup when nodes are not connected
-            that.$close = $("<span id='close'>x</span>")
-                .css('float', 'right');
-            that.$message = $("<p class=\"text\">" +
-                "        "+message+" " +
-                "    </p>" );
+            const nodesWithoutEdges = sp_nodes.filter(node => node.connectedEdges(":visible").size() === 0);
+            if (nodesWithoutEdges.length > 0){
+                let message = "The following components are not connected and will be highlighted in the graph:<br />";
+                highlight(nodesWithoutEdges);
+                let n_name;
+                let n_id;
+                nodesWithoutEdges.forEach(function(n){
+                    n_name = n.data('label');
+                    n_id = component_idx(n.data());
+                    message += n_id + ": " + n_name + "<br />"
+                });
+                // Popup when nodes are not connected
+                that.$close = $("<span id='close'>x</span>")
+                    .css('float', 'right');
+                that.$message = $("<p class=\"text\">" +
+                    "        "+message+" " +
+                    "    </p>" );
 
-            that.$popup = $("<div class='fragment'>" +
-                "</div>")
-                .css({'border': '1px solid #ccc','background': '#FF7F7F'})
-                .append(that.$close)
-                .append(that.$message)
-                .appendTo(that.el.parentElement);
+                that.$popup = $("<div class='fragment'>" +
+                    "</div>")
+                    .css({'border': '1px solid #ccc','background': '#FF7F7F'})
+                    .append(that.$close)
+                    .append(that.$message)
+                    .appendTo(that.el.parentElement);
 
-            that.$close.on('click', function () {
-                this.parentNode.parentNode
-                    .removeChild(this.parentNode);
-                return false;
-            });
+                that.$close.on('click', function () {
+                    this.parentNode.parentNode
+                        .removeChild(this.parentNode);
+                    return false;
+                });
+            }
         }
+
 
         // Adds feature, that when a node is tapped, it fades off all the
         // nodes that are not in its neighborhood
@@ -1045,6 +1052,11 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
                 URL.revokeObjectURL(blobUrl);
             }
             if (this.value === 'json') {
+                if (type_viz.startsWith("dynamic") === true){
+                    let nsim_process = {nsims: network.data.nsims, process: that.model.get('process'),
+                        tspan: network.data.tspan};
+                    cy.data(nsim_process);
+                }
                 let blob = new Blob([JSON.stringify(cy.json(), function(key, val){
                     if (key !== 'tip')
                         return val;
