@@ -162,29 +162,6 @@ class TelluriumStaticViz(object):
         data = from_networkx(graph)
         return data
 
-    def louvain_communities_graph(self, all_levels=False, random_state=None):
-        """
-        Create a networkx DiGraph. It applies the Louvain algorithm to detect
-        communities and add that information to the graph
-
-        Parameters
-        ----------
-        all_levels : bool
-            Indicates if the generated graph contains the information about the
-            clusters obtained at each iteration of the Louvain algorithm
-        random_state : int, optional
-            Random state seed use by the community detection algorithm, by default None
-
-        Returns
-        -------
-        nx.DiGraph
-            A networkx DiGraph where the nodes have a `parent` property that correspond
-            to the community they belong to
-        """
-        graph = self.species_graph()
-        hf.add_louvain_communities(graph, all_levels=all_levels, random_state=random_state)
-        return graph
-
     def sp_comm_louvain_view(self, random_state=None):
         """
         Use the Louvain algorithm https://en.wikipedia.org/wiki/Louvain_Modularity
@@ -203,7 +180,32 @@ class TelluriumStaticViz(object):
             contains all the information (nodes,edges, parent nodes, positions) to generate
             a cytoscapejs network.
         """
-        graph = self.louvain_communities_graph(random_state=random_state)
+        graph = self.species_graph()
+        hf.add_louvain_communities(graph, all_levels=False, random_state=random_state)
+        data = from_networkx(graph)
+        return data
+
+    def sp_comm_louvain_hierarchy_view(self, random_state=None):
+        """
+        Use the Louvain algorithm https://en.wikipedia.org/wiki/Louvain_Modularity
+        for community detection to find groups of nodes that are densely connected.
+        It generates the data of all the intermediate clusters obtained during the Louvain
+        algorithm generate to create a network with compound nodes that hold the communities.
+
+        Parameters
+        ==========
+        random_state : int, optional
+            Random state seed use by the community detection algorithm, by default None
+
+        Returns
+        -------
+        dict
+            A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
+            contains all the information (nodes,edges, parent nodes, positions) to generate
+            a cytoscapejs network.
+        """
+        graph = self.species_graph()
+        hf.add_louvain_communities(graph, all_levels=True, random_state=random_state)
         data = from_networkx(graph)
         return data
 
@@ -213,9 +215,9 @@ class TelluriumStaticViz(object):
         data = from_networkx(graph)
         return data
 
-    def sp_comm_asyn_lpa_view(self):
+    def sp_comm_asyn_lpa_view(self, random_state=None):
         graph = self.species_graph()
-        hf.add_asyn_lpa_communities(graph)
+        hf.add_asyn_lpa_communities(graph, seed=random_state)
         data = from_networkx(graph)
         return data
 
