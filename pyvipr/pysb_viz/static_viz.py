@@ -103,6 +103,19 @@ class PysbStaticViz(object):
         return data
 
     def _process_incoming_edge(self, edge):
+        """
+        Takes a tuple (s, t) edge and convert it into the edges used in
+        the cytoscape visualization
+        Parameters
+        ----------
+        edge: tuple
+            Edge tuple
+
+        Returns
+        -------
+        tuple
+            A formatted tuple that matches edges used in cytoscape.js
+        """
         source = edge[0]
         target = edge[1]
         if isinstance(source, int):
@@ -184,9 +197,9 @@ class PysbStaticViz(object):
         data = from_networkx(graph)
         return data
 
-    def sp_comm_asyn_lpa_view(self):
+    def sp_comm_asyn_lpa_view(self, random_state=None):
         graph = self.species_graph()
-        hf.add_asyn_lpa_communities(graph)
+        hf.add_asyn_lpa_communities(graph, seed=random_state)
         data = from_networkx(graph)
         return data
 
@@ -353,21 +366,80 @@ class PysbStaticViz(object):
 
     def atom_rules_view(self, visualize_args, rule_name=None, verbose=False, cleanup=True):
         """
-        Uses the BioNetGen atom-rules to visualize rule-base models
+        Uses the BioNetGen atom-rules to visualize large rule-base models. For more
+        information regarding atom-rules and its parameters please visit:
+        Sekar et al (2017), Automated visualization of rule-based models
+        https://doi.org/10.1371/journal.pcbi.1005857
+
+        The visualize_args parameter contains all the arguments that will be passed to the
+        BioNetGen visualize function. It is a dictionary and supports the following
+        key, value pairs.
+
+          - `type`
+
+            * `conventional` => Conventional rule visualization
+            * `compact` => Compact rule visualization (using graph operation nodes)
+            * `regulatory` => Rule-derived regulatory graph
+            * `opts` => Options template for regulatory graph
+            * `contactmap` => Contact map
+            * `reaction_network` => Reaction network
+          -  `suffix`
+
+            * str => add suffix string to output filename
+          - `each`
+
+            * 1 => Show all rules in separate GML files
+            * 0 => Show all rules  the same GML file.
+          - `opts`
+
+            * file path => import options from file
+          - `background`
+
+            * 1 => Enable background
+            * 0 => Disable background
+          - `groups`
+
+            * 1 => Enable groups
+            * 0 => Disable groups
+          - `collapse`
+
+            * 1 => Enable collapsing of groups
+            * 0 => Disable collapsing of groups
+          - `ruleNames`
+
+            * 1 => Enable display of rule names
+            * 0 => Disable display of rule names
+          - `doNotUseContextWhenGrouping`
+
+            * 1 => Use permissive edge signature
+            * 0 => Use strict edge signature
+          - `doNotCollapseEdges`:
+
+            * 1 => When collapsing nodes, retain duplicate edges
+            * 0 => When collapsing nodes, remove duplicate edges
+
         Parameters.
         ----------
         visualize_args: dict
             Contains all the arguments that will be passed to the BioNetGen visualize function.
-            The following key, value pairs are available: `type`: `conventional`
+            The following key, value pairs are available
 
-        verbose
-        cleanup
+        rule_name : str
+           Name of the rule to visualize, when `each` is set to 1 in visualize_args.
+        cleanup : bool, optional
+            If True (default), delete the temporary files after the simulation is
+            finished. If False, leave them in place. Useful for debugging.
+        verbose : bool or int, optional (default: False)
+            Sets the verbosity level of the logger. See the logging levels and
+            constants from Python's logging module for interpretation of integer
+            values. False is equal to the PySB default level (currently WARNING),
+            True is equal to DEBUG.
 
         Returns
         -------
 
         """
-        # TODO: add more information regarding the visualize_args
+        # TODO: Check that all visualize_args work
         bng_action_debug = verbose if isinstance(verbose, bool) else \
             verbose <= EXTENDED_DEBUG
 
