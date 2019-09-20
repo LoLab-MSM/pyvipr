@@ -51,11 +51,16 @@ def data_to_json(value, widget):
             viz = PysbStaticViz(model)
             jsondata = static_data(viz, widget)
             return jsondata
-
-        elif file_extension in ['.graphml', '.json'] or widget.type_of_viz == 'sbgn_xml':
+        elif file_extension == '.graphml' or widget.type_of_viz == 'sbgn_xml':
             with open(value, 'r') as file:
                 data = file.read().replace('\n', '')
             return data
+        elif file_extension == '.json':
+            import json
+            with open(value, 'r') as file:
+                data = file.read().replace('\n', '')
+            jsondata = json.loads(data)
+            return jsondata
         elif file_extension == '.sif':
             with open(value, 'r') as file:
                 data = file.read()
