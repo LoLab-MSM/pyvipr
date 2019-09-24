@@ -34,7 +34,8 @@ def data_to_json(value, widget):
 
     elif isinstance(value, str):
         file_extension = os.path.splitext(value)[1]
-        if file_extension in ['.bngl', '.sbml', '.xml'] or value.startswith('BIOMD'):
+        if file_extension in ['.bngl', '.sbml', '.xml'] and widget.type_of_viz != 'sbgn_xml'\
+                or value.startswith('BIOMD'):
             try:
                 from pysb.importers.sbml import model_from_sbml, model_from_biomodels
                 from pysb.importers.bngl import model_from_bngl
@@ -44,7 +45,7 @@ def data_to_json(value, widget):
 
             if file_extension == '.bngl':
                 model = model_from_bngl(value)
-            elif file_extension in ['.sbml', '.xml'] and widget.type_of_viz != 'sbgn_xml':
+            elif file_extension in ['.sbml', '.xml']:
                 model = model_from_sbml(value)
             elif value.startswith('BIOMD'):
                 model = model_from_biomodels(value)
@@ -87,7 +88,7 @@ def data_to_json(value, widget):
         return jsondata
 
     elif isinstance(value, (nx.DiGraph, nx.Graph, nx.MultiDiGraph, nx.MultiGraph, dict)):
-        from pyvipr.networkx_viz.network_viz import NetworkViz
+        from pyvipr.network_viz.network_viz import NetworkViz
         viz = NetworkViz(value)
         if widget.type_of_viz:
             jsondata = getattr(viz, widget.type_of_viz)()
