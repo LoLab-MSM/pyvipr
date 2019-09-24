@@ -144,15 +144,6 @@ viz.sp_dyn_view(sim)
 
 ![enzymatic_reaction](pysbViz.gif)
 
-PyViPR now has basic support to visualize PySB models using the SBGN standard:
-```python
-from pyvipr.examples_models.mm_two_paths_model import model
-import pyvipr.pysb_viz as viz
-
-viz.sbgn_view(model)
-```
-
-![sbgn_view](sbgn_double_enzymatic.png)
 
 ## License
 
