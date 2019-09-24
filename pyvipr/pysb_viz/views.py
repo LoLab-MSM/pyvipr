@@ -15,10 +15,12 @@ __all__ = [
     'sp_rules_view',
     'sp_rules_fxns_view',
     'sp_rules_mod_view',
-    'projected_species_reactions_view',
-    'projected_reactions_view',
+    'projected_species_from_unireactions_view',
+    'projected_species_from_bireactions_view',
+    'projected_unireactions_view',
+    'projected_bireactions_view',
     'projected_rules_view',
-    'projected_species_rules_view',
+    'projected_species_from_rules_view',
     'cluster_rxns_by_rules_view',
     'sp_dyn_view',
     'sp_comp_dyn_view',
@@ -332,7 +334,7 @@ def sp_rules_mod_view(model, layout_name='cose-bilkent'):
     return Viz(data=model, type_of_viz='sp_rules_mod_view', layout_name=layout_name)
 
 
-def projected_species_reactions_view(model, layout_name='cose-bilkent'):
+def projected_species_from_unireactions_view(model, layout_name='cose-bilkent'):
     """
     Render a visualization of the interactions between species in a model.
 
@@ -345,10 +347,26 @@ def projected_species_reactions_view(model, layout_name='cose-bilkent'):
         Layout to use
 
     """
-    return Viz(data=model, type_of_viz='projected_species_reactions_view', layout_name=layout_name)
+    return Viz(data=model, type_of_viz='projected_species_from_unireactions_view', layout_name=layout_name)
 
 
-def projected_reactions_view(model, layout_name='cose-bilkent'):
+def projected_species_from_bireactions_view(model, layout_name='cose-bilkent'):
+    """
+    Render a visualization of the interactions between species in a model.
+
+    Parameters
+    ----------
+    model: pysb.model or str
+        Model to visualize. It can be a pysb model, or the file path to an
+        an SBML or BNGL model
+    layout_name: str
+        Layout to use
+
+    """
+    return Viz(data=model, type_of_viz='projected_species_from_bireactions_view', layout_name=layout_name)
+
+
+def projected_unireactions_view(model, layout_name='cose-bilkent'):
     """
     Render a visualization of the interaction between the reaction in a model
 
@@ -361,7 +379,23 @@ def projected_reactions_view(model, layout_name='cose-bilkent'):
         Layout to use
 
     """
-    return Viz(data=model, type_of_viz='projected_reactions_view', layout_name=layout_name)
+    return Viz(data=model, type_of_viz='projected_unireactions_view', layout_name=layout_name)
+
+
+def projected_bireactions_view(model, layout_name='cose-bilkent'):
+    """
+    Render a visualization of the interaction between the reaction in a model
+
+    Parameters
+    ----------
+    model: pysb.model or str
+        Model to visualize. It can be a pysb model, or the file path to an
+        an SBML or BNGL model
+    layout_name: str
+        Layout to use
+
+    """
+    return Viz(data=model, type_of_viz='projected_bireactions_view', layout_name=layout_name)
 
 
 def projected_rules_view(model, layout_name='cose-bilkent'):
@@ -380,7 +414,7 @@ def projected_rules_view(model, layout_name='cose-bilkent'):
     return Viz(data=model, type_of_viz='projected_rules_view', layout_name=layout_name)
 
 
-def projected_species_rules_view(model, layout_name='cose-bilkent'):
+def projected_species_from_rules_view(model, layout_name='cose-bilkent'):
     """
     Render a visualization of a bipartite graph where one set of nodes
     are the molecular species in the model and the other set are the rules.
@@ -394,7 +428,7 @@ def projected_species_rules_view(model, layout_name='cose-bilkent'):
         Layout to use
 
     """
-    return Viz(data=model, type_of_viz='projected_species_rules_view', layout_name=layout_name)
+    return Viz(data=model, type_of_viz='projected_species_from_rules_view', layout_name=layout_name)
 
 
 def atom_rules_view(model, visualize_args, rule_name=None, verbose=False, cleanup=True, layout_name='fcose'):

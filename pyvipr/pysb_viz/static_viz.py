@@ -234,7 +234,7 @@ class PysbStaticViz(object):
             a cytoscapejs network.
 
         """
-        graph = self.sp_rxns_bidirectional_graph()
+        graph = self.sp_rxns_bidirectional_graph(two_edges=False)
         data = from_networkx(graph)
         return data
 
@@ -267,7 +267,6 @@ class PysbStaticViz(object):
             a cytoscapejs network.
         """
         rules_graph = self.sp_rules_graph()
-        rules_graph = self.graph_merged_pair_edges(rules_graph)
         data = from_networkx(rules_graph)
         return data
 
@@ -285,7 +284,6 @@ class PysbStaticViz(object):
             a cytoscapejs network.
         """
         rules_graph = self.sp_rules_graph()
-        rules_graph = self.graph_merged_pair_edges(rules_graph)
         rule_functions = {rule.name: rule._function for rule in self.model.rules}
         unique_functions = set(rule_functions.values())
         nx.set_node_attributes(rules_graph, rule_functions, 'parent')
@@ -308,7 +306,6 @@ class PysbStaticViz(object):
         """
         # TODO: This works with the latest (unreleased pysb) we should wait until committing this change
         rules_graph = self.sp_rules_graph()
-        rules_graph = self.graph_merged_pair_edges(rules_graph)
 
         # Unique modules used in the model
         unique_modules = [m for m in self.model.modules if not m.startswith('_')]
@@ -509,18 +506,22 @@ class PysbStaticViz(object):
             contains all the information (nodes,edges, parent nodes, positions) to generate
             a cytoscapejs network.
         """
-        if project_to == 'species_reactions' or project_to == 'reactions':
+        if project_to in ['species_from_unireactions', 'unireactions']:
             bipartite_graph = self.sp_rxns_graph()
-        elif project_to == 'rules' or project_to == 'species_rules':
+            reactions = self.model.reactions
+        elif project_to in ['species_from_bireactions', 'bireactions']:
+            bipartite_graph = self.sp_rxns_bidirectional_graph(two_edges=True)
+            reactions = self.model.reactions_bidirectional
+        elif project_to == 'rules' or project_to == 'species_from_rules':
             bipartite_graph = self.sp_rules_graph()
         else:
             raise ValueError('Projection not valid')
 
-        projected_graph = self.projected_graph(bipartite_graph, project_to)
+        projected_graph = self.projected_graph(bipartite_graph, reactions, project_to)
         data = from_networkx(projected_graph)
         return data
 
-    def projected_species_reactions_view(self):
+    def projected_species_from_unireactions_view(self):
         """
         This is a projection from the species-reactions graph, where the reactions
         are unidirectional
@@ -528,16 +529,29 @@ class PysbStaticViz(object):
         -------
 
         """
-        return self._projections_view('species_reactions')
+        return self._projections_view('species_from_unireactions')
 
-    def projected_reactions_view(self):
-        return self._projections_view('reactions')
+    def projected_species_from_bireactions_view(self):
+        """
+        This is a projection from the species-bireactions graph, where the reactions
+        are bidirectional
+        Returns
+        -------
+
+        """
+        return self._projections_view('species_from_bireactions')
+
+    def projected_unireactions_view(self):
+        return self._projections_view('unireactions')
+
+    def projected_bireactions_view(self):
+        return self._projections_view('bireactions')
 
     def projected_rules_view(self):
         return self._projections_view('rules')
 
-    def projected_species_rules_view(self):
-        return self._projections_view('species_rules')
+    def projected_species_from_rules_view(self):
+        return self._projections_view('species_from_rules')
 
     def compartments_data_graph(self):
         """
@@ -642,10 +656,15 @@ class PysbStaticViz(object):
         attrs.setdefault('arrowhead', 'normal')
         graph.add_edge(*nodes, **attrs)
 
-    def sp_rxns_bidirectional_graph(self):
+    def sp_rxns_bidirectional_graph(self, two_edges=False):
         """
         Creates a bipartite nx.DiGraph graph where one set of nodes is the model species
         and the other set is the model bidirectional reactions.
+
+        Parameters
+        ----------
+        two_edges : bool
+            If true, it draws two edges (in opposite directions) for each reversible reaction
 
         Returns
         -------
@@ -687,12 +706,6 @@ class PysbStaticViz(object):
             modifiers = reactants & products
             reactants = reactants - modifiers
             products = products - modifiers
-            attr_edge = {'source_arrow_shape': 'triangle', 'target_arrow_shape': 'triangle',
-                         'source_arrow_fill': 'hollow'} if reaction['reversible'] \
-                else {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle', 'source_arrow_fill': 'filled'}
-            attr_modifiers = {'source_arrow_shape': 'diamond', 'target_arrow_shape': 'diamond',
-                              'source_arrow_fill': 'filled'}
-            attr_expr = {'source_arrow_shape': 'none', 'target_arrow_shape': 'square', 'source_arrow_fill': 'filled'}
 
             sps_forward = set()
             if isinstance(rule.rate_forward, pysb.Expression):
@@ -706,13 +719,52 @@ class PysbStaticViz(object):
                 for s in sps_reverse:
                     self._r_link_bipartite(graph, s, j, **attr_expr)
 
+            attr_modifiers = {'source_arrow_shape': 'diamond', 'target_arrow_shape': 'diamond',
+                              'source_arrow_fill': 'filled'}
+            attr_expr = {'source_arrow_shape': 'none', 'target_arrow_shape': 'square',
+                         'source_arrow_fill': 'filled'}
+            attr_edge = {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle',
+                         'source_arrow_fill': 'filled'}
+            if reaction['reversible'] and two_edges:
+                link = self._r_link_twice
+            elif reaction['reversible'] and not two_edges:
+                attr_edge = {'source_arrow_shape': 'triangle', 'target_arrow_shape': 'triangle',
+                             'source_arrow_fill': 'hollow'}
+                link = self._r_link_bipartite
+            else:
+                link = self._r_link_bipartite
+
             for s in reactants:
-                self._r_link_bipartite(graph, s, j, **attr_edge)
+                link(graph, s, j, **attr_edge)
             for s in products:
-                self._r_link_bipartite(graph, s, j, _flip=True, **attr_edge)
+                # self._r_link_bipartite(graph, s, j, _flip=True, **attr_edge)
+                link(graph, s, j, _flip=True, **attr_edge)
             for s in modifiers:
-                self._r_link_bipartite(graph, s, j, **attr_modifiers)
+                # self._r_link_bipartite(graph, s, j, **attr_modifiers)
+                link(graph, s, j, **attr_modifiers)
         return graph
+
+    @staticmethod
+    def _r_link_twice(graph, s, r, **attrs):
+        """
+        Creates two links (in opposite directions) between the nodes passed as arguments
+        Parameters
+        ----------
+        graph
+        s
+        r
+        attrs
+
+        Returns
+        -------
+
+        """
+        nodes = ('s{0}'.format(s), 'r{0}'.format(r))
+        nodes_rev = ('r{0}'.format(r), ('s{0}'.format(s)))
+        if attrs.get('_flip'):
+            del attrs['_flip']
+        # attrs.setdefault('arrowhead', 'normal')
+        graph.add_edges_from([nodes, nodes_rev], **attrs)
 
     def sp_rxns_graph(self):
         """
@@ -906,7 +958,7 @@ class PysbStaticViz(object):
         nx.Digraph
             Graph that has the information for the visualization of the model
         """
-        graph = self.sp_rxns_graph()
+        graph = self.sp_rxns_bidirectional_graph()
         # Merge reactions into the rules that they come from
         nodes2merge = self.merge_reactions2rules()
         node_attrs = {'shape': 'roundrectangle', 'background_color': '#ff4c4c',
@@ -920,7 +972,7 @@ class PysbStaticViz(object):
             self.merge_nodes(graph, rxns, rule_info[0], **node_attrs)
         return graph
 
-    def projected_graph(self, graph, project_to='species_reactions'):
+    def projected_graph(self, graph, reactions, project_to='species_from_unireactions'):
         """
         Project a bipartite graph into one of the sets of nodes
 
@@ -936,16 +988,22 @@ class PysbStaticViz(object):
         nx.DiGraph
             Projected graph
         """
-        if project_to == 'species_reactions' or project_to == 'species_rules':
+        unireactions = False
+        if 'unireactions' in project_to:
+            unireactions = True
+        if project_to in ['species_from_unireactions', 'species_from_bireactions', 'species_from_rules']:
             nodes = {n for n, d in graph.nodes(data=True) if d['bipartite'] == 0}
-        elif project_to == 'reactions' or project_to == 'rules':
+            from pyvipr.bipartite_projection import species_projected_graph as bipartite_projected_graph
+            graph_projected = bipartite_projected_graph(graph, reactions, nodes, unireactions)
+        elif project_to in ['unireactions', 'bireactions', 'rules']:
             nodes = {n for n, d in graph.nodes(data=True) if d['bipartite'] == 1}
+            graph_projected = bipartite.projected_graph(graph, nodes)
         else:
             raise ValueError('Projection not valid')
-        projected_graph = bipartite.projected_graph(graph, nodes)
-        projected_graph = self.graph_merged_pair_edges(projected_graph)
 
-        return projected_graph
+        self.graph_merged_pair_edges(graph_projected)
+
+        return graph_projected
 
     def _sp_initial(self, sp):
         """
@@ -990,7 +1048,7 @@ class PysbStaticViz(object):
                 continue
             if graph.has_edge(*edge[::-1]):
                 attr_reversible = {'source_arrow_shape': 'triangle', 'target_arrow_shape': 'triangle',
-                                   'source_arrow_fill': 'hollow'}
+                                   'source_arrow_fill': 'filled'}
                 edges_attributes[edge] = attr_reversible
                 edges_to_delete.append(edge[::-1])
             else:
@@ -999,7 +1057,7 @@ class PysbStaticViz(object):
                 edges_attributes[edge] = attr_irreversible
         graph.remove_edges_from(edges_to_delete)
         nx.set_edge_attributes(graph, edges_attributes)
-        return graph
+        return
 
     def merge_reactions2rules(self):
         """
@@ -1014,7 +1072,7 @@ class PysbStaticViz(object):
         rxn_per_rule = {}
         for r_idx, rule in enumerate(self.model.rules):
             rxns = []
-            for i, rxn in enumerate(self.model.reactions):
+            for i, rxn in enumerate(self.model.reactions_bidirectional):
                 if rxn['rule'][0] == rule.name:
                     rxns.append('r{0}'.format(i))
             rxn_per_rule[(rule.name, r_idx)] = rxns
