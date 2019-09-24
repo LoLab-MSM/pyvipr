@@ -1,5 +1,5 @@
 from pyvipr.viz import Viz
-from pyvipr.networkx_viz.network_viz import NetworkViz
+from pyvipr.network_viz.network_viz import NetworkViz
 import networkx as nx
 
 __all__ = [
