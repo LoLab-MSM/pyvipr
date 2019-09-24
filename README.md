@@ -5,9 +5,10 @@
 [![Build Status](https://travis-ci.org/LoLab-VU/pyvipr.svg?branch=master)](https://travis-ci.org/LoLab-VU/pyvipr)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/LoLab-VU/pyvipr/master?filepath=binder) [![Greenkeeper badge](https://badges.greenkeeper.io/LoLab-VU/pyvipr.svg)](https://greenkeeper.io/)
 # PyViPR
-PyViPR is a Jupyter widget for dynamic and static visualizations of [PySB](http://pysb.org/), [Tellurium](http://tellurium.analogmachine.org/),
-[BNGL](https://www.csb.pitt.edu/Faculty/Faeder/?page_id=409), and [SBML](http://sbml.org/Main_Page) 
- models using cytoscapejs. Additionally, it can be used to visualize models defined in [Ecell4](https://github.com/ecell/ecell4).
+PyViPR is a Jupyter widget that generates network dynamic and static visualizations of [PySB](http://pysb.org/), [Tellurium](http://tellurium.analogmachine.org/),
+[BNGL](https://www.csb.pitt.edu/Faculty/Faeder/?page_id=409), [SBML](http://sbml.org/Main_Page), and [Ecell4](https://github.com/ecell/ecell4) 
+ models using [Cytoscape.js](http://js.cytoscape.org/). Additionally, it can be used to visualize networks encoded in the graphml, 
+ sif, sbgn xml, cytoscape json, gexf, gml and yaml formats.
 
 ## Installation
 
