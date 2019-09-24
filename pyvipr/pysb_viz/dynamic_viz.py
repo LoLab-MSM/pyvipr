@@ -107,12 +107,33 @@ class PysbDynamicViz(object):
             can be converted into Cytoscape.js JSON to be visualized
         """
         self.type_viz = type_viz
-        self.sp_graph = PysbStaticViz(self.model).communities_data_graph(random_state=random_state)
+        self.sp_graph = PysbStaticViz(self.model).species_graph()
+        hf.add_louvain_communities(self.sp_graph, all_levels=False, random_state=random_state)
         self.sp_graph.graph['nsims'] = self.nsims
         self.sp_graph.graph['tspan'] = self.tspan.tolist()
         self._add_edge_node_dynamics()
         data = from_networkx(self.sp_graph)
         return data
+
+    # def dynamic_node_dynamics(self, node):
+    ## Node centric dynamics
+    #     all_rate_colors = {}
+    #     all_rate_sizes = {}
+    #     all_rate_abs_val = {}
+    #
+    #     rxns_idxs = [idx for idx, rxn in enumerate(self.model.reactions_bidirectional)
+    #                  if node in rxn['reactants'] or node in rxn['products']]
+    #     rxns_matrix = self.matrix_bidirectional_rates(rxns_idxs=rxns_idxs)-
+    #     for idx, reaction in enumerate(self.model.reactions_bidirectional[rxns_idxs]):
+    #         reactants = set(reaction['reactants'])
+    #         products = set(reaction['products'])
+    #         for s in reactants:
+    #             for p in products:
+    #                 edges_id = ('s{0}'.format(s), 's{0}'.format(p))
+    #                 all_rate_colors[edges_id] = rate_colors
+    #                 all_rate_sizes[edges_id] = rate_sizes.tolist()
+    #                 all_rate_abs_val[edges_id] = rxns_matrix[idx].tolist()
+
 
     def _add_edge_node_dynamics(self):
         """
@@ -130,7 +151,7 @@ class PysbDynamicViz(object):
         nx.set_node_attributes(self.sp_graph, node_abs, 'abs_value')
         nx.set_node_attributes(self.sp_graph, node_rel, 'rel_value')
 
-    def matrix_bidirectional_rates(self):
+    def matrix_bidirectional_rates(self, rxns_idxs=None):
         """
         Obtains the values of the reaction rates at all the time points of the simulation
         
@@ -139,10 +160,15 @@ class PysbDynamicViz(object):
         np.ndarray 
             Array with the reaction rates values
         """
-        rxns_matrix = np.zeros((len(self.model.reactions_bidirectional), len(self.tspan)))
+        if rxns_idxs is not None:
+            rxns_bidirectional = self.model.reactions_bidirectional[rxns_idxs]
+        else:
+            rxns_bidirectional = self.model.reactions_bidirectional
+
+        rxns_matrix = np.zeros((len(rxns_bidirectional), len(self.tspan)))
 
         # Calculates matrix of bidirectional reaction rates
-        for idx, reac in enumerate(self.model.reactions_bidirectional):
+        for idx, reac in enumerate(rxns_bidirectional):
             rate_reac = reac['rate']
             for p in self.param_dict:
                 rate_reac = rate_reac.subs(p, self.param_dict[p])
