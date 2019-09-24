@@ -1,6 +1,6 @@
-from networkx import Graph, DiGraph
 import os
 import sys
+import networkx as nx
 
 
 def data_to_json(value, widget):
@@ -33,19 +33,40 @@ def data_to_json(value, widget):
         return jsondata
 
     elif isinstance(value, str):
-        try:
-            from pysb.importers.sbml import model_from_sbml, model_from_biomodels
-            from pysb.importers.bngl import model_from_bngl
-        except ImportError:
-            raise Exception('PySB must be installed to visualize models from files')
-        from pyvipr.pysb_viz.static_viz import PysbStaticViz
         file_extension = os.path.splitext(value)[1]
-        if file_extension == '.bngl':
-            model = model_from_bngl(value)
-        elif file_extension in ['.sbml', '.xml']:
-            model = model_from_sbml(value)
-        elif value.startswith('BIOMD'):
-            model = model_from_biomodels(value)
+        if file_extension in ['.bngl', '.sbml', '.xml'] and widget.type_of_viz != 'sbgn_xml'\
+                or value.startswith('BIOMD'):
+            try:
+                from pysb.importers.sbml import model_from_sbml, model_from_biomodels
+                from pysb.importers.bngl import model_from_bngl
+            except ImportError:
+                raise Exception('PySB must be installed to visualize models from files')
+            from pyvipr.pysb_viz.static_viz import PysbStaticViz
+
+            if file_extension == '.bngl':
+                model = model_from_bngl(value)
+            elif file_extension in ['.sbml', '.xml']:
+                model = model_from_sbml(value)
+            elif value.startswith('BIOMD'):
+                model = model_from_biomodels(value)
+            viz = PysbStaticViz(model)
+            jsondata = static_data(viz, widget)
+            return jsondata
+        elif file_extension == '.graphml' or widget.type_of_viz == 'sbgn_xml':
+            with open(value, 'r') as file:
+                data = file.read().replace('\n', '')
+            return data
+        elif file_extension == '.json':
+            import json
+            with open(value, 'r') as file:
+                data = file.read().replace('\n', '')
+            jsondata = json.loads(data)
+            return jsondata
+        elif file_extension == '.sif':
+            with open(value, 'r') as file:
+                data = file.read()
+            data = data.rstrip('\n')
+            return data
         # elif file_extension == '.ka':
         #     subprocess.run(['truml', '-k', value])
         #     bngl_model_path = re.sub('ka', 'bngl', value)
@@ -54,9 +75,6 @@ def data_to_json(value, widget):
 
         else:
             raise ValueError('Format not supported')
-        viz = PysbStaticViz(model)
-        jsondata = static_data(viz, widget)
-        return jsondata
 
     elif is_tellurium_model(value):
         if widget.type_of_viz.startswith('dynamic'):
@@ -69,8 +87,8 @@ def data_to_json(value, widget):
             jsondata = static_data(viz, widget)
         return jsondata
 
-    elif isinstance(value, (DiGraph, Graph, dict)):
-        from pyvipr.networkx_viz.network_viz import NetworkViz
+    elif isinstance(value, (nx.DiGraph, nx.Graph, nx.MultiDiGraph, nx.MultiGraph, dict)):
+        from pyvipr.network_viz.network_viz import NetworkViz
         viz = NetworkViz(value)
         if widget.type_of_viz:
             jsondata = getattr(viz, widget.type_of_viz)()
@@ -122,7 +140,7 @@ def data_to_json(value, widget):
 
 def static_data(viz_obj, w):
     try:
-        if w.type_of_viz in ['sp_comm_view', 'sp_comm_hierarchy_view']:
+        if w.type_of_viz in ['sp_comm_louvain_view', 'sp_comm_louvain_hierarchy_view', 'sp_comm_asyn_lpa_view']:
             rs = w.random_state
             jsondata = getattr(viz_obj, w.type_of_viz)(random_state=rs)
         else:

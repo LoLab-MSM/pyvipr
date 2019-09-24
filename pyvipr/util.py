@@ -2,6 +2,7 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors
 import numpy as np
 import networkx as nx
+import networkx.algorithms.community as nx_community
 from community import best_partition, generate_dendrogram
 
 
@@ -74,7 +75,7 @@ def f2hex_edges(fx, vmin=-0.99, vmax=0.99, cmap='RdBu_r'):
     return colors_hex
 
 
-def add_communities(graph, all_levels=False, random_state=None):
+def add_louvain_communities(graph, all_levels=False, random_state=None):
     graph_communities = graph.copy().to_undirected()  # Louvain algorithm only deals with undirected graphs
     if all_levels:
         # We add the first communities detected, The dendrogram at level 0 contains the nodes as keys
@@ -112,3 +113,50 @@ def add_communities(graph, all_levels=False, random_state=None):
         graph.add_nodes_from(cnodes, NodeType='community')
         nx.set_node_attributes(graph, communities, 'parent')
     return graph
+
+
+def _nx_community_data_to_graph(graph, communities_result):
+    node_community = {idx: 'c_{0}'.format(comm) for comm, nodes in
+                      enumerate(communities_result) for idx in nodes}
+    cnodes = set(node_community.values())
+
+    graph.add_nodes_from(cnodes, NodeType='community')
+    nx.set_node_attributes(graph, node_community, 'parent')
+    return
+
+
+def add_greedy_modularity_communities(graph):
+    graph_communities = graph.copy().to_undirected()
+    communities_result = nx_community.greedy_modularity_communities(graph_communities)
+    _nx_community_data_to_graph(graph, communities_result)
+    return graph
+
+
+def add_asyn_lpa_communities(graph, weight=None, seed=None):
+    communities_result = nx_community.asyn_lpa_communities(graph, weight, seed)
+    _nx_community_data_to_graph(graph, communities_result)
+    return graph
+
+
+def add_label_propagation_communities(graph):
+    graph_communities = graph.copy().to_undirected()  # label propagation algorithm only deals with undirected graphs
+    communities_result = nx_community.label_propagation_communities(graph_communities)
+    _nx_community_data_to_graph(graph, communities_result)
+    return graph
+
+
+def add_asyn_fluidc(graph, k, max_iter=100, seed=None):
+    graph_communities = graph.copy().to_undirected()  # asyn_fluidc algorithm only deals with undirected graphs
+    communities_result = nx_community.asyn_fluidc(graph_communities, k, max_iter, seed)
+    _nx_community_data_to_graph(graph, communities_result)
+    return graph
+
+
+def add_girvan_newman(graph, most_valuable_edge=None):
+    communities_result = nx_community.girvan_newman(graph, most_valuable_edge)
+    # The girvan_newman algorithm returns communities at each level of the iteration.
+    # We choose the top level community.
+    top_level_communities = next(communities_result)
+    _nx_community_data_to_graph(graph, top_level_communities)
+    return graph
+

@@ -3,22 +3,32 @@ from pyvipr.viz import Viz
 __all__ = [
     'sp_view',
     'sp_comp_view',
-    'sp_comm_view',
-    'sp_comm_hierarchy_view',
+    'sp_comm_louvain_view',
+    'sp_comm_louvain_hierarchy_view',
+    'sp_comm_greedy_view',
+    'sp_comm_asyn_lpa_view',
+    'sp_comm_label_propagation_view',
+    'sp_comm_girvan_newman_view',
+    'sp_comm_asyn_fluidc_view',
     'sp_rxns_bidirectional_view',
     'sp_rxns_view',
     'sp_rules_view',
     'sp_rules_fxns_view',
     'sp_rules_mod_view',
-    'projected_species_reactions_view',
-    'projected_reactions_view',
+    'projected_species_from_unireactions_view',
+    'projected_species_from_bireactions_view',
+    'projected_unireactions_view',
+    'projected_bireactions_view',
     'projected_rules_view',
-    'projected_species_rules_view',
+    'projected_species_from_rules_view',
+    'cluster_rxns_by_rules_view',
     'sp_dyn_view',
     'sp_comp_dyn_view',
     'sp_comm_dyn_view',
     'sim_model_dyn_view',
-    'sbgn_view'
+    'sbgn_view',
+    'atom_rules_view',
+    'highlight_nodes_view'
 ]
 
 
@@ -56,7 +66,7 @@ def sp_comp_view(model, layout_name='cose-bilkent'):
     return Viz(data=model, type_of_viz='sp_comp_view', layout_name=layout_name)
 
 
-def sp_comm_view(model, layout_name='klay', random_state=None):
+def sp_comm_louvain_view(model, layout_name='klay', random_state=None):
     """
     Render a visualization of the interactions between the species in a model.
     The species nodes are grouped by the communities detected by the 
@@ -73,10 +83,10 @@ def sp_comm_view(model, layout_name='klay', random_state=None):
         Random state seed use by the community detection algorithm
 
     """
-    return Viz(data=model, type_of_viz='sp_comm_view', random_state=random_state, layout_name=layout_name)
+    return Viz(data=model, type_of_viz='sp_comm_louvain_view', random_state=random_state, layout_name=layout_name)
 
 
-def sp_comm_hierarchy_view(model, layout_name='klay', random_state=None):
+def sp_comm_louvain_hierarchy_view(model, layout_name='klay', random_state=None):
     """
     Render a visualization of the interactions between the species in a model.
     The species nodes are grouped by the communities detected by the
@@ -93,7 +103,146 @@ def sp_comm_hierarchy_view(model, layout_name='klay', random_state=None):
         Random state seed use by the community detection algorithm
 
     """
-    return Viz(data=model, type_of_viz='sp_comm_hierarchy_view', random_state=random_state, layout_name=layout_name)
+    return Viz(data=model, type_of_viz='sp_comm_louvain_hierarchy_view',
+               random_state=random_state, layout_name=layout_name)
+
+
+def sp_comm_greedy_view(model, layout_name='klay'):
+    """
+    Render a visualization of the interactions between the species in a model.
+    The species nodes are grouped by the communities detected by the
+    Clauset-Newman-Moore greedy modularity maximization algorithm
+    implemented in Networkx
+
+    Parameters
+    ----------
+    model: pysb.model or str
+        Model to visualize. It can be a pysb model, or the file path to an
+        an SBML or BNGL model
+    layout_name: str
+        Layout to use
+
+    Returns
+    -------
+
+    """
+    return Viz(data=model, type_of_viz='sp_comm_greedy_view', layout_name=layout_name)
+
+
+def sp_comm_asyn_lpa_view(model, random_state=None, layout_name='klay'):
+    """
+    Render a visualization of the interactions between the species in a model.
+    The species nodes are grouped by the communities detected by the
+    asynchronous label propagation algorithm implemented in Networkx.
+
+    Parameters
+    ----------
+    model: pysb.model or str
+        Model to visualize. It can be a pysb model, or the file path to an
+        an SBML or BNGL model
+    layout_name: str
+        Layout to use
+    random_state: int
+        Random state seed use by the community detection algorithm
+
+    Returns
+    -------
+
+    """
+    return Viz(data=model, type_of_viz='sp_comm_asyn_lpa_view', layout_name=layout_name,
+               random_state=random_state)
+
+
+def sp_comm_label_propagation_view(model, layout_name='klay'):
+    """
+    Render a visualization of the interactions between the species in a model.
+    The species nodes are grouped by the communities detected by the
+    label propagation algorithm implemented in Networkx.
+
+    Parameters
+    ----------
+    model: pysb.model or str
+        Model to visualize. It can be a pysb model, or the file path to an
+        an SBML or BNGL model
+    layout_name: str
+        Layout to use
+
+    Returns
+    -------
+
+    """
+    return Viz(data=model, type_of_viz='sp_comm_label_propagation_view', layout_name=layout_name)
+
+
+def sp_comm_girvan_newman_view(model, layout_name='klay'):
+    """
+    Render a visualization of the interactions between the species in a model.
+    The species nodes are grouped by the communities detected by the
+    Girvan-Newman method implemented in Networkx.
+
+    Parameters
+    ----------
+    model: pysb.model or str
+        Model to visualize. It can be a pysb model, or the file path to an
+        an SBML or BNGL model
+    layout_name: str
+        Layout to use
+
+    Returns
+    -------
+
+    """
+    return Viz(data=model, type_of_viz='sp_comm_girvan_newman_view', layout_name=layout_name)
+
+
+def sp_comm_asyn_fluidc_view(model, k, max_iter=100, random_state=None, layout_name='fcose'):
+    """
+    Render a visualization of the interactions between the species in a model.
+    The species nodes are grouped by the communities detected by the
+    asynchronous label propagation algorithm implemented in Networkx.
+
+    Parameters
+    ----------
+    model: pysb.model or str
+        Model to visualize. It can be a pysb model, or the file path to an
+        an SBML or BNGL model
+    k: int
+        The number of communities to be found
+    max_iter: int
+        The number of maximum iterations allowed
+    random_state: int
+        Random state seed use by the community detection algorithm
+    layout_name: str
+        Layout to use
+
+    Returns
+    -------
+
+    """
+    from pyvipr.pysb_viz.static_viz import PysbStaticViz
+    pviz = PysbStaticViz(model, generate_eqs=False)
+    data = pviz.sp_comm_asyn_fluidc_view(k, max_iter, random_state)
+    return Viz(data=data, type_of_viz='', layout_name=layout_name)
+
+
+def cluster_rxns_by_rules_view(model, layout_name='fcose'):
+    """
+    Render a visualization of the interactions between the reactions in a model.
+    Reaction nodes are grouped by the rules that generated them.
+
+    Parameters
+    ----------
+    model: pysb.model or str
+        Model to visualize. It can be a pysb model, or the file path to an
+        an SBML or BNGL model
+    layout_name: str
+        Layout to use
+
+    Returns
+    -------
+
+    """
+    return Viz(data=model, type_of_viz='cluster_rxns_by_rules_view', layout_name=layout_name)
 
 
 def sp_rxns_bidirectional_view(model, layout_name='cose-bilkent'):
@@ -185,7 +334,7 @@ def sp_rules_mod_view(model, layout_name='cose-bilkent'):
     return Viz(data=model, type_of_viz='sp_rules_mod_view', layout_name=layout_name)
 
 
-def projected_species_reactions_view(model, layout_name='cose-bilkent'):
+def projected_species_from_unireactions_view(model, layout_name='cose-bilkent'):
     """
     Render a visualization of the interactions between species in a model.
 
@@ -198,10 +347,26 @@ def projected_species_reactions_view(model, layout_name='cose-bilkent'):
         Layout to use
 
     """
-    return Viz(data=model, type_of_viz='projected_species_reactions_view', layout_name=layout_name)
+    return Viz(data=model, type_of_viz='projected_species_from_unireactions_view', layout_name=layout_name)
 
 
-def projected_reactions_view(model, layout_name='cose-bilkent'):
+def projected_species_from_bireactions_view(model, layout_name='cose-bilkent'):
+    """
+    Render a visualization of the interactions between species in a model.
+
+    Parameters
+    ----------
+    model: pysb.model or str
+        Model to visualize. It can be a pysb model, or the file path to an
+        an SBML or BNGL model
+    layout_name: str
+        Layout to use
+
+    """
+    return Viz(data=model, type_of_viz='projected_species_from_bireactions_view', layout_name=layout_name)
+
+
+def projected_unireactions_view(model, layout_name='cose-bilkent'):
     """
     Render a visualization of the interaction between the reaction in a model
 
@@ -214,7 +379,23 @@ def projected_reactions_view(model, layout_name='cose-bilkent'):
         Layout to use
 
     """
-    return Viz(data=model, type_of_viz='projected_reactions_view', layout_name=layout_name)
+    return Viz(data=model, type_of_viz='projected_unireactions_view', layout_name=layout_name)
+
+
+def projected_bireactions_view(model, layout_name='cose-bilkent'):
+    """
+    Render a visualization of the interaction between the reaction in a model
+
+    Parameters
+    ----------
+    model: pysb.model or str
+        Model to visualize. It can be a pysb model, or the file path to an
+        an SBML or BNGL model
+    layout_name: str
+        Layout to use
+
+    """
+    return Viz(data=model, type_of_viz='projected_bireactions_view', layout_name=layout_name)
 
 
 def projected_rules_view(model, layout_name='cose-bilkent'):
@@ -233,7 +414,7 @@ def projected_rules_view(model, layout_name='cose-bilkent'):
     return Viz(data=model, type_of_viz='projected_rules_view', layout_name=layout_name)
 
 
-def projected_species_rules_view(model, layout_name='cose-bilkent'):
+def projected_species_from_rules_view(model, layout_name='cose-bilkent'):
     """
     Render a visualization of a bipartite graph where one set of nodes
     are the molecular species in the model and the other set are the rules.
@@ -247,7 +428,21 @@ def projected_species_rules_view(model, layout_name='cose-bilkent'):
         Layout to use
 
     """
-    return Viz(data=model, type_of_viz='projected_species_rules_view', layout_name=layout_name)
+    return Viz(data=model, type_of_viz='projected_species_from_rules_view', layout_name=layout_name)
+
+
+def atom_rules_view(model, visualize_args, rule_name=None, verbose=False, cleanup=True, layout_name='fcose'):
+    from pyvipr.pysb_viz.static_viz import PysbStaticViz
+    pviz = PysbStaticViz(model, generate_eqs=False)
+    data = pviz.atom_rules_view(visualize_args, rule_name, verbose, cleanup)
+    return Viz(data=data, type_of_viz='', layout_name=layout_name)
+
+
+def highlight_nodes_view(model, species=None, reactions=None, layout_name='fcose'):
+    from pyvipr.pysb_viz.static_viz import PysbStaticViz
+    pviz = PysbStaticViz(model)
+    data = pviz.highlight_nodes_view(species, reactions)
+    return Viz(data=data, type_of_viz='', layout_name=layout_name)
 
 
 def sbgn_view(model, layout_name='cose-bilkent'):

@@ -23,7 +23,7 @@ class Viz(widgets.DOMWidget):
     layout_name = Unicode().tag(sync=True, o=True)
     background = Unicode('#FFFFFF').tag(sync=True, o=True)
     random_state = Int(default_value=None, allow_none=True)  # This is necessary only for viz with communities
-    process = Unicode('consumption').tag(sync=True, o=True)   # This is necessary only for dynamic visualization
+    process = Unicode('no_defined').tag(sync=True, o=True)   # This is necessary only for dynamic visualization
     sim_idx = Int(0).tag(sync=True, o=True)
 
     @observe('process')

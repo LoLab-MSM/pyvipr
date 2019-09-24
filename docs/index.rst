@@ -14,7 +14,9 @@ It supports BioNetGen and SBML models through the pysb importer module.
    :caption: Contents:
 
    installation
-   tutorial.ipynb
+   pysb_tutorial.ipynb
+   tellurium_examples.ipynb
+   graph_formats_example.ipynb
    modules/index
 
 Indices and tables

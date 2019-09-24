@@ -1,31 +1,33 @@
-let widgets = require('@jupyter-widgets/base');
-let _ = require('lodash');
-let cytoscape = require('cytoscape');
-let tippy = require('tippy.js/umd/index.all.js');
-let popper = require('cytoscape-popper');
-let coseBilkent = require('cytoscape-cose-bilkent');
-let dagre = require('cytoscape-dagre');
-let klay = require('cytoscape-klay');
-let expandCollapse = require('cytoscape-expand-collapse');
-let sbgnStylesheet = require('cytoscape-sbgn-stylesheet');
-let typeahead = require('typeahead.js');
-let $ = require('jquery');
-let semver_range = "^" + require("../package.json").version;
+const widgets = require('@jupyter-widgets/base');
+const _ = require('lodash');
+const cytoscape = require('cytoscape');
+const tippy = require('tippy.js/umd/index.all.js');
+const popper = require('cytoscape-popper');
+const coseBilkent = require('cytoscape-cose-bilkent');
+const dagre = require('cytoscape-dagre');
+const klay = require('cytoscape-klay');
+const cise = require('cytoscape-cise');
+const fcose = require('cytoscape-fcose');
+const expandCollapse = require('cytoscape-expand-collapse');
+const graphml = require('cytoscape-graphml');
+const convert = require('sbgnml-to-cytoscape');
+const SIFJS = require('./sif.js');
+const sbgnStylesheet = require('cytoscape-sbgn-stylesheet');
+const typeahead = require('typeahead.js');
+const $ = require('jquery');
+const semver_range = "^" + require("../package.json").version;
+cytoscape.use(fcose);
+cytoscape.use(cise);
 cytoscape.use(popper);
 cytoscape.use(coseBilkent);
 cytoscape.use(dagre);
 cytoscape.use(klay);
 expandCollapse( cytoscape, $ ); // register extension
+graphml( cytoscape, $ );
 
 // Load CSS
 require('./cytoscape.css');
 require('./elements_style.css');
-
-const FORMAT = {
-    CX: 'cx',
-    CYJS: 'cyjs',
-    EDGELIST: 'el',
-};
 
 const DEF_BG = '#FFFFFF';
 const DEF_LAYOUT = 'cose';
@@ -46,28 +48,73 @@ const DEF_STYLE = [{
     }
 },
     {
+        selector: 'node[background_color][shape]',
+        style: {
+            'background-color': 'data(background_color)',
+            'shape': 'data(shape)',
+            'label': 'data(label)',
+            'border-color': 'data(border_color)',
+            'border-width': 1
+        }
+    },
+    {
+        selector: ':parent',
+        style: {
+            'background-opacity': '0.5',
+            'shape': 'data(shape)',
+            'label': 'data(label)',
+            'border-color': 'data(border_color)'
+        }
+    },
+    {
         selector: 'edge',
         style: {
             'width': 1,
             'line-color': '#37474F',
             'target-arrow-color': '#37474F',
-            'target-arrow-shape': 'triangle'
+            'target-arrow-shape': 'triangle',
+            'curve-style': 'bezier'
         }
-    }
+    },
+    {
+        selector: 'edge[line_style][line_color]',
+        style: {
+            'line-color': 'data(line_color)',
+            'line-style': 'data(line_style)',
+            'target-arrow-shape': 'data(target_arrow_shape)',
+            'source-arrow-shape': 'data(source_arrow_shape)',
+            'curve-style': 'bezier'
+        }
+    },
+    {
+        selector: '.faded',
+        style: {
+            'opacity': 0.25,
+            'text-opacity': 0
+        }
+    },
 ];
 
-const DEF_MODELS_STYLE = [{
-    selector: 'node[shape]',
-    style: {
-        'label': 'data(label)',
-        'shape': 'data(shape)',
-        'pie-size': '80%',
-        'pie-1-background-color': 'data(background_color)',
-        'pie-1-background-size': '100',
-        'pie-2-background-color': '#dddcd4',
-        'pie-2-background-size': '100'
-    }
-},
+const DEF_MODELS_STYLE = [
+    {
+        selector: 'node[shape]',
+        style: {
+            'label': 'data(label)',
+            'shape': 'data(shape)',
+            'pie-size': '80%',
+            'pie-1-background-color': 'data(background_color)',
+            'pie-1-background-size': '100',
+            'pie-2-background-color': '#dddcd4',
+            'pie-2-background-size': '100'
+        }
+    },
+    {
+        selector: 'node[highlight_nodes]',
+        style: {
+            'border-width': 'data(border_width)',
+            'border-color': 'data(border_color)'
+        }
+    },
     {
 
         selector: 'edge[source_arrow_shape]',
@@ -76,6 +123,13 @@ const DEF_MODELS_STYLE = [{
             'target-arrow-shape': 'data(target_arrow_shape)',
             'source-arrow-shape': 'data(source_arrow_shape)',
             'source-arrow-fill': 'data(source_arrow_fill)'
+        }
+    },
+    {
+
+        selector: 'edge[highlight_edges]',
+        style: {
+            'line-color': 'data(line_color)',
         }
     },
     {
@@ -104,7 +158,6 @@ const DEF_MODELS_STYLE = [{
         }
     },
     {
-        // TODO: Make this as an option?
         selector:'edge.edges_expanded_collapsed',
         style: {
             'curve-style': 'unbundled-bezier',
@@ -128,7 +181,7 @@ const DEF_MODELS_STYLE = [{
 
 // When serialiazing the entire widget state for embedding, only values that
 // differ from the defaults will be specified.
-var CytoscapeModel = widgets.DOMWidgetModel.extend({
+let CytoscapeModel = widgets.DOMWidgetModel.extend({
     defaults: _.extend(widgets.DOMWidgetModel.prototype.defaults(), {
         _model_name: 'CytoscapeModel',
         _view_name: 'CytoscapeView',
@@ -140,7 +193,7 @@ var CytoscapeModel = widgets.DOMWidgetModel.extend({
 });
 
 // Custom View. Renders the widget model.
-var CytoscapeView = widgets.DOMWidgetView.extend({
+let CytoscapeView = widgets.DOMWidgetView.extend({
     callback_process:function(formElement){
         this.model.set({'process':formElement});  // update the JS model with the current view value
         this.touch();   // sync the JS model with the Python backend
@@ -208,18 +261,28 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
     },
 
     renderButtons: function(){
-        var that = this;
+        let that = this;
         // Layout options
         that.$layoutDd = $(
             "<select class=\"select-css\" id=\"layoutList\" ><optgroup label=\"Layouts available\"></select>");
 
         let layouts = ["cose-bilkent", "dagre", "klay", "random", "grid", "circle",
-            "concentric", "breadthfirst", "cose"];
+            "concentric", "breadthfirst", "cose", "fcose"];
         $.each(layouts, function(index, value){
             that.$layoutDd.append($("<option></option>")
                 .attr("value", value)
                 .text(value));
         });
+        // Download options
+        that.$downloadButton = $(
+            "<select class=\"select-css\" id=\"dbutton\" >" +
+            "<option value=\"\" disabled selected value>Download</option>" +
+            "<option value=\"png\">png</option>" +
+            "<option value=\"sif\">sif</option>" +
+            "<option value=\"graphml\">graphml</option>" +
+            "<option value=\"json\">json</option>" +
+            "</select>");
+
         // Model title
         that.$model_title = $("<h1></h1>")
             .css({'font-size': '16px', 'margin-top': '10px'});
@@ -245,9 +308,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
 
         // Fit button to fit network to cell space
         that.$fitButton = $("<button id='fitbuttonid'><i class=\"fa fa-arrows-h\"></i></button>");
-
-        // Download button
-        that.$downloadButton = $("<button id='dbutton'><i class=\"fa fa-download\" aria-hidden=\"true\"></i></button>");
 
         // Controls section
         that.$ControlSection = $("<div id='controlid'></div>")
@@ -288,17 +348,28 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             that.$nsimb.val(sim_idx);
 
             let process = that.model.get('process');
-            let processes = ['consumption', 'production'];
-            let unusedprocess = processes.filter(function (e) {
-                return e !== process
-            });
-            that.$processid = $(
-                "<select class =\"select-css\" id=\"myprocesses\" >\n" +
-                "<optgroup label=\"Process\">\n" +
-                "  <option value='" + process + "'>" + process + "</option>\n" +
-                "  <option value='" + unusedprocess[0] + "'>" + unusedprocess[0] + "</option>\n" +
-                "</select>\n")
-                .appendTo(that.$ControlSection);
+            if (process === 'json_process'){
+                let json_process = that.networkData.data.process;
+                that.$processid = $(
+                    "<select class =\"select-css\" id=\"myprocesses\" >\n" +
+                    "<optgroup label=\"Process\">\n" +
+                    "  <option value='" + json_process + "'>" + json_process + "</option>\n" +
+                    "</select>\n")
+                    .appendTo(that.$ControlSection);
+            }
+            else{
+                let processes = ['consumption', 'production'];
+                let unusedprocess = processes.filter(function (e) {
+                    return e !== process
+                });
+                that.$processid = $(
+                    "<select class =\"select-css\" id=\"myprocesses\" >\n" +
+                    "<optgroup label=\"Process\">\n" +
+                    "  <option value='" + process + "'>" + process + "</option>\n" +
+                    "  <option value='" + unusedprocess[0] + "'>" + unusedprocess[0] + "</option>\n" +
+                    "</select>\n")
+                    .appendTo(that.$ControlSection);
+            }
 
             // Defining player buttons
             that.$playButton = $("<button id='dbutton'><i class=\"fa fa-play\"></i></button>")
@@ -311,8 +382,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                     "background": "#fffffff7",
                     "left": "0"
                 });
-            // playButton.style.left='100px';
-            // that.el.parentElement.appendChild(playButton);
 
             that.$slider = $('<input type="range" value="0" min="0" max="50" step="1" id="sliderid">')
                 .css({
@@ -323,9 +392,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                     "border": "none"
                 });
 
-            // slider.style.left = '150px';
-            // that.el.parentElement.appendChild(slider);
-
             that.$slider_text = $($('<input type="text" size="400" value="0" id="textid">'))
                 .css({
                     "width": "50px",
@@ -335,7 +401,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                     "position": "absolute",
                     "border": "none"
                 });
-            // that.el.parentElement.appendChild(slider_text);
 
             that.$resetButton = $("<button id='dbutton'><i class=\"fa fa-refresh\"></i>'</button>")
                 .css({
@@ -346,7 +411,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                     "position": "absolute",
                     "border": "none"
                 });
-            // that.el.parentElement.appendChild(resetButton);
 
             that.$playerSection = $("<div id='playerid'></div>")
                 .css({
@@ -360,7 +424,6 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 .append(that.$slider_text)
                 .append(that.$resetButton)
                 .appendTo(that.el.parentElement);
-            // playerSection.style.boxSizing = 'border-box';
         }
 
     },
@@ -613,12 +676,18 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
         // Remove tippy elements that might be present from previous run
         const tippies = document.getElementsByClassName("tippy-popper");
         while (tippies.length > 0) tippies[0].remove();
-        var that = this;
+        let that = this;
 
         // Extract parameters
         // const data = that.model.get('data');
-        const format = that.model.get('format');
-        let layoutName = that.model.get('layout_name');
+        let layoutArgs;
+        let type_viz = that.model.get('type_of_viz');
+        if (type_viz === 'sp_cise_view'){
+            layoutArgs = {name: 'cise', clusters: function (node) {return node.data('cluster_id')}}
+        }
+        else {
+            layoutArgs = {name: that.model.get('layout_name'), nodeDimensionsIncludeLabels: true};
+        }
 
         let network = that.networkData;
         let visualStyle = null;
@@ -633,32 +702,71 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             visualStyle = DEF_STYLE;
         }
 
-        if (!layoutName || typeof layoutName !== 'string') {
+        if (!layoutArgs.name || typeof layoutArgs.name !== 'string') {
             if (this.checkPositions(network.elements)) {
                 // This network has layout information
-                layoutName = 'preset'
+                layoutArgs = {name: 'preset'}
             } else {
-                layoutName = DEF_LAYOUT
+                layoutArgs = {name: DEF_LAYOUT}
             }
         }
-        let styleToUse = network.data.style;
-        if(styleToUse) {
-            styleToUse = sbgnStylesheet(cytoscape)
-        }
-        else {
-            styleToUse = DEF_MODELS_STYLE
-        }
 
+        let cy;
+        let cy_json;
+        let styleToUse;
+        if (type_viz === 'graphml'){
+            cy = cytoscape({
+                container: that.el,
+                style: DEF_STYLE,
+                ready: function () {
+                    this.graphml({layoutBy: 'cose'});
+                    this.graphml(network);
+                }
 
-        let cy = cytoscape({
-            container: that.el, // container to render in
-            elements: network.elements,
-            style: styleToUse,
-            layout: {
-                name: layoutName,
-                nodeDimensionsIncludeLabels: true
+            })
+        }
+        else if (type_viz === 'sif'){
+            styleToUse = DEF_STYLE;
+            cy_json = SIFJS.parseCyjson(network);
+
+        }
+        else if (type_viz === 'sbgn_xml'){
+            styleToUse = sbgnStylesheet(cytoscape);
+            cy_json = convert(network);
+        }
+        else if (type_viz === 'network_static_view'){
+            styleToUse = DEF_STYLE;
+            cy_json = network.elements;
+        }
+        else if (type_viz === 'json' || type_viz === 'dynamic_json'){
+            styleToUse = network.style;
+            cy_json = network.elements
+        }
+        else{
+            // pysb adds the file path to the model name. Here we removed the path info to only use the model name
+            let name_spl = network.data.name.split(".");
+            that.$model_title.text(name_spl[name_spl.length - 1]);
+            cy_json = network.elements;
+
+            styleToUse = network.data.style;
+            if(styleToUse === 'sbgn') {
+                styleToUse = sbgnStylesheet(cytoscape)
             }
-        });
+            else if (styleToUse === 'atom'){
+                styleToUse = DEF_STYLE
+            }
+            else {
+                styleToUse = DEF_MODELS_STYLE
+            }
+        }
+        if (type_viz !== 'graphml') {
+            cy = cytoscape({
+                container: that.el, // container to render in
+                elements: cy_json,
+                style: styleToUse,
+                layout: layoutArgs
+            });
+        }
         this.cyObj = cy;
         // console.log(cy.elements().components()); this could be potentially used to find
         // disjoint subnetworks within a model network
@@ -671,7 +779,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             that.expandButton = $("<button id='expandid'>Collapse nodes</button>")
                 .css({
                     'position': 'absolute',
-                    'right': '6em',
+                    'right': '9.4em',
                     'top': '0',
                     'width': '9em',
                     'height': '1.8em',
@@ -681,7 +789,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 .on('click', function(){
                     let api_options = {
                         layoutBy: {
-                            name: layoutName,
+                            name: layoutArgs.name,
                             animate: "end",
                             randomize: false,
                             fit: true
@@ -704,7 +812,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             that.expandEdges = $("<button id='expandedgesid'>Collapse edges</button>")
                 .css({
                     'position': 'absolute',
-                    'right': '15em',
+                    'right': '18.4em',
                     'top': '0',
                     'width': '9em',
                     'height': '1.8em',
@@ -739,7 +847,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             })
         }
 
-        // Group selected species, rules, or reaction nodes
+        // Manually group selected species, rules, or reaction nodes
         let compartments_check = cy.nodes('[NodeType = "compartment"]').empty(),
             functions_check = cy.nodes('[NodeType = "function"]').empty(),
             modules_check = cy.nodes('[NodeType = "module"]').empty();
@@ -749,7 +857,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             that.groupSelected = $("<button id='groupSel'>Group</button>")
                 .css({
                     'position': 'absolute',
-                    'right': '6em',
+                    'right': '9.4em',
                     'top': '0',
                     'zIndex': '999',
                     'height': '1.8em',
@@ -797,43 +905,48 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
             return index;
         }
 
-        // Finds nodes with no edges
-        let sp_nodes = cy.nodes().filter(function(ele){
-            let n;
-            n = !(ele.isParent());
-            return n
-        });
-        const nodesWithoutEdges = sp_nodes.filter(node => node.connectedEdges(":visible").size() === 0);
-        if (nodesWithoutEdges.length > 0){
-            let message = "The following components are not connected and will be highlighted in the graph:<br />";
-            highlight(nodesWithoutEdges);
-            let n_name;
-            let n_id;
-            nodesWithoutEdges.forEach(function(n){
-                n_name = n.data('label');
-                n_id = component_idx(n.data());
-                message += n_id + ": " + n_name + "<br />"
+        // Finds nodes with no edges in the following visualization views
+        let vizCheckNoEdges = ['sp_view', 'sp_comp_view', 'sp_comm_louvain_view', 'sp_comm_louvain_hierarchy_view',
+            'sp_comm_greedy_view', 'sp_comm_asyn_lpa_view', 'sp_comm_label_propagation_view',
+            'sp_comm_girvan_newman_view', 'sp_comm_asyn_fluidc_view', 'sp_rxns_bidirectional_view', 'sp_rxns_view',
+            'sp_rules_view', 'sp_rules_fxns_view', 'sp_rules_mod_view'];
+        if (vizCheckNoEdges.includes(type_viz)){
+            let sp_nodes = cy.nodes().filter(function(ele){
+                return !(ele.isParent())
             });
-            // Popup when nodes are not connected
-            that.$close = $("<span id='close'>x</span>")
-                .css('float', 'right');
-            that.$message = $("<p class=\"text\">" +
-                "        "+message+" " +
-                "    </p>" );
+            const nodesWithoutEdges = sp_nodes.filter(node => node.connectedEdges(":visible").size() === 0);
+            if (nodesWithoutEdges.length > 0){
+                let message = "The following components are not connected and will be highlighted in the graph:<br />";
+                highlight(nodesWithoutEdges);
+                let n_name;
+                let n_id;
+                nodesWithoutEdges.forEach(function(n){
+                    n_name = n.data('label');
+                    n_id = component_idx(n.data());
+                    message += n_id + ": " + n_name + "<br />"
+                });
+                // Popup when nodes are not connected
+                that.$close = $("<span id='close'>x</span>")
+                    .css('float', 'right');
+                that.$message = $("<p class=\"text\">" +
+                    "        "+message+" " +
+                    "    </p>" );
 
-            that.$popup = $("<div class='fragment'>" +
-                "</div>")
-                .css({'border': '1px solid #ccc','background': '#FF7F7F'})
-                .append(that.$close)
-                .append(that.$message)
-                .appendTo(that.el.parentElement);
+                that.$popup = $("<div class='fragment'>" +
+                    "</div>")
+                    .css({'border': '1px solid #ccc','background': '#FF7F7F'})
+                    .append(that.$close)
+                    .append(that.$message)
+                    .appendTo(that.el.parentElement);
 
-            that.$close.on('click', function () {
-                this.parentNode.parentNode
-                    .removeChild(this.parentNode);
-                return false;
-            });
+                that.$close.on('click', function () {
+                    this.parentNode.parentNode
+                        .removeChild(this.parentNode);
+                    return false;
+                });
+            }
         }
+
 
         // Adds feature, that when a node is tapped, it fades off all the
         // nodes that are not in its neighborhood
@@ -904,34 +1017,66 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                 easing: easing
             }).play();
         });
-        that.$downloadButton.on('click', function(){
+        let saveAs = function(data, name){
             let element = document.createElement('a');
-            element.setAttribute('href', cy.png({scale: 1}));
-            element.setAttribute('download', 'graph.png');
+            element.setAttribute('href', data);
+            element.setAttribute('download', name);
             element.style.display = 'none';
             document.body.appendChild(element);
             element.click();
             document.body.removeChild(element);
+        };
+        that.$downloadButton.on('change', function(){
+            if (this.value === 'png') {
+                saveAs(cy.png({scale:1}), 'graph.png')
+            }
+            if (this.value === 'sif') {
+                let sif = [];
+                cy.edges().forEach(function( ele ){
+                    sif.push(ele.source().id() + '\t' + ele.data('type') + '\t' + ele.target().id());
+                });
+                let sifTxt = sif.join('\n');
+                // console.log(sifTxt);
+                let blob = new Blob([sifTxt], {
+                    type: "text/plain;charset=utf-8;"
+                });
+                let blobUrl = URL.createObjectURL(blob);
+                saveAs(blobUrl, 'graph.sif');
+                URL.revokeObjectURL(blobUrl);
+
+            }
+            if (this.value === 'graphml') {
+                let blob = new Blob([cy.graphml()], {type: "text/plain;charset=utf-8;"});
+                let blobUrl = URL.createObjectURL(blob);
+                saveAs(blobUrl, 'graph.graphml');
+                URL.revokeObjectURL(blobUrl);
+            }
+            if (this.value === 'json') {
+                if (type_viz.startsWith("dynamic") === true){
+                    let nsim_process = {nsims: network.data.nsims, process: that.model.get('process'),
+                        tspan: network.data.tspan};
+                    cy.data(nsim_process);
+                }
+                let blob = new Blob([JSON.stringify(cy.json(), function(key, val){
+                    if (key !== 'tip')
+                        return val;
+                })], {type: "text/plain;charset=utf-8;"});
+                let blobUrl = URL.createObjectURL(blob);
+                saveAs(blobUrl, 'graph.json');
+                URL.revokeObjectURL(blobUrl);
+            }
         });
 
-        that.$layoutDd.val(layoutName);
+        that.$layoutDd.val(layoutArgs.name);
         that.$layoutDd.on('change', function() {
-            layoutName = this.value;
+            layoutArgs.name = this.value;
             let layout = cy.layout({
-                name: layoutName,
+                name: layoutArgs.name,
                 nodeDimensionsIncludeLabels: true,
-                positions: function(node){
-                    let idx = parseInt(node.id().match(/\d+/),10);
-                    return dot_positions[idx];
-                },
             });
             layout.run();
 
         });
-        // pysb adds the file path to the model name. Here we removed the path info to only use the model name
-        let name_spl = network.data.name.split(".");
-        that.$model_title.text(name_spl[name_spl.length - 1]);
-
         // info.id = 'infoid';
         // that.el.parentElement.appendChild(info);
 
@@ -1007,11 +1152,11 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                         return str.match( q );
                     }
 
-                    var fields = ['label', 'id', 'NodeType'];
+                    let fields = ['label', 'id', 'NodeType'];
 
                     function anyFieldMatches( n ){
-                        for( var i = 0; i < fields.length; i++ ){
-                            var f = fields[i];
+                        for( let i = 0; i < fields.length; i++ ){
+                            let f = fields[i];
 
                             if( matches( n.data(f), query ) ){
                                 return true;
@@ -1037,7 +1182,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                         return 0;
                     }
 
-                    var res = allNodes.stdFilter( anyFieldMatches ).sort( sortByName ).map( getData );
+                    let res = allNodes.stdFilter( anyFieldMatches ).sort( sortByName ).map( getData );
 
                     cb( res );
                 },
@@ -1045,7 +1190,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
                     suggestion: infoTemplate
                 }
             }).on('typeahead:selected', function(e, entry, dataset){
-            var n = cy.getElementById(entry.id);
+            let n = cy.getElementById(entry.id);
 
             cy.batch(function(){
                 allNodes.unselect();
@@ -1055,7 +1200,7 @@ var CytoscapeView = widgets.DOMWidgetView.extend({
 
             showNodeInfo( n );
         }).on('keydown keypress keyup change', _.debounce(function(e){
-            var thisSearch = that.$search.val();
+            let thisSearch = that.$search.val();
 
             if( thisSearch !== lastSearch ){
                 $('.tt-dropdown-menu').scrollTop(0);

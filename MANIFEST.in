@@ -1,3 +1,5 @@
-recursive-include pyvipr/static *.*
+graft pyvipr/static
 include pyvipr.json
-include  pyvipr/examples_models/organelle_transport.bngl
+graft pyvipr/examples_models
+recursive-exclude * *.py[co]
+recursive-exclude * __pycache__
