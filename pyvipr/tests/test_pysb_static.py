@@ -18,9 +18,9 @@ def test_graphs(viz_model):
     g_rxn_bi = viz_model.sp_rxns_bidirectional_graph()
     g_rxn = viz_model.sp_rxns_graph()
     g_rules = viz_model.sp_rules_graph()
-    g_proj_sp = viz_model.projected_graph(g_rxn_bi, 'species_reactions')
-    g_proj_rxns = viz_model.projected_graph(g_rxn_bi, 'reactions')
-    g_proj_sp2 = viz_model.projected_graph(g_rules, 'species_rules')
+    g_proj_sp = viz_model.projected_graph(g_rxn_bi, 'species_from_bireactions', viz_model.model.reactions_bidirectional)
+    g_proj_birxns = viz_model.projected_graph(g_rxn_bi, 'bireactions')
+    g_proj_unirxns = viz_model.projected_graph(g_rxn, 'unireactions')
     g_proj_rules = viz_model.projected_graph(g_rules, 'rules')
 
     n_species = len(viz_model.model.species)
@@ -29,8 +29,8 @@ def test_graphs(viz_model):
     assert len(g_rxn.nodes()) == n_species + len(viz_model.model.reactions)
     assert len(g_rules.nodes()) == n_species + len(viz_model.model.rules)
     assert len(g_proj_sp.nodes()) == n_species
-    assert len(g_proj_rxns.nodes()) == len(viz_model.model.reactions_bidirectional)
-    assert len(g_proj_sp2.nodes()) == n_species
+    assert len(g_proj_birxns.nodes()) == len(viz_model.model.reactions_bidirectional)
+    assert len(g_proj_unirxns.nodes()) == len(viz_model.model.reactions)
     assert len(g_proj_rules.nodes()) == len(viz_model.model.rules)
 
 

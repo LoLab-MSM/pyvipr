@@ -1,0 +1,289 @@
+begin background
+	begin include
+		# Automatically generated binding sites and states for include section
+		Dig1(activation) Dig1(activation~u) Dig2(activation)
+		Dig2(activation~u)Dig2_gene(promoter) Fus3(T180)
+		Fus3(T180~u) Fus3(Y182) Fus3(Y182~u)  Fus3_gene(promoter)
+		Gpa1(nuc)   Gpa1_gene(promoter)
+		Kss1(T183) Kss1(T183~u) Kss1(Y185) Kss1(Y185~u) Kss1(dock)
+		Mekkp(ste11) Mekp(ste7) Msg5_gene(promoter) 
+		Ptp(mapk) Sst2(S539) Sst2(S539~u) 
+		Sst2_gene(promoter) Ste11(S302_S306_S307) Ste11(S302_S306_S307~u) Ste11(degradation) Ste11(degradation~u)
+		Ste11(mapk) Ste11(ste5) 
+		Ste12_gene(promoter) 
+		Ste20(ste4) Ste2_gene(promoter)     Ste4(state) 
+		Ste4_gene(promoter) Ste5(T287) Ste5(T287~u)
+		Ste5(loc)     Ste5(mapk) Ste5(ste11) Ste5(ste4)
+		Ste5(ste5) Ste5(ste7) Ste7(S359_T363) Ste7(S359_T363~u) Ste7(mapk)
+		Ste7(ste5)
+		
+		# Molecules moved from exclude to include
+		I Trash Fus3 Dig1 Dig2 Sst2 Gpa1 Ste4 Ste2 Msg5 Ste12 Ste11
+		
+		# Rules moved from exclude to include
+		# DeleteBond only
+		_R2  _R15 _R22 _R23 _R24 _R25 _R26 _R30 _R31 _R32 _R33 _R34 _R41 _R48 _R51 _R58 _R62 _R67 _R68 _R69 _R74 _R75 _R76 _R77 _R79 _R85 _R101 _R109 _R112 _R120 _R127 _R128 _R129 _R130 _R131 _R135 _R136 _R137 _R138 _R139 _R151 _R152 _R153 _R154 _R155 _R159 _R160 _R161 _R162 _R163 _R167 _R168 _R169 _R172 _R173 _R174 _R178 _R183 _R187 _R188 _R189 _R190 _R191 _R193 _R194 _R195 _R197 _R198 _R199 _R200 _R201 _R202 _R203 _R204 _R205 _R207 _R208 _R209 _R210 _R211 _R212 _R213 _R214 _R215 _R217 _R218 _R219 _R220 _R221 _R225 _R226 _R227 _R228 _R229 _R233 _R234 _R235 _R236 _R237 _R241 _R242 _R243 _R244 _R245 _R252 _R256 _R258 _R261 _R266
+		# ChangeState only
+		_R12 _R20 _R37  _R122 _R123 _R124 _R125 _R144 _R145 _R146 _R147 _R148 _R149 _R248 _R249   _R272
+		# I and Trash only
+		_R42 _R52 _R59 _R179 _R184 _R253 _R38 _R39 _R44 _R45 _R46 _R54 _R55 _R56 _R142 _R176 _R181 _R250 _R259
+		
+	end include
+	begin exclude
+		# Automatically generated bonds and states for exclude section
+		Dig1(activation~p) Dig1(mapk!1).Fus3(dock!1) Dig1(mapk!1).Kss1(dock!1) Dig1(ste12!1).Ste12(dig1!1) 
+		Dig2(activation~p) Dig2(mapk!1).Fus3(dock!1) Dig2(mapk!1).Kss1(dock!1) Dig2(ste12!1).Ste12(dig2!1) Dig2_gene(promoter!1).Ste12(dna!1)
+		Fus3(T180~p) Fus3(Y182~p) Fus3(dock!1).Msg5(mapk!1) Fus3(dock!1).Ptp(mapk!1)
+		Fus3(dock!1).Sst2(mapk!1) Fus3(dock!1).Ste11(mapk!1) Fus3(dock!1).Ste12(mapk!1) Fus3(dock!1).Ste5(mapk!1) Fus3(dock!1).Ste7(mapk!1)
+		Fus3_gene(promoter!1).Ste12(dna!1) Gpa1(nuc~GTP) Gpa1(ste2!1).Ste2(gpa1!1) Gpa1(ste4!1).Ste4(gpa1!1)
+		Gpa1_gene(promoter!1).Ste12(dna!1)  Kss1(T183~p) Kss1(Y185~p) Kss1(dock!1).Msg5(mapk!1)
+		Kss1(dock!1).Ptp(mapk!1) Kss1(dock!1).Sst2(mapk!1) Kss1(dock!1).Ste11(mapk!1) Kss1(dock!1).Ste12(mapk!1) Kss1(dock!1).Ste5(mapk!1)
+		Kss1(dock!1).Ste7(mapk!1) Mekkp(ste11!1).Ste11(ste5!1) Mekp(ste7!1).Ste7(ste5!1) Msg5_gene(promoter!1).Ste12(dna!1)
+		Pheromone Pheromone(ste2!1).Ste2(pheromone!1)  Sst2(S539~p) Sst2(ste2!1).Ste2(sst2!1)
+		Sst2_gene(promoter!1).Ste12(dna!1) Ste11 Ste11(S302_S306_S307~p) Ste11(S302_S306_S307~pp) Ste11(S302_S306_S307~ppp)
+		Ste11(degradation~p) Ste11(ste5!1).Ste5(ste11!1) Ste12(dna!1).Ste12_gene(promoter!1) Ste12(dna!1).Ste2_gene(promoter!1)
+		Ste12(dna!1).Ste4_gene(promoter!1) Ste20(ste4!1).Ste4(ste20!1) 
+		Ste4(ste5!1).Ste5(ste4!1) Ste5(T287~p) Ste5(loc~c) Ste5(ste5!1).Ste5(ste5!1) Ste5(ste7!1).Ste7(ste5!1)
+		Ste7 Ste7(S359_T363~p) Ste7(S359_T363~pp)
+		
+		# Binding sites and states moved from exclude to include
+		Ste5(loc~n)
+		Sst(ste2) Sst2(mapk)
+		Ste4(ste5) Ste4(gpa1) Ste4(ste20) Ste4(state~reg) Ste4(state~synth)
+		Fus3(dock)
+		Dig2(ste12) Dig2(mapk)
+		Dig1(ste12) Dig1(mapk)
+		Gpa1(ste2) Gpa1(ste4)
+		Msg5(mapk)
+		Ste2(pheromone) Ste2(gpa1) Ste2(sst2)
+		Pheromone(ste2)
+		Ste12(dig1) Ste12(dig2) Ste12(mapk) Ste12(dna)
+		Gpa1(nuc~GDP) Gpa1(ste4)
+	
+		# Automatically generated rules for exclude section
+		_R1 _R3 _R7 _R8 _R14 _R21 _R27 _R28 _R29 _R35 _R36 _R40 _R43 _R47 _R49 _R50 _R53 _R57 _R60 _R61 _R63 _R64 _R65 _R66 _R70 _R71 _R72 _R73 _R78 _R83 _R84 _R100 _R108 _R111 _R119 _R126 _R132 _R133 _R134 _R140 _R141 _R150 _R156 _R157 _R158 _R164 _R165 _R166 _R170 _R171 _R175 _R177 _R180 _R182 _R185 _R186 _R192 _R196 _R206 _R216 _R222 _R223 _R224 _R230 _R231 _R232 _R238 _R239 _R240 _R246 _R247 _R251 _R254 _R255 _R257 _R260 _R265
+		_R13 _R16 _R17 _R80 _R81 _R82 _R86 _R87 _R88 _R89 _R90 _R91 _R92 _R93 _R94 _R95 _R96 _R97 _R98 _R99  _R102 _R103 _R104 _R105 _R106 _R107 _R110 _R113 _R114 _R115 _R116 _R117 _R118 _R121 
+		_R269 _R270 _R271
+		_R4 _R5 _R6 _R9 _R10 _R11
+		_R267 _R268
+		_R262 _R263 _R264
+		_R18 _R19 
+		_R143
+	end exclude
+end background
+begin classes
+	# New classes synthesized manually for those atomic patterns moved from background to foreground
+	begin Pheromone
+		Pheromone(ste2)
+	end Pheromone
+	begin Ste12_free
+		Ste12(dig1) Ste12(dig2) Ste12(mapk) Ste12(dna)
+	end Ste12_free
+	begin Ste4_free
+		Ste4(ste5) Ste4(gpa1) Ste4(ste20)
+	end Ste4_free
+	begin Sst2_free
+		Sst(ste2) Sst2(mapk)
+	end Sst2_free
+	begin Fus3_free
+		Fus3(dock)
+	end Fus3_free
+	begin Dig2_free
+		Dig2(ste12) Dig2(mapk)
+	end Dig2_free
+	begin Dig1_free
+		Dig1(ste12) Dig1(mapk)
+	end Dig1_free
+	begin Gpa1_free
+		Gpa1(ste2) Gpa1(ste4)
+	end Gpa1_free
+	begin Msg5_free
+		Msg5(mapk)
+	end Msg5_free
+	begin Ste2_free
+		Ste2(pheromone) Ste2(gpa1) Ste2(sst2)
+	end Ste2_free
+	
+	# New classes for atomic patterns moved to foreground
+	begin Gpa1_GDP
+		Gpa1(nuc~GDP)
+	end Gpa1_GDP
+	begin Ste5_n
+		Ste5(loc~n)
+	end Ste5_n
+	
+	# New classes replacing old Ste11_p
+	begin Ste11_deg
+		Ste11(degradation~p)
+	end Ste11_deg
+	begin Ste11_p
+		Ste11(S302_S306_S307~p) 
+	end Ste11_p
+		
+	# Automatically generated classes
+	begin Dig1_p
+		Dig1(activation~p)
+	end Dig1_p
+	begin Dig1|Fus3
+		Dig1(mapk!1).Fus3(dock!1)
+	end Dig1|Fus3
+	begin Dig1|Kss1
+		Dig1(mapk!1).Kss1(dock!1)
+	end Dig1|Kss1
+	begin Dig1|Ste12
+		Dig1(ste12!1).Ste12(dig1!1)
+	end Dig1|Ste12
+	begin Dig2_gene|Ste12
+		Dig2_gene(promoter!1).Ste12(dna!1)
+	end Dig2_gene|Ste12
+	begin Dig2_p
+		Dig2(activation~p)
+	end Dig2_p
+	begin Dig2|Fus3
+		Dig2(mapk!1).Fus3(dock!1)
+	end Dig2|Fus3
+	begin Dig2|Kss1
+		Dig2(mapk!1).Kss1(dock!1)
+	end Dig2|Kss1
+	begin Dig2|Ste12
+		Dig2(ste12!1).Ste12(dig2!1)
+	end Dig2|Ste12
+	begin Fus3_gene|Ste12
+		Fus3_gene(promoter!1).Ste12(dna!1)
+	end Fus3_gene|Ste12
+	begin Fus3_p
+		Fus3(T180~p) Fus3(Y182~p)
+	end Fus3_p
+	begin Fus3|Msg5
+		Fus3(dock!1).Msg5(mapk!1)
+	end Fus3|Msg5
+	begin Fus3|Ptp
+		Fus3(dock!1).Ptp(mapk!1)
+	end Fus3|Ptp
+	begin Fus3|Sst2
+		Fus3(dock!1).Sst2(mapk!1)
+	end Fus3|Sst2
+	begin Fus3|Ste11
+		Fus3(dock!1).Ste11(mapk!1)
+	end Fus3|Ste11
+	begin Fus3|Ste12
+		Fus3(dock!1).Ste12(mapk!1)
+	end Fus3|Ste12
+	begin Fus3|Ste5
+		Fus3(dock!1).Ste5(mapk!1)
+	end Fus3|Ste5
+	begin Fus3|Ste7
+		Fus3(dock!1).Ste7(mapk!1)
+	end Fus3|Ste7
+	begin Gpa1_GTP
+		Gpa1(nuc~GTP)
+	end Gpa1_GTP
+	begin Gpa1_gene|Ste12
+		Gpa1_gene(promoter!1).Ste12(dna!1)
+	end Gpa1_gene|Ste12
+	begin Gpa1|Ste2
+		Gpa1(ste2!1).Ste2(gpa1!1)
+	end Gpa1|Ste2
+	begin Gpa1|Ste4
+		Gpa1(ste4!1).Ste4(gpa1!1)
+	end Gpa1|Ste4
+	begin Kss1_p
+		Kss1(T183~p) Kss1(Y185~p)
+	end Kss1_p
+	begin Kss1|Msg5
+		Kss1(dock!1).Msg5(mapk!1)
+	end Kss1|Msg5
+	begin Kss1|Ptp
+		Kss1(dock!1).Ptp(mapk!1)
+	end Kss1|Ptp
+	begin Kss1|Sst2
+		Kss1(dock!1).Sst2(mapk!1)
+	end Kss1|Sst2
+	begin Kss1|Ste11
+		Kss1(dock!1).Ste11(mapk!1)
+	end Kss1|Ste11
+	begin Kss1|Ste12
+		Kss1(dock!1).Ste12(mapk!1)
+	end Kss1|Ste12
+	begin Kss1|Ste5
+		Kss1(dock!1).Ste5(mapk!1)
+	end Kss1|Ste5
+	begin Kss1|Ste7
+		Kss1(dock!1).Ste7(mapk!1)
+	end Kss1|Ste7
+	begin Mekkp|Ste11
+		Mekkp(ste11!1).Ste11(ste5!1)
+	end Mekkp|Ste11
+	begin Mekp|Ste7
+		Mekp(ste7!1).Ste7(ste5!1)
+	end Mekp|Ste7
+	begin Msg5_gene|Ste12
+		Msg5_gene(promoter!1).Ste12(dna!1)
+	end Msg5_gene|Ste12
+	begin Pheromone|Ste2
+		Pheromone(ste2!1).Ste2(pheromone!1)
+	end Pheromone|Ste2
+	begin Sst2_gene|Ste12
+		Sst2_gene(promoter!1).Ste12(dna!1)
+	end Sst2_gene|Ste12
+	begin Sst2_p
+		Sst2(S539~p)
+	end Sst2_p
+	begin Sst2|Ste2
+		Sst2(ste2!1).Ste2(sst2!1)
+	end Sst2|Ste2
+	
+	# Automatically generated class that was removed
+	# begin Ste11_p
+	# 	Ste11(S302_S306_S307~p) Ste11(degradation~p)
+	# end Ste11_p
+		
+	begin Ste11_pp
+		Ste11(S302_S306_S307~pp)
+	end Ste11_pp
+	begin Ste11_ppp
+		Ste11(S302_S306_S307~ppp)
+	end Ste11_ppp
+	begin Ste11|Ste5
+		Ste11(ste5!1).Ste5(ste11!1)
+	end Ste11|Ste5
+	begin Ste12|Ste12_gene
+		Ste12(dna!1).Ste12_gene(promoter!1)
+	end Ste12|Ste12_gene
+	begin Ste12|Ste2_gene
+		Ste12(dna!1).Ste2_gene(promoter!1)
+	end Ste12|Ste2_gene
+	begin Ste12|Ste4_gene
+		Ste12(dna!1).Ste4_gene(promoter!1)
+	end Ste12|Ste4_gene
+	begin Ste20|Ste4
+		Ste20(ste4!1).Ste4(ste20!1)
+	end Ste20|Ste4
+	begin Ste4_synth
+		Ste4(state~synth)
+	end Ste4_synth
+	begin Ste4_reg
+		Ste4(state~reg)
+	end Ste4_reg
+	begin Ste4|Ste5
+		Ste4(ste5!1).Ste5(ste4!1)
+	end Ste4|Ste5
+	begin Ste5_c
+		Ste5(loc~c)
+	end Ste5_c
+	begin Ste5_p
+		Ste5(T287~p)
+	end Ste5_p
+	begin Ste5|Ste5
+		Ste5(ste5!1).Ste5(ste5!1)
+	end Ste5|Ste5
+	begin Ste5|Ste7
+		Ste5(ste7!1).Ste7(ste5!1)
+	end Ste5|Ste7
+	begin Ste7_p
+		Ste7(S359_T363~p)
+	end Ste7_p
+	begin Ste7_pp
+		Ste7(S359_T363~pp)
+	end Ste7_pp
+end classes

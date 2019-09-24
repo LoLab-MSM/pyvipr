@@ -994,7 +994,8 @@ class PysbStaticViz(object):
         graph: nx.DiGraph
             a networkx bipartite graph
         project_to: str
-            One of the following options `species_reactions`, `species_rules`, `reactions`, `rules`
+            One of the following options `species_from_unireactions`, `species_from_bireactions`,
+            `species_from_rules`, `unireactions`, `bireactions`, `rules`
 
         Returns
         -------
