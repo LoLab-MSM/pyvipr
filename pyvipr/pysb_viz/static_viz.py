@@ -62,7 +62,8 @@ class PysbStaticViz(object):
             or a vector with the concrete pysb.ComplexPattern species to be highlighted
         reactions: list-like
             A vector of tuples of length 2, where the first entry is the edge source
-            and the second entry is the edge target.
+            and the second entry is the edge target. Or it can be a vector of integers
+            that represent the indices of the reactions to highlight.
 
         Returns
         -------
@@ -312,11 +313,15 @@ class PysbStaticViz(object):
         # Remove outer model file to not look further modules that are not related to
         # the model
         unique_modules.remove(self.model.name)
+        # Remove macros as we are only interested in the modules
         if 'pysb.macros' in unique_modules:
             unique_modules.remove('pysb.macros')
         module_parents = {}
         # pysb components have a modules list that starts from the inner frame
         # to the outer frame.
+        # Get module parents to add to the graph. If a child module node has two
+        # parent nodes, we have to create a new child node, because cytoscape doesn't
+        # support overlapped compound nodes
         for module in unique_modules:
             total_parents = []
             for rule in self.model.rules:
@@ -476,16 +481,26 @@ class PysbStaticViz(object):
         return data
 
     def cluster_rxns_by_rules_view(self):
-        bigraph = self.sp_rxns_graph()
-        rxns_graph = self.projected_graph(bigraph, 'reactions')
-        rxns_rule = {'r{0}'.format(i): j['rule'][0] for i, j in enumerate(self.model.reactions)}
+        """
+        Cluster reaction nodes into the rules that generated them
+
+        Returns
+        -------
+        dict
+            A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
+            contains all the information (nodes,edges, parent nodes, positions) to generate
+            a cytoscapejs network.
+        """
+        bigraph = self.sp_rxns_bidirectional_graph(two_edges=True)
+        rxns_graph = self.projected_graph(bigraph, 'bireactions')
+        rxns_rule = {'r{0}'.format(i): j['rule'][0] for i, j in enumerate(self.model.reactions_bidirectional)}
         cnodes = set(rxns_rule.values())
         rxns_graph.add_nodes_from(cnodes, NodeType='rule')
         nx.set_node_attributes(rxns_graph, rxns_rule, 'parent')
         data = from_networkx(rxns_graph)
         return data
 
-    def _projections_view(self, project_to='species_reactions'):
+    def _projections_view(self, project_to):
         """
         Project a bipartite graph to the type of node defined in `project to`.
         Generates a dictionary with the info of a graph representing the PySB model.
@@ -493,11 +508,13 @@ class PysbStaticViz(object):
         Parameters
         ----------
         project_to: str
-            Nodes to which the graph is going to be projected. Options are:
-            'species_reactions' to project to a species graph from a species&reactions graph,
-            'species_rules' to project to a species graph from a species&rules graph,
-            'reactions' to project to a reactions graph from a species&reaction graph,
-            'rules' to project to a rules graph from a species&rules graph
+            Type of nodes to which the graph is going to be projected. Options are:
+            'species_from_unireactions' to project to a species graph from a
+            species & unidirectional reactions graph, 'species_from_bireactions'
+            to project to a species graph from a  species & bidirectional reactions graph,
+            'unireactions' to project to a reactions graph from a species & unidirectional
+            reaction graph, 'bireactions' to project to a reactions graph from a species &
+            bidirectional reaction graph,
 
         Returns
         -------
@@ -512,19 +529,18 @@ class PysbStaticViz(object):
         elif project_to in ['species_from_bireactions', 'bireactions']:
             bipartite_graph = self.sp_rxns_bidirectional_graph(two_edges=True)
             reactions = self.model.reactions_bidirectional
-        elif project_to == 'rules' or project_to == 'species_from_rules':
-            bipartite_graph = self.sp_rules_graph()
         else:
             raise ValueError('Projection not valid')
 
-        projected_graph = self.projected_graph(bipartite_graph, reactions, project_to)
+        projected_graph = self.projected_graph(bipartite_graph, project_to, reactions)
         data = from_networkx(projected_graph)
         return data
 
     def projected_species_from_unireactions_view(self):
         """
-        This is a projection from the species-reactions graph, where the reactions
-        are unidirectional
+        This is a projection from the species & unidirectioanl reactions
+        bipartite graph
+
         Returns
         -------
 
@@ -533,8 +549,8 @@ class PysbStaticViz(object):
 
     def projected_species_from_bireactions_view(self):
         """
-        This is a projection from the species-bireactions graph, where the reactions
-        are bidirectional
+        This is a projection from the species & bidirectioanl reactions
+        bipartite graph
         Returns
         -------
 
@@ -548,10 +564,15 @@ class PysbStaticViz(object):
         return self._projections_view('bireactions')
 
     def projected_rules_view(self):
-        return self._projections_view('rules')
+        graph = self.sp_rxns_bidirectional_graph(two_edges=True)
+        rxn_graph = self.projected_graph(graph, 'bireactions', self.model.reactions_bidirectional)
+        self.merge_reactions2rules(rxn_graph)
+        data = from_networkx(rxn_graph)
+
+        return data
 
     def projected_species_from_rules_view(self):
-        return self._projections_view('species_from_rules')
+        return self.projected_species_from_bireactions_view()
 
     def compartments_data_graph(self):
         """
@@ -960,19 +981,11 @@ class PysbStaticViz(object):
         """
         graph = self.sp_rxns_bidirectional_graph()
         # Merge reactions into the rules that they come from
-        nodes2merge = self.merge_reactions2rules()
-        node_attrs = {'shape': 'roundrectangle', 'background_color': '#ff4c4c',
-                      'NodeType': 'rule', 'bipartite': 1}
-        for rule_info, rxns in nodes2merge.items():
-            rule = self.model.rules.get(rule_info[0])
-            node_attrs['kf'] = rule.rate_forward.value
-            node_attrs['kr'] = rule.rate_reverse.value if rule.rate_reverse else 'None'
-            node_attrs['label'] = rule_info[0]
-            node_attrs['index'] = 'rule' + str(rule_info[1])
-            self.merge_nodes(graph, rxns, rule_info[0], **node_attrs)
+        self.merge_reactions2rules(graph)
+
         return graph
 
-    def projected_graph(self, graph, reactions, project_to='species_from_unireactions'):
+    def projected_graph(self, graph, project_to, reactions=None):
         """
         Project a bipartite graph into one of the sets of nodes
 
@@ -1059,7 +1072,7 @@ class PysbStaticViz(object):
         nx.set_edge_attributes(graph, edges_attributes)
         return
 
-    def merge_reactions2rules(self):
+    def merge_reactions2rules(self, graph):
         """
         Merges the model reactions into each of the rules from which the reactions come form.
         
@@ -1076,7 +1089,16 @@ class PysbStaticViz(object):
                 if rxn['rule'][0] == rule.name:
                     rxns.append('r{0}'.format(i))
             rxn_per_rule[(rule.name, r_idx)] = rxns
-        return rxn_per_rule
+        node_attrs = {'shape': 'roundrectangle', 'background_color': '#ff4c4c',
+                      'NodeType': 'rule', 'bipartite': 1}
+        for rule_info, rxns in rxn_per_rule.items():
+            rule = self.model.rules.get(rule_info[0])
+            node_attrs['kf'] = rule.rate_forward.value
+            node_attrs['kr'] = rule.rate_reverse.value if rule.rate_reverse else 'None'
+            node_attrs['label'] = rule_info[0]
+            node_attrs['index'] = 'rule' + str(rule_info[1])
+            self.merge_nodes(graph, rxns, rule_info[0], **node_attrs)
+        return
 
     @staticmethod
     def merge_nodes(G, nodes, new_node, **attr):
