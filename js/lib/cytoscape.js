@@ -6,7 +6,7 @@ const popper = require('cytoscape-popper');
 const coseBilkent = require('cytoscape-cose-bilkent');
 const dagre = require('cytoscape-dagre');
 const klay = require('cytoscape-klay');
-const cise = require('cytoscape-cise');
+const cola = require('cytoscape-cola');
 const fcose = require('cytoscape-fcose');
 const expandCollapse = require('cytoscape-expand-collapse');
 const graphml = require('cytoscape-graphml');
@@ -17,7 +17,7 @@ const typeahead = require('typeahead.js');
 const $ = require('jquery');
 const semver_range = "^" + require("../package.json").version;
 cytoscape.use(fcose);
-cytoscape.use(cise);
+cytoscape.use(cola);
 cytoscape.use(popper);
 cytoscape.use(coseBilkent);
 cytoscape.use(dagre);
@@ -122,7 +122,8 @@ const DEF_MODELS_STYLE = [
             'curve-style': 'bezier',
             'target-arrow-shape': 'data(target_arrow_shape)',
             'source-arrow-shape': 'data(source_arrow_shape)',
-            'source-arrow-fill': 'data(source_arrow_fill)'
+            'source-arrow-fill': 'data(source_arrow_fill)',
+            'width': 7
         }
     },
     {
@@ -266,7 +267,7 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
         that.$layoutDd = $(
             "<select class=\"select-css\" id=\"layoutList\" ><optgroup label=\"Layouts available\"></select>");
 
-        let layouts = ["cose-bilkent", "dagre", "klay", "random", "grid", "circle",
+        let layouts = ["cose-bilkent", "dagre", "klay", "cola", "random", "grid", "circle",
             "concentric", "breadthfirst", "cose", "fcose"];
         $.each(layouts, function(index, value){
             that.$layoutDd.append($("<option></option>")
@@ -682,12 +683,8 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
         // const data = that.model.get('data');
         let layoutArgs;
         let type_viz = that.model.get('type_of_viz');
-        if (type_viz === 'sp_cise_view'){
-            layoutArgs = {name: 'cise', clusters: function (node) {return node.data('cluster_id')}}
-        }
-        else {
-            layoutArgs = {name: that.model.get('layout_name'), nodeDimensionsIncludeLabels: true};
-        }
+
+        layoutArgs = {name: that.model.get('layout_name'), nodeDimensionsIncludeLabels: true};
 
         let network = that.networkData;
         let visualStyle = null;
@@ -1028,7 +1025,12 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
         };
         that.$downloadButton.on('change', function(){
             if (this.value === 'png') {
-                saveAs(cy.png({scale:1}), 'graph.png')
+                let pngTxt = cy.png({'scale': 3, 'output': 'blob'});
+                let blob = new Blob([pngTxt], {
+                    type: "image/png"
+                });
+                let blobUrl = URL.createObjectURL(blob);
+                saveAs(blobUrl, 'graph.png')
             }
             if (this.value === 'sif') {
                 let sif = [];
