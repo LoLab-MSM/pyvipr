@@ -13,7 +13,7 @@
 import networkx as nx
 
 
-def species_projected_graph(B, reactions, nodes, unireactions=False):
+def species_projected_graph(B, reactions, nodes):
     r"""Returns the projection of a species-reactions bipartite graph
      onto the species nodes set.
 
@@ -60,36 +60,31 @@ def species_projected_graph(B, reactions, nodes, unireactions=False):
     for further details on how bipartite graphs are handled in NetworkX.
 
     """
-    if B.is_directed():
-        G = nx.DiGraph()
-    else:
-        G = nx.Graph()
+    # if B.is_directed():
+    #     G = nx.DiGraph()
+    # else:
+    #     G = nx.Graph()
+    G = nx.MultiDiGraph()
     G.graph.update(B.graph)
     G.add_nodes_from((n, B.nodes[n]) for n in nodes)
-    if unireactions:
-        for u in nodes:
-            nbrs2 = set()
-            for nbr in B[u]:
-                r_idx = int(nbr[1:])
+
+    for u in nodes:
+        nbrs2 = set()
+        for nbr in B[u]:
+            r_idx = int(nbr[1:])
+            if int(u[1:]) in reactions[r_idx]['products'] and \
+                    reactions[r_idx]['reversible']:
+                reactants = reactions[r_idx]['products']
+            else:
                 reactants = reactions[r_idx]['reactants']
-                for v in B[nbr]:
-                    if v != u and int(v[1:]) not in reactants:
-                        nbrs2.add(v)
+            for v in B[nbr]:
+                if v != u and int(v[1:]) not in reactants:
+                    nbrs2.add(v)
 
-            G.add_edges_from((u, n) for n in nbrs2)
-    else:
-        for u in nodes:
-            nbrs2 = set()
-            for nbr in B[u]:
-                r_idx = int(nbr[1:])
-                if int(u[1:]) in reactions[r_idx]['products'] and \
-                        reactions[r_idx]['reversible']:
-                    reactants = reactions[r_idx]['products']
-                else:
-                    reactants = reactions[r_idx]['reactants']
-                for v in B[nbr]:
-                    if v != u and int(v[1:]) not in reactants:
-                        nbrs2.add(v)
-
-            G.add_edges_from((u, n) for n in nbrs2)
+        for n in nbrs2:
+            links = set(B[u]) & set(B.pred[n])
+            for l in links:
+                if not G.has_edge(u, n, l):
+                    G.add_edge(u, n, key=l)
+        # G.add_edges_from((u, n) for n in nbrs2)
     return G

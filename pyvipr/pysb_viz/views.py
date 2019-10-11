@@ -15,9 +15,7 @@ __all__ = [
     'sp_rules_view',
     'sp_rules_fxns_view',
     'sp_rules_mod_view',
-    'projected_species_from_unireactions_view',
     'projected_species_from_bireactions_view',
-    'projected_unireactions_view',
     'projected_bireactions_view',
     'projected_rules_view',
     'projected_species_from_rules_view',
@@ -334,22 +332,6 @@ def sp_rules_mod_view(model, layout_name='cose-bilkent'):
     return Viz(data=model, type_of_viz='sp_rules_mod_view', layout_name=layout_name)
 
 
-def projected_species_from_unireactions_view(model, layout_name='cose-bilkent'):
-    """
-    Render a visualization of the interactions between species in a model.
-
-    Parameters
-    ----------
-    model: pysb.model or str
-        Model to visualize. It can be a pysb model, or the file path to an
-        an SBML or BNGL model
-    layout_name: str
-        Layout to use
-
-    """
-    return Viz(data=model, type_of_viz='projected_species_from_unireactions_view', layout_name=layout_name)
-
-
 def projected_species_from_bireactions_view(model, layout_name='cose-bilkent'):
     """
     Render a visualization of the interactions between species in a model.
@@ -364,22 +346,6 @@ def projected_species_from_bireactions_view(model, layout_name='cose-bilkent'):
 
     """
     return Viz(data=model, type_of_viz='projected_species_from_bireactions_view', layout_name=layout_name)
-
-
-def projected_unireactions_view(model, layout_name='cose-bilkent'):
-    """
-    Render a visualization of the interaction between the reaction in a model
-
-    Parameters
-    ----------
-    model: pysb.model or str
-        Model to visualize. It can be a pysb model, or the file path to an
-        an SBML or BNGL model
-    layout_name: str
-        Layout to use
-
-    """
-    return Viz(data=model, type_of_viz='projected_unireactions_view', layout_name=layout_name)
 
 
 def projected_bireactions_view(model, layout_name='cose-bilkent'):

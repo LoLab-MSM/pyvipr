@@ -62,8 +62,9 @@ class PysbStaticViz(object):
             or a vector with the concrete pysb.ComplexPattern species to be highlighted
         reactions: list-like
             A vector of tuples of length 2, where the first entry is the edge source
-            and the second entry is the edge target. Or it can be a vector of integers
-            that represent the indices of the reactions to highlight.
+            and the second entry is the edge target, entries can be species indices or
+            complex patterns. Or it can be a vector of integers that represent the
+            indices of the reactions to highlight.
 
         Returns
         -------
@@ -163,9 +164,12 @@ class PysbStaticViz(object):
             contains all the information (nodes,edges, parent nodes, positions) to generate
             a cytoscapejs network.
         """
-        graph = self.species_graph()
-        hf.add_louvain_communities(graph, all_levels=False, random_state=random_state)
-        data = from_networkx(graph)
+        # graph = self.species_graph()
+        g = self.sp_rxns_bidirectional_graph(two_edges=True)
+        p = self.projected_graph(g, 'species_from_bireactions', self.model.reactions_bidirectional)
+        p = nx.DiGraph(p)
+        hf.add_louvain_communities(p, all_levels=False, random_state=random_state)
+        data = from_networkx(p)
         return data
 
     def sp_comm_louvain_hierarchy_view(self, random_state=None):
@@ -509,11 +513,8 @@ class PysbStaticViz(object):
         ----------
         project_to: str
             Type of nodes to which the graph is going to be projected. Options are:
-            'species_from_unireactions' to project to a species graph from a
-            species & unidirectional reactions graph, 'species_from_bireactions'
-            to project to a species graph from a  species & bidirectional reactions graph,
-            'unireactions' to project to a reactions graph from a species & unidirectional
-            reaction graph, 'bireactions' to project to a reactions graph from a species &
+            'species_from_bireactions' to project to a species graph from a  species & bidirectional
+            reactions graph, 'bireactions' to project to a reactions graph from a species &
             bidirectional reaction graph,
 
         Returns
@@ -523,10 +524,7 @@ class PysbStaticViz(object):
             contains all the information (nodes,edges, parent nodes, positions) to generate
             a cytoscapejs network.
         """
-        if project_to in ['species_from_unireactions', 'unireactions']:
-            bipartite_graph = self.sp_rxns_graph()
-            reactions = self.model.reactions
-        elif project_to in ['species_from_bireactions', 'bireactions']:
+        if project_to in ['species_from_bireactions', 'bireactions']:
             bipartite_graph = self.sp_rxns_bidirectional_graph(two_edges=True)
             reactions = self.model.reactions_bidirectional
         else:
@@ -535,17 +533,6 @@ class PysbStaticViz(object):
         projected_graph = self.projected_graph(bipartite_graph, project_to, reactions)
         data = from_networkx(projected_graph)
         return data
-
-    def projected_species_from_unireactions_view(self):
-        """
-        This is a projection from the species & unidirectioanl reactions
-        bipartite graph
-
-        Returns
-        -------
-
-        """
-        return self._projections_view('species_from_unireactions')
 
     def projected_species_from_bireactions_view(self):
         """
@@ -556,9 +543,6 @@ class PysbStaticViz(object):
 
         """
         return self._projections_view('species_from_bireactions')
-
-    def projected_unireactions_view(self):
-        return self._projections_view('unireactions')
 
     def projected_bireactions_view(self):
         return self._projections_view('bireactions')
@@ -994,22 +978,19 @@ class PysbStaticViz(object):
         graph: nx.DiGraph
             a networkx bipartite graph
         project_to: str
-            One of the following options `species_from_unireactions`, `species_from_bireactions`,
-            `species_from_rules`, `unireactions`, `bireactions`, `rules`
+            One of the following options `species_from_bireactions`,
+            `species_from_rules`, `bireactions`, `rules`
 
         Returns
         -------
         nx.DiGraph
             Projected graph
         """
-        unireactions = False
-        if 'unireactions' in project_to:
-            unireactions = True
-        if project_to in ['species_from_unireactions', 'species_from_bireactions', 'species_from_rules']:
+        if project_to in ['species_from_bireactions', 'species_from_rules']:
             nodes = {n for n, d in graph.nodes(data=True) if d['bipartite'] == 0}
             from pyvipr.bipartite_projection import species_projected_graph as bipartite_projected_graph
-            graph_projected = bipartite_projected_graph(graph, reactions, nodes, unireactions)
-        elif project_to in ['unireactions', 'bireactions', 'rules']:
+            graph_projected = bipartite_projected_graph(graph, reactions, nodes)
+        elif project_to in ['bireactions', 'rules']:
             nodes = {n for n, d in graph.nodes(data=True) if d['bipartite'] == 1}
             graph_projected = bipartite.projected_graph(graph, nodes)
         else:
@@ -1057,14 +1038,15 @@ class PysbStaticViz(object):
         """
         edges_to_delete = []
         edges_attributes = {}
-        for edge in graph.edges():
+        for edge in graph.edges(keys=True):
             if edge in edges_to_delete:
                 continue
-            if graph.has_edge(*edge[::-1]):
+            reverse_node = (edge[1], edge[0], edge[2])
+            if graph.has_edge(*reverse_node):
                 attr_reversible = {'source_arrow_shape': 'triangle', 'target_arrow_shape': 'triangle',
                                    'source_arrow_fill': 'filled'}
                 edges_attributes[edge] = attr_reversible
-                edges_to_delete.append(edge[::-1])
+                edges_to_delete.append(reverse_node)
             else:
                 attr_irreversible = {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle',
                                      'source_arrow_fill': 'filled'}
