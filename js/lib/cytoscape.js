@@ -122,8 +122,7 @@ const DEF_MODELS_STYLE = [
             'curve-style': 'bezier',
             'target-arrow-shape': 'data(target_arrow_shape)',
             'source-arrow-shape': 'data(source_arrow_shape)',
-            'source-arrow-fill': 'data(source_arrow_fill)',
-            'width': 7
+            'source-arrow-fill': 'data(source_arrow_fill)'
         }
     },
     {
@@ -601,19 +600,27 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
             cy.edges().forEach(function(edge){
                 let source;
                 let target;
-                let ele = network.elements.edges.filter(function (e) {
-                    let gSource = e.data.source;
-                    let gTarget = e.data.target;
+                let gSource;
+                let gTarget;
+                if (edge.hasClass('cy-expand-collapse-meta-edge')){
+                    source = edge.data('originalEnds').source.data('name');
+                    target = edge.data('originalEnds').target.data('name');
+                }
+                else {
+                    source = edge.data('source');
+                    target = edge.data('target');
+                }
 
-                    if (edge.hasClass('cy-expand-collapse-meta-edge')){
-                        source = edge.data('originalEnds').source.data('name');
-                        target = edge.data('originalEnds').target.data('name');
+                let ele = network.elements.edges.filter(function (e) {
+                    if (e.data.hasOwnProperty('originalEnds')){
+                        gSource = e.data.originalEnds.source.attr('name');
+                        gTarget = e.data.originalEnds.target.attr('name');
                     }
                     else {
-                        source = edge.data('source');
-                        target = edge.data('target');
-
+                        gSource = e.data.source;
+                        gTarget = e.data.target;
                     }
+
                     return gSource === source && gTarget === target
                 });
                 let animationQueueEdges = animateAll(edge, ele[0].data);
@@ -1025,7 +1032,7 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
         };
         that.$downloadButton.on('change', function(){
             if (this.value === 'png') {
-                let pngTxt = cy.png({'scale': 3, 'output': 'blob'});
+                let pngTxt = cy.png({'scale': 2, 'output': 'blob'});
                 let blob = new Blob([pngTxt], {
                     type: "image/png"
                 });
