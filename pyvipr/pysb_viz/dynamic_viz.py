@@ -256,7 +256,7 @@ class PysbDynamicViz(object):
                             react_rate_color[rxn_neg_idx] = (
                                         rxns_matrix[rx][rxn_neg_idx] / rxn_val_neg_total[rxn_neg_idx])
                         np.nan_to_num(react_rate_color, copy=False)
-                        rate_colors = hf.f2hex_edges(react_rate_color, cmap=self.cmap)
+                        rate_colors = list(react_rate_color*(-100))  #hf.f2hex_edges(react_rate_color, cmap=self.cmap)
 
                         rxn_eps = sp_rr_dom[rx_idx] + self.mach_eps  # rxns_matrix[rx] + self.mach_eps
                         react_rate_size = np.zeros(len(rxn_eps))
@@ -273,7 +273,7 @@ class PysbDynamicViz(object):
                             react_rate_size[tro_pos_idx] = np.array([rxn_pos/rxn_pos_max for
                                                                      rxn_pos in rxn_eps[tro_pos_idx]])
 
-                        rate_sizes = hf.range_normalization(react_rate_size, min_x=0, max_x=1)
+                        rate_sizes = hf.range_normalization(react_rate_size, min_x=0, max_x=1, a=5, b=11)
                         edges_id = ('s{0}'.format(sp), 's{0}'.format(p))
                         all_rate_colors[edges_id] = rate_colors
                         all_rate_sizes[edges_id] = rate_sizes.tolist()
@@ -289,7 +289,7 @@ class PysbDynamicViz(object):
                             preact_rate_color[prxns_neg_idx] = (
                                     rxns_matrix[rp][prxns_neg_idx] / rxn_val_pos_total[prxns_neg_idx])
                         np.nan_to_num(preact_rate_color, copy=False)
-                        prate_colors = hf.f2hex_edges(preact_rate_color, cmap=self.cmap)
+                        prate_colors = list(preact_rate_color*(-100)) #hf.f2hex_edges(preact_rate_color, cmap=self.cmap)
 
                         prxn_eps = sp_prr_dom[rp_idx] + self.mach_eps
                         preact_rate_size = np.zeros(len(prxn_eps))

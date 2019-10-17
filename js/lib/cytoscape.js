@@ -120,6 +120,7 @@ const DEF_MODELS_STYLE = [
         selector: 'edge[source_arrow_shape]',
         style: {
             'curve-style': 'bezier',
+            'line-style': 'dashed',
             'target-arrow-shape': 'data(target_arrow_shape)',
             'source-arrow-shape': 'data(source_arrow_shape)',
             'source-arrow-fill': 'data(source_arrow_fill)'
@@ -528,18 +529,20 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
                     let size = edgeSize[idx];
                     animationQueue.push(ele.animation({
                         style:{
-                            'line-color': color,
-                            'target-arrow-color': color,
-                            'source-arrow-color': color,
+                            // 'line-color': color,
+                            // 'target-arrow-color': color,
+                            // 'source-arrow-color': color,
+                            'line-dash-offset': color,
                             'width': size
                         },
                         duration: animationDuration
                     }));
                     ele.style(
                         {
-                            'line-color': color,
-                            'target-arrow-color': color,
-                            'source-arrow-color': color,
+                            // 'line-color': color,
+                            // 'target-arrow-color': color,
+                            // 'source-arrow-color': color,
+                            'line-dash-offset': 0,
                             'width': size
                         }
                     )
@@ -570,7 +573,7 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
             let playQueue = function(ele, queue, position){
                 if (position < queue.length){
                     if (ele.isEdge()){
-                        let qtip = ele.data('edge_qtip')[position];
+                        let qtip = ele.data('edge_color')[position];
                         ele.data()['tip']['popper'].querySelector('.tippy-content').textContent = qtip.toExponential(2).toString();
 
                     }
