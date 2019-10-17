@@ -142,7 +142,7 @@ def from_networkx(g, layout=None, scale=DEF_SCALE, map_node_data=None, map_edge_
     cygraph[DATA] = __map_table_data(g.graph.keys(), g.graph)
 
     for i, node_id in enumerate(nodes):
-        new_node = __create_node(g.node[node_id], node_id, map_node_data)
+        new_node = __create_node(g.nodes[node_id], node_id, map_node_data)
         if layout is not None:
             new_node['position'] = pos[i]
 

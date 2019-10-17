@@ -1028,7 +1028,7 @@ class PysbStaticViz(object):
         
         Parameters
         ----------
-        graph: nx.DiGraph
+        graph: nx.DiGraph or nx.MultiDiGraph
             The networkx directed graph whose pairs of edges ((u, v), (v, u)) are going to be merged
         
         Returns
@@ -1038,15 +1038,26 @@ class PysbStaticViz(object):
         """
         edges_to_delete = []
         edges_attributes = {}
-        for edge in graph.edges(keys=True):
+
+        if graph.is_multigraph():
+            graph_edges = graph.edges(keys=True)
+
+            def reverse_node(e):
+                return e[1], e[0], e[2]
+        else:
+            graph_edges = graph.edges()
+
+            def reverse_node(e):
+                return e[::-1]
+        for edge in graph_edges:
             if edge in edges_to_delete:
                 continue
-            reverse_node = (edge[1], edge[0], edge[2])
-            if graph.has_edge(*reverse_node):
+            r_node = reverse_node(edge)
+            if graph.has_edge(*r_node):
                 attr_reversible = {'source_arrow_shape': 'triangle', 'target_arrow_shape': 'triangle',
                                    'source_arrow_fill': 'filled'}
                 edges_attributes[edge] = attr_reversible
-                edges_to_delete.append(reverse_node)
+                edges_to_delete.append(r_node)
             else:
                 attr_irreversible = {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle',
                                      'source_arrow_fill': 'filled'}
