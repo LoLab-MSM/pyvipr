@@ -503,6 +503,8 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
         let cy = this.cyObj;
         let network = this.networkData;
 
+        let compound_nodes_names = ["community", "compartment"];
+
         that.$resetButton.off('click');
         that.$playButton.off('click');
         that.$slider.off('mouseup');
@@ -630,7 +632,8 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
             });
             network.elements.nodes.forEach(function(node){
                 let dNode = cy.filter("node[name=" + "\""+node.data.name+"\"" +"]");
-                if (node.data.NodeType !== 'community' && dNode.length > 0){
+                let is_compound = compound_nodes_names.includes(node.data.NodeType);
+                if (!is_compound && dNode.length > 0){
                     let ele = cy.nodes().filter(function(ele){
                         return ele.data('name') === node.data.name && ele.isParent() === false
                     });
