@@ -7,7 +7,6 @@ dependencies:
   - jupyter
   - pysb
   - atomizer
-  - graphviz
   - pip
   - pip:
       - tellurium
