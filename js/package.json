@@ -1,6 +1,6 @@
 {
     "name": "pyvipr",
-    "version": "0.3.3",
+    "version": "0.3.4",
     "description": "Dynamic and static visualizations of systems biology models written in SBML, BNGL, and PySB",
     "author": "Oscar Ortega",
     "main": "lib/index.js",
@@ -45,6 +45,7 @@
         "cytoscape-klay": "^3.1.2",
         "cytoscape-popper": "^1.0.4",
         "cytoscape-sbgn-stylesheet": "^4.0.1",
+        "cytoscape-grid-guide": "^2.3.0",
         "cytoscape-cola": "^2.3.0",
         "cytoscape-fcose": "^1.0.0",
         "cytoscape-graphml": "^1.0.6",
