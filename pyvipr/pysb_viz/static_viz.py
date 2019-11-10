@@ -164,12 +164,9 @@ class PysbStaticViz(object):
             contains all the information (nodes,edges, parent nodes, positions) to generate
             a cytoscapejs network.
         """
-        # graph = self.species_graph()
-        g = self.sp_rxns_bidirectional_graph(two_edges=True)
-        p = self.projected_graph(g, 'species_from_bireactions', self.model.reactions_bidirectional)
-        p = nx.DiGraph(p)
-        hf.add_louvain_communities(p, all_levels=False, random_state=random_state)
-        data = from_networkx(p)
+        graph = self.species_graph()
+        hf.add_louvain_communities(graph, all_levels=False, random_state=random_state)
+        data = from_networkx(graph)
         return data
 
     def sp_comm_louvain_hierarchy_view(self, random_state=None):
@@ -980,6 +977,8 @@ class PysbStaticViz(object):
         project_to: str
             One of the following options `species_from_bireactions`,
             `species_from_rules`, `bireactions`, `rules`
+        reactions: pysb.ComponentSet
+            Model reactions
 
         Returns
         -------
@@ -987,16 +986,17 @@ class PysbStaticViz(object):
             Projected graph
         """
         if project_to in ['species_from_bireactions', 'species_from_rules']:
-            nodes = {n for n, d in graph.nodes(data=True) if d['bipartite'] == 0}
+            # Use dictionary with Values set to None to obtain and ordered set of nodes
+            nodes = {n: None for n, d in graph.nodes(data=True) if d['bipartite'] == 0}
             from pyvipr.bipartite_projection import species_projected_graph as bipartite_projected_graph
-            graph_projected = bipartite_projected_graph(graph, reactions, nodes)
+            graph_projected = bipartite_projected_graph(graph, reactions, nodes.keys())
         elif project_to in ['bireactions', 'rules']:
-            nodes = {n for n, d in graph.nodes(data=True) if d['bipartite'] == 1}
-            graph_projected = bipartite.projected_graph(graph, nodes)
+            nodes = {n: None for n, d in graph.nodes(data=True) if d['bipartite'] == 1}
+            graph_projected = bipartite.projected_graph(graph, nodes.keys())
         else:
             raise ValueError('Projection not valid')
 
-        self.graph_merged_pair_edges(graph_projected)
+        self.graph_merge_pair_edges(graph_projected, reactions=reactions)
 
         return graph_projected
 
@@ -1022,7 +1022,7 @@ class PysbStaticViz(object):
         return sp_0
 
     @staticmethod
-    def graph_merged_pair_edges(graph):
+    def graph_merge_pair_edges(graph, reactions=None):
         """
         Merges pair of edges that are reversed
         
@@ -1030,6 +1030,8 @@ class PysbStaticViz(object):
         ----------
         graph: nx.DiGraph or nx.MultiDiGraph
             The networkx directed graph whose pairs of edges ((u, v), (v, u)) are going to be merged
+        reactions: pysb.ComponentSet
+            Model reactions
         
         Returns
         -------
@@ -1042,27 +1044,59 @@ class PysbStaticViz(object):
         if graph.is_multigraph():
             graph_edges = graph.edges(keys=True)
 
-            def reverse_node(e):
+            def reverse_edge(e):
                 return e[1], e[0], e[2]
+
+            def edge_reversible_attr(e):
+                rxn_idx = int(e[2][1:])
+                reaction = reactions[rxn_idx]
+                reactants = set(reaction['reactants'])
+                if int(e[0][1:]) in reactants:
+                    # print(edge, rxn)
+                    attr_reversible = {'source_arrow_shape': 'triangle', 'target_arrow_shape': 'triangle',
+                                       'source_arrow_fill': 'hollow'}
+                else:
+                    attr_reversible = {'source_arrow_shape': 'triangle', 'target_arrow_shape': 'triangle',
+                                       'source_arrow_fill': 'filled', 'target_arrow_fill': 'hollow'}
+                return attr_reversible
         else:
             graph_edges = graph.edges()
 
-            def reverse_node(e):
+            def reverse_edge(e):
                 return e[::-1]
+
+            def edge_reversible_attr(e):
+                attr_reversible = {'source_arrow_shape': 'triangle', 'target_arrow_shape': 'triangle',
+                                   'source_arrow_fill': 'filled'}
+                return attr_reversible
         for edge in graph_edges:
             if edge in edges_to_delete:
                 continue
-            r_node = reverse_node(edge)
-            if graph.has_edge(*r_node):
-                attr_reversible = {'source_arrow_shape': 'triangle', 'target_arrow_shape': 'triangle',
-                                   'source_arrow_fill': 'filled'}
-                edges_attributes[edge] = attr_reversible
-                edges_to_delete.append(r_node)
+            r_edge = reverse_edge(edge)
+            if graph.has_edge(*r_edge):
+                edges_attributes[edge] = edge_reversible_attr(edge)
+                edges_to_delete.append(r_edge)
             else:
                 attr_irreversible = {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle',
                                      'source_arrow_fill': 'filled'}
                 edges_attributes[edge] = attr_irreversible
-        graph.remove_edges_from(edges_to_delete)
+
+        # Remove duplicated bidirectional edges between nodes
+        marker_set = set()
+        if graph.is_multigraph():
+            dup_edges_to_delete = []
+            for dup_edge in edges_to_delete:
+                rxn = (dup_edge[0], dup_edge[1])
+                if rxn not in marker_set:
+                    marker_set.add(rxn)
+                else:
+                    dup_edges_to_delete.append(dup_edge)
+            dup_edges_to_delete = [reverse_edge(edge) for edge in dup_edges_to_delete]
+            for link in dup_edges_to_delete:
+                del edges_attributes[link]
+            graph.remove_edges_from(edges_to_delete + dup_edges_to_delete)
+        else:
+            graph.remove_edges_from(edges_to_delete)
         nx.set_edge_attributes(graph, edges_attributes)
         return
 
