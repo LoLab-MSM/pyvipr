@@ -76,7 +76,8 @@ def f2hex_edges(fx, vmin=-0.99, vmax=0.99, cmap='RdBu_r'):
 
 
 def add_louvain_communities(graph, all_levels=False, random_state=None):
-    graph_communities = graph.copy().to_undirected()  # Louvain algorithm only deals with undirected graphs
+    # Louvain method only deals with undirected graphs
+    graph_communities = nx.Graph(graph)
     if all_levels:
         # We add the first communities detected, The dendrogram at level 0 contains the nodes as keys
         # and the clusters they belong to as values.
