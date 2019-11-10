@@ -127,6 +127,17 @@ const DEF_MODELS_STYLE = [
     },
     {
 
+        selector: 'edge[target_arrow_shape]',
+        style: {
+            'curve-style': 'bezier',
+            'target-arrow-shape': 'data(target_arrow_shape)',
+            'source-arrow-shape': 'data(source_arrow_shape)',
+            'source-arrow-fill': 'data(source_arrow_fill)',
+            'target-arrow-fill': 'data(target_arrow_fill)',
+        }
+    },
+    {
+
         selector: 'edge[highlight_edges]',
         style: {
             'line-color': 'data(line_color)',
