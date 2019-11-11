@@ -84,6 +84,7 @@ PyViPR has the following functions to visualize PySB models and simulations:
 | `sp_view(model)`                    | Shows network of interacting species                  |
 | `sp_comp_view(model)`       | Shows network of species in their respective compartments |
 | `sp_comm_view(model)`                | Shows network of species grouped in [communities](https://en.wikipedia.org/wiki/Community_structure) |
+| `highlight_nodes_view(model, species, reactions)` | Shows network of species and highlights the species and reactions passed as arguments |
 | `sp_rxns_bidirectional_view(model)`      | Shows bipartite network with species and bidirectional reactions nodes |
 | `sp_rxns_view(model)`                    | Shows bipartite network with species and unidirectional reactions nodes |
 | `sp_rules_view(model)`                   | Shows bipartite network with species and rules nodes  |
@@ -97,6 +98,7 @@ PyViPR has the following functions to visualize PySB models and simulations:
 | `sp_comp_dyn_view(SimulationResult)` | Same as sp_dyn_view but species nodes are grouped by <br> the compartments on which they are located |
 | `sp_comm_dyn_view(SimulationResult)` | Same as sp_dyn_view but species nodes are grouped by communities |
 | `sim_model_dyn_view(model, tspan, param_values)` | Simulates a model a shows a dynamic visualization of the results |
+| `atom_rules_view(model, visualize_args, ...)` | Uses the BioNetGen [atom-rules](https://doi.org/10.1371/journal.pcbi.1005857) to visualize large rule-base models. Please visit PyViPR [documentation](https://pyvipr.readthedocs.io/en/latest/modules/pysb_viz.html#pyvipr.pysb_viz.static_viz.PysbStaticViz.atom_rules_view) for parameter details.
 | `nx_graph_view(graph)` | Shows a networkx graph |
 | `nx_graph_dyn_view(graph, tspan, **kwargs)`| Shows a dynamic visualization of the graph |
 
