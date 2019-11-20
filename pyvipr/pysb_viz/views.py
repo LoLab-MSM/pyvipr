@@ -398,8 +398,93 @@ def projected_species_from_rules_view(model, layout_name='cose-bilkent'):
 
 
 def atom_rules_view(model, visualize_args, rule_name=None, verbose=False, cleanup=True, layout_name='fcose'):
+    """
+    Uses the BioNetGen atom-rules to visualize large rule-base models. For more
+    information regarding atom-rules and its parameters please visit:
+    Sekar et al (2017), Automated visualization of rule-based models
+    https://doi.org/10.1371/journal.pcbi.1005857
+
+    The visualize_args parameter contains all the arguments that will be passed to the
+    BioNetGen visualize function. It is a dictionary and supports the following
+    key, value pairs.
+
+      - `type`
+
+        * `conventional` => Conventional rule visualization
+        * `compact` => Compact rule visualization (using graph operation nodes)
+        * `regulatory` => Rule-derived regulatory graph
+        * `opts` => Options template for regulatory graph
+        * `contactmap` => Contact map
+        * `reaction_network` => Reaction network
+      -  `suffix`
+
+        * str => add suffix string to output filename
+      - `each`
+
+        * 1 => Show all rules in separate GML files
+        * 0 => Show all rules  the same GML file.
+      - `opts`
+
+        * file path => import options from file
+      - `background`
+
+        * 1 => Enable background
+        * 0 => Disable background
+      - `groups`
+
+        * 1 => Enable groups
+        * 0 => Disable groups
+      - `collapse`
+
+        * 1 => Enable collapsing of groups
+        * 0 => Disable collapsing of groups
+      - `ruleNames`
+
+        * 1 => Enable display of rule names
+        * 0 => Disable display of rule names
+      - `doNotUseContextWhenGrouping`
+
+        * 1 => Use permissive edge signature
+        * 0 => Use strict edge signature
+      - `doNotCollapseEdges`:
+
+        * 1 => When collapsing nodes, retain duplicate edges
+        * 0 => When collapsing nodes, remove duplicate edges
+
+    Parameters.
+    ----------
+    model: pysb.model or bngl file
+        Model to visualize
+    visualize_args: dict
+        Contains all the arguments that will be passed to the BioNetGen visualize function.
+        The following key, value pairs are available
+
+    rule_name : str
+       Name of the rule to visualize, when `each` is set to 1 in visualize_args.
+    cleanup : bool, optional
+        If True (default), delete the temporary files after the simulation is
+        finished. If False, leave them in place. Useful for debugging.
+    verbose : bool or int, optional (default: False)
+        Sets the verbosity level of the logger. See the logging levels and
+        constants from Python's logging module for interpretation of integer
+        values. False is equal to the PySB default level (currently WARNING),
+        True is equal to DEBUG.
+
+    Returns
+    -------
+
+    """
     from pyvipr.pysb_viz.static_viz import PysbStaticViz
-    pviz = PysbStaticViz(model, generate_eqs=False)
+    from pysb.core import Model
+    from pysb.importers.bngl import model_from_bngl
+    if isinstance(model, Model):
+        pviz = PysbStaticViz(model, generate_eqs=False)
+    elif isinstance(model, str):
+        pysb_model = model_from_bngl(model)
+        pviz = PysbStaticViz(pysb_model, generate_eqs=False)
+
+    else:
+        raise TypeError('Only PySB and bngl models are supported')
     data = pviz.atom_rules_view(visualize_args, rule_name, verbose, cleanup)
     return Viz(data=data, type_of_viz='', layout_name=layout_name)
 
