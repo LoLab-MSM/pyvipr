@@ -818,7 +818,6 @@ class PysbStaticViz(object):
         return graph
 
     def sbgn_graph(self):
-        import re
         from pysb.pattern import Pattern, Name
         from pysb import Rule, Parameter
         graph = nx.DiGraph(name=self.model.name, style='sbgn')
