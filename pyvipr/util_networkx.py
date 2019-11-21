@@ -44,10 +44,8 @@ def map_node_data_gml(columns, graph_obj):
         data['parent'] = graph_obj['gid']
 
     shape = graph_obj['graphics']['type']
-    shape = shape
 
     background_color = graph_obj['graphics']['fill']
-    background_color = background_color
     data['label'] = graph_obj['label']
     data['border_color'] = graph_obj['graphics']['outline']
     data['shape'] = CY_GML_NODE_STYLE[shape]

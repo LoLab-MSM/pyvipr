@@ -421,12 +421,11 @@ class PysbStaticViz(object):
             * 1 => When collapsing nodes, retain duplicate edges
             * 0 => When collapsing nodes, remove duplicate edges
 
-        Parameters.
+        Parameters
         ----------
         visualize_args: dict
             Contains all the arguments that will be passed to the BioNetGen visualize function.
             The following key, value pairs are available
-
         rule_name : str
            Name of the rule to visualize, when `each` is set to 1 in visualize_args.
         cleanup : bool, optional
@@ -819,7 +818,6 @@ class PysbStaticViz(object):
         return graph
 
     def sbgn_graph(self):
-        import re
         from pysb.pattern import Pattern, Name
         from pysb import Rule, Parameter
         graph = nx.DiGraph(name=self.model.name, style='sbgn')

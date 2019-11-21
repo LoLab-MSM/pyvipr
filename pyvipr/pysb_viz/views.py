@@ -451,7 +451,7 @@ def atom_rules_view(model, visualize_args, rule_name=None, verbose=False, cleanu
         * 1 => When collapsing nodes, retain duplicate edges
         * 0 => When collapsing nodes, remove duplicate edges
 
-    Parameters.
+    Parameters
     ----------
     model: pysb.model or bngl file
         Model to visualize

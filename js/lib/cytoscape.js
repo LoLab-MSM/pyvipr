@@ -596,7 +596,7 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
                     that.$slider.val(currentTime);
                     that.$slider_text.val(tspan[currentTime].toFixed(2));
                     if (onetime === true){
-                        queue[position].play()
+                        queue[position].play();
                     }
                     else {
                         queue[position].play().promise('complete').then(() => {
@@ -1051,7 +1051,7 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
                     type: "image/png"
                 });
                 let blobUrl = URL.createObjectURL(blob);
-                saveAs(blobUrl, 'graph.png')
+                saveAs(blobUrl, 'graph.png');
             }
             if (this.value === 'sif') {
                 let sif = [];
