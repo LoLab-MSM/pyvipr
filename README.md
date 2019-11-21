@@ -3,12 +3,20 @@
 
 [![Documentation Status](https://readthedocs.org/projects/pyvipr/badge/?version=latest)](https://pyvipr.readthedocs.io/en/latest/?badge=latest)
 [![Build Status](https://travis-ci.org/LoLab-VU/pyvipr.svg?branch=master)](https://travis-ci.org/LoLab-VU/pyvipr)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/LoLab-VU/pyvipr/master?filepath=binder) [![Greenkeeper badge](https://badges.greenkeeper.io/LoLab-VU/pyvipr.svg)](https://greenkeeper.io/)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/LoLab-VU/pyvipr/master?filepath=binder) 
+[![Greenkeeper badge](https://badges.greenkeeper.io/LoLab-VU/pyvipr.svg)](https://greenkeeper.io/)
 # PyViPR
 PyViPR is a Jupyter widget that generates network dynamic and static visualizations of [PySB](http://pysb.org/), [Tellurium](http://tellurium.analogmachine.org/),
 [BNGL](https://www.csb.pitt.edu/Faculty/Faeder/?page_id=409), [SBML](http://sbml.org/Main_Page), and [Ecell4](https://github.com/ecell/ecell4) 
  models using [Cytoscape.js](http://js.cytoscape.org/). Additionally, it can be used to visualize networks encoded in the graphml, 
  sif, sbgn xml, cytoscape json, gexf, gml and yaml formats.
+ 
+ ## Trying it online
+
+To try out PyViPR interactively in your web browser, just click on the binder
+link below:
+
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/LoLab-VU/pyvipr/master?filepath=binder)
 
 ## Installation
 
@@ -56,7 +64,19 @@ After installing the widget, it can be used by importing it in the Jupyter noteb
 models, [SimulationResult](https://pysb.readthedocs.io/en/stable/modules/simulator.html#pysb.simulator.SimulationResult) 
 objects, [Tellurium](http://tellurium.analogmachine.org/) models and BNGL & SBML files. 
 
-PyViPR has two main interfaces: a PySB interface and a Tellurium interface.
+PyViPR has three main interfaces: Graph formats, PySB, and a Tellurium.
+
+### Graph formats interface
+This interface leverages NetworkX and Cytoscape.js to generate network visualizations of graphs encoded in different 
+file formats.
+
+#### Graphml example:
+```python
+import pyvipr.network_viz as nviz
+
+nviz.graphml_view('path_to_file/mygraph.graphml', layout_name='fcose')
+```
+![graphml_view](graphml.png)
 
 ### PySB interface
 
@@ -77,30 +97,29 @@ Installing PySB from conda:
 > conda install pysb -c alubbock
 ```
 
-PyViPR has the following functions to visualize PySB models and simulations:
+#### PySB static example:
+```python
+import pyvipr.pysb_viz as pviz
+from pyvipr.examples_models.lopez_embedded import model
 
-| Function                                 | Description                                           |
-|------------------------------------------|-------------------------------------------------------|
-| `sp_view(model)`                    | Shows network of interacting species                  |
-| `sp_comp_view(model)`       | Shows network of species in their respective compartments |
-| `sp_comm_view(model)`                | Shows network of species grouped in [communities](https://en.wikipedia.org/wiki/Community_structure) |
-| `highlight_nodes_view(model, species, reactions)` | Shows network of species and highlights the species and reactions passed as arguments |
-| `sp_rxns_bidirectional_view(model)`      | Shows bipartite network with species and bidirectional reactions nodes |
-| `sp_rxns_view(model)`                    | Shows bipartite network with species and unidirectional reactions nodes |
-| `sp_rules_view(model)`                   | Shows bipartite network with species and rules nodes  |
-| `sp_rules_fxns_view(model)`         | Shows bipartite network with species and rules nodes.<br> Rules nodes are grouped in the functions they come from |
-| `sp_rules_mod_view(model)`           | Shows bipartite network with species and rules nodes.<br> Rules nodes are grouped in the file modules they come from |
-| `projected_species_reactions_view(model)`| Shows network of species projected from the <br> bipartite(species, reactions) graph |
-| `projected_reactions_view(model)`        | Shows network of reactions projected from the <br> bipartite(species, reactions) graph |
-| `projected_rules_view(model)`            | Shows network of rules projected from the <br> bipartite(species, rules) graph |
-| `projected_species_rules_view(model)`    | Shows network of species projected from the <br> bipartite(species, rules) graph |
-| `sp_dyn_view(SimulationResult)`| Shows a species network. Edges size and color are updated <br> according to reaction rate values. Nodes filling <br> are updated according to concentration|
-| `sp_comp_dyn_view(SimulationResult)` | Same as sp_dyn_view but species nodes are grouped by <br> the compartments on which they are located |
-| `sp_comm_dyn_view(SimulationResult)` | Same as sp_dyn_view but species nodes are grouped by communities |
-| `sim_model_dyn_view(model, tspan, param_values)` | Simulates a model a shows a dynamic visualization of the results |
-| `atom_rules_view(model, visualize_args, ...)` | Uses the BioNetGen [atom-rules](https://doi.org/10.1371/journal.pcbi.1005857) to visualize large rule-base models. Please visit PyViPR [documentation](https://pyvipr.readthedocs.io/en/latest/modules/pysb_viz.html#pyvipr.pysb_viz.static_viz.PysbStaticViz.atom_rules_view) for parameter details.
-| `nx_graph_view(graph)` | Shows a networkx graph |
-| `nx_graph_dyn_view(graph, tspan, **kwargs)`| Shows a dynamic visualization of the graph |
+pviz.sp_comm_louvain_view(model, random_state=1, layout_name='klay')
+```
+![species_view_pysb](earm_communities.png)
+
+#### PySB Dynamic Example:
+```python
+import pyvipr.pysb_viz as pviz
+from pyvipr.examples_models.mm_two_paths_model import model
+from pysb.simulator import ScipyOdeSimulator
+import numpy as np
+
+tspan = np.linspace(0, 1000, 100)
+sim = ScipyOdeSimulator(model, tspan).run()
+pviz.sp_dyn_view(sim)
+```
+
+![enzymatic_reaction](pyvipr_dynamic.gif)
+
 
 ### Tellurium interface
 
@@ -111,42 +130,21 @@ Installing Tellurium from pip:
 > pip install tellurium
 ```
 
-Currently PyViPR only supports two static visualizations:
-
-* sp_view(model)
-* sp_comm(model)
-
-and one dynamic visualization:
-
-* sp_dyn_view(simulation)
-
-In the future, we plan to add more visualizations of Tellurium models
-
-## Examples
-
-#### Static Example:
 ```python
-import pyvipr.pysb_viz as viz
-from pyvipr.examples_models.lopez_embedded import model
+import tellurium as te
+import pyvipr.tellurium_viz as tviz
 
-viz.sp_comm_view(model, random_state=1, layout_name='klay')
+model = te.loadSBMLModel("https://www.ebi.ac.uk/biomodels-main/download?mid=BIOMD0000000001")
+
+tviz.sp_view(model)
 ```
-![species_view](earm_comms.png)
+![species_view_tellurium](tellurium_example.png)
 
-#### Dynamic Example:
-```python
-import pyvipr.pysb_viz as viz
-from pyvipr.examples_models.mm_two_paths_model import model
-from pysb.simulator import ScipyOdeSimulator
-import numpy as np
+## Documentation
 
-tspan = np.linspace(0, 1000, 100)
-sim = ScipyOdeSimulator(model, tspan).run()
-viz.sp_dyn_view(sim)
-```
+To get started with using `PyViPR`, check out the full documentation
 
-![enzymatic_reaction](pysbViz.gif)
-
+https://pyvipr.readthedocs.io/
 
 ## License
 
