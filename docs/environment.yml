@@ -11,6 +11,6 @@ dependencies:
   - pip=>19.2.2
   - nbsphinx=>0.5.0
   - pip:
-      - tellurium=>2.1.5
-      - pyvipr=>0.3.5
-      - python-louvain=>0.13
+      - tellurium
+      - pyvipr
+      - python-louvain
