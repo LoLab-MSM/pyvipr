@@ -5,6 +5,8 @@
 [![Build Status](https://travis-ci.org/LoLab-VU/pyvipr.svg?branch=master)](https://travis-ci.org/LoLab-VU/pyvipr)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/LoLab-VU/pyvipr/master?filepath=binder) 
 [![Greenkeeper badge](https://badges.greenkeeper.io/LoLab-VU/pyvipr.svg)](https://greenkeeper.io/)
+[![Gitter](https://badges.gitter.im/LoLab-VU/pyvipr.svg)](https://gitter.im/LoLab-VU/pyvipr?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 # PyViPR
 PyViPR is a Jupyter widget that generates network dynamic and static visualizations of [PySB](http://pysb.org/), [Tellurium](http://tellurium.analogmachine.org/),
 [BNGL](https://www.csb.pitt.edu/Faculty/Faeder/?page_id=409), [SBML](http://sbml.org/Main_Page), and [Ecell4](https://github.com/ecell/ecell4) 
