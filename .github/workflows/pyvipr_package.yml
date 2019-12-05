@@ -21,4 +21,12 @@ jobs:
         python-version: ${{ matrix.python-version }}
         conda-channels: anaconda, conda-forge
     - run: conda env create -f test-environment.yml
-    - run: source activate pyvipr-test
+    - if: matrix.os == 'windows-latest'
+      run: |
+        activate.bat pyvipr-test 
+    - if: matrix.os == 'ubuntu-latest'
+      run: |
+        source activate pyvipr-test 
+    - if: matrix.os == 'windows-latest'
+      run: |
+        source activate pyvipr-test 
