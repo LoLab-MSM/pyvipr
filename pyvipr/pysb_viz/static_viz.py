@@ -275,8 +275,8 @@ class PysbStaticViz(object):
     def sp_rules_fxns_view(self):
         """
         Generates a dictionary with the info of a bipartite graph where one set of nodes is the model species
-        and the other set is the model rules. Additionally, it adds information of the functions from which
-        the rules come from.
+        and the other set is the model rules. Additionally, it clusters rules into the functions used to
+        create the rules.
 
         Returns
         -------
@@ -285,19 +285,52 @@ class PysbStaticViz(object):
             contains all the information (nodes,edges, parent nodes, positions) to generate
             a cytoscapejs network.
         """
-        rules_graph = self.sp_rules_graph()
+        graph = self.sp_rules_graph()
+        self._add_rules_functions(graph)
+        data = from_networkx(graph)
+        return data
+
+    def rules_fxns_view(self):
+        """
+        Generates a dictionary with the info of a unipartite rules graph. Additionally, it clusters rules
+        into the functions used to create them
+
+        Returns
+        -------
+        dict
+            A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
+            contains all the information (nodes,edges, parent nodes, positions) to generate
+            a cytoscapejs network.
+        """
+        sp_rules_graph = self.sp_rules_graph()
+        rules_graph = self.projected_graph(sp_rules_graph, 'rules')
+        self._add_rules_functions(rules_graph)
+        data = from_networkx(rules_graph)
+        return data
+
+    def _add_rules_functions(self, rules_graph):
+        """
+        Obtains functions where rules are declared and add them as nodes to the graph. It also, set nodes attributes
+        to relate rules with their corresponding function.
+
+        Parameters
+        ----------
+        rules_graph : nx.DiGraph
+            A graph that contains rules nodes
+
+        Returns
+        -------
+
+        """
         rule_functions = {rule.name: rule._function for rule in self.model.rules}
         unique_functions = set(rule_functions.values())
         nx.set_node_attributes(rules_graph, rule_functions, 'parent')
         rules_graph.add_nodes_from(unique_functions, NodeType='function')
-        data = from_networkx(rules_graph)
-        return data
 
     def sp_rules_mod_view(self):
         """
         Generates a dictionary with the info of a bipartite graph where one set of nodes is the model species
-        and the other set is the model rules. Additionally, it adds information of the modules from which
-        the rules come from.
+        and the other set is the model rules. Additionally, it clusters rules into the modules used to create them
 
         Returns
         -------
@@ -306,9 +339,43 @@ class PysbStaticViz(object):
             contains all the information (nodes,edges, parent nodes, positions) to generate
             a cytoscapejs network.
         """
-        # TODO: This works with the latest (unreleased pysb) we should wait until committing this change
         rules_graph = self.sp_rules_graph()
+        self._add_rules_modules(rules_graph)
+        data = from_networkx(rules_graph)
+        return data
 
+    def rules_mod_view(self):
+        """
+        Generates a dictionary with the info of a unipartite rules graph. Additionally, it clusters rules
+        into the modules used to create them
+
+        Returns
+        -------
+        dict
+            A Dictionary object that can be converted into Cytoscape.js JSON. This dictionary
+            contains all the information (nodes,edges, parent nodes, positions) to generate
+            a cytoscapejs network.
+        """
+        sp_rules_graph = self.sp_rules_graph()
+        rules_graph = self.projected_graph(sp_rules_graph, 'rules')
+        self._add_rules_modules(rules_graph)
+        data = from_networkx(rules_graph)
+        return data
+
+    def _add_rules_modules(self, rules_graph):
+        """
+        Obtains modules where rules are declared and add them as node to the graph. It also, set nodes attributes
+        to relate rules with their corresponding module.
+
+        Parameters
+        ----------
+        rules_graph : nx.DiGraph
+            A graph that contains rules nodes
+
+        Returns
+        -------
+
+        """
         # Unique modules used in the model
         unique_modules = [m for m in self.model.modules if not m.startswith('_')]
         # Remove outer model file to not look further modules that are not related to
@@ -364,8 +431,6 @@ class PysbStaticViz(object):
         rules_graph.add_nodes_from(module_parent_nodes, NodeType='module')
         nx.set_node_attributes(rules_graph, module_parents, 'parent')
         nx.set_node_attributes(rules_graph, rules_module, 'parent')
-        data = from_networkx(rules_graph)
-        return data
 
     def atom_rules_view(self, visualize_args, rule_name=None, verbose=False, cleanup=True):
         """

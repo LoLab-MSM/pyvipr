@@ -15,6 +15,8 @@ __all__ = [
     'sp_rules_view',
     'sp_rules_fxns_view',
     'sp_rules_mod_view',
+    'rules_fxns_view',
+    'rules_mod_view',
     'projected_species_from_bireactions_view',
     'projected_bireactions_view',
     'projected_rules_view',
@@ -330,6 +332,38 @@ def sp_rules_mod_view(model, layout_name='cose-bilkent'):
 
     """
     return Viz(data=model, type_of_viz='sp_rules_mod_view', layout_name=layout_name)
+
+
+def rules_fxns_view(model, layout_name='cose-bilkent'):
+    """
+    Render a visualization of a unipartite rules graph. Rules are grouped by the functions that created them.
+
+    Parameters
+    ----------
+    model: pysb.model or str
+        Model to visualize. It can be a pysb model, or the file path to an
+        an SBML or BNGL model
+    layout_name: str
+        Layout to use
+
+    """
+    return Viz(data=model, type_of_viz='rules_fxns_view', layout_name=layout_name)
+
+
+def rules_mod_view(model, layout_name='cose-bilkent'):
+    """
+    Render a visualization of a unipartite rules graph. Rules are grouped by the modules where they are defined.
+
+    Parameters
+    ----------
+    model: pysb.model or str
+        Model to visualize. It can be a pysb model, or the file path to an
+        an SBML or BNGL model
+    layout_name: str
+        Layout to use
+
+    """
+    return Viz(data=model, type_of_viz='rules_mod_view', layout_name=layout_name)
 
 
 def projected_species_from_bireactions_view(model, layout_name='cose-bilkent'):
