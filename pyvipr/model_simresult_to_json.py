@@ -34,7 +34,7 @@ def data_to_json(value, widget):
 
     elif isinstance(value, str):
         file_extension = os.path.splitext(value)[1]
-        if file_extension in ['.bngl', '.sbml', '.xml'] and widget.type_of_viz != 'sbgn_xml'\
+        if file_extension in ['.bngl', '.sbml', '.xml', '.ka'] and widget.type_of_viz != 'sbgn_xml'\
                 or value.startswith('BIOMD'):
             try:
                 from pysb.importers.sbml import model_from_sbml, model_from_biomodels
@@ -45,6 +45,18 @@ def data_to_json(value, widget):
 
             if file_extension == '.bngl':
                 model = model_from_bngl(value)
+            elif file_extension == '.ka':
+                import subprocess
+                import re
+                try:
+                    import truml
+                    subprocess.run(['truml', '-k', value], check=True)
+                except (ImportError, subprocess.CalledProcessError):
+                    raise Exception('Please install the TruML package from the python3 branch:\n'
+                                    'pip install git+https://github.com/LoLab-VU/TRuML@python3')
+                bngl_model_path = re.sub('ka', 'bngl', value)
+                model = model_from_bngl(bngl_model_path)
+                os.remove(bngl_model_path)
             elif file_extension in ['.sbml', '.xml']:
                 model = model_from_sbml(value)
             elif value.startswith('BIOMD'):
@@ -67,12 +79,6 @@ def data_to_json(value, widget):
                 data = file.read()
             data = data.rstrip('\n')
             return data
-        # elif file_extension == '.ka':
-        #     subprocess.run(['truml', '-k', value])
-        #     bngl_model_path = re.sub('ka', 'bngl', value)
-        #     model = model_from_bngl(bngl_model_path)
-        #     os.remove(bngl_model_path)
-
         else:
             raise ValueError('Format not supported')
 
