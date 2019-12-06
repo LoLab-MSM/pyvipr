@@ -1,0 +1,35 @@
+name: Python package
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      max-parallel: 4
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+        python-version: [3.6]
+
+    steps:
+    - uses: actions/checkout@master
+    - name: Setup conda
+      uses: s-weigand/setup-conda@master
+      with:
+        update-conda: true
+        python-version: ${{ matrix.python-version }}
+        conda-channels: anaconda, conda-forge, alubbock
+    - run: conda install --yes pip traitlets traittypes jupyter pysb atomizer matplotlib networkx coveralls pytest nbval pytest-cov
+    - name: Install PyViPR and Test with pytest
+      run: |
+        pip install tellurium
+        pip install python-louvain
+        pip install .
+        pytest --nbval --cov=pyvipr
+    - name: Publish package
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_password }}
