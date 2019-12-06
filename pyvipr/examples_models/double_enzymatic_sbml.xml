@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version2/core" level="3" version="2">
+  <model name="mm_two_paths_model">
+    <listOfCompartments>
+      <compartment id="default" spatialDimensions="3" size="1" constant="true"/>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species id="__s0" name="E(s=None)" compartment="default" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="__s1" name="S(e=None, type=&apos;A&apos;)" compartment="default" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="__s2" name="S(e=None, type=&apos;B&apos;)" compartment="default" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="__s3" name="E(s=1) ._br_S(e=1, type=&apos;A&apos;)" compartment="default" initialAmount="0" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="__s4" name="E(s=1) ._br_S(e=1, type=&apos;B&apos;)" compartment="default" initialAmount="0" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="__s5" name="P()" compartment="default" initialAmount="0" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter id="kf1" name="kf1" value="0.1" constant="true"/>
+      <parameter id="kr1" name="kr1" value="10" constant="true"/>
+      <parameter id="kcat1" name="kcat1" value="100" constant="true"/>
+      <parameter id="kf2" name="kf2" value="0.1" constant="true"/>
+      <parameter id="kr2" name="kr2" value="1000" constant="true"/>
+      <parameter id="kcat2" name="kcat2" value="10" constant="true"/>
+      <parameter id="Etot" name="Etot" value="10" constant="true"/>
+      <parameter id="S1_0" name="S1_0" value="100" constant="true"/>
+      <parameter id="S2_0" name="S2_0" value="100" constant="true"/>
+      <parameter id="__obs0" name="E_free" constant="false"/>
+      <parameter id="__obs1" name="S1_free" constant="false"/>
+      <parameter id="__obs2" name="S2_free" constant="false"/>
+      <parameter id="__obs3" name="ES1_complex" constant="false"/>
+      <parameter id="__obs4" name="ES2_complex" constant="false"/>
+      <parameter id="__obs5" name="Product" constant="false"/>
+    </listOfParameters>
+    <listOfInitialAssignments>
+      <initialAssignment symbol="__s0">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> Etot </ci>
+        </math>
+      </initialAssignment>
+      <initialAssignment symbol="__s1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> S1_0 </ci>
+        </math>
+      </initialAssignment>
+      <initialAssignment symbol="__s2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> S2_0 </ci>
+        </math>
+      </initialAssignment>
+    </listOfInitialAssignments>
+    <listOfRules>
+      <assignmentRule variable="__obs0">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> __s0 </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="__obs1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> __s1 </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="__obs2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> __s2 </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="__obs3">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> __s3 </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="__obs4">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> __s4 </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="__obs5">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> __s5 </ci>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+    <listOfReactions>
+      <reaction id="r0" name="ReversibleBinding_1" reversible="true">
+        <listOfReactants>
+          <speciesReference species="__s0" constant="true"/>
+          <speciesReference species="__s1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="__s3" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> __s0 </ci>
+                <ci> __s1 </ci>
+                <ci> kf1 </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> __s3 </ci>
+                <ci> kr1 </ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r1" name="ReversibleBinding_2" reversible="true">
+        <listOfReactants>
+          <speciesReference species="__s0" constant="true"/>
+          <speciesReference species="__s2" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="__s4" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> __s0 </ci>
+                <ci> __s2 </ci>
+                <ci> kf2 </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> __s4 </ci>
+                <ci> kr2 </ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r2" name="Production_1" reversible="false">
+        <listOfReactants>
+          <speciesReference species="__s3" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="__s0" constant="true"/>
+          <speciesReference species="__s5" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> __s3 </ci>
+              <ci> kcat1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="r3" name="Production_2" reversible="false">
+        <listOfReactants>
+          <speciesReference species="__s4" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="__s0" constant="true"/>
+          <speciesReference species="__s5" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> __s4 </ci>
+              <ci> kcat2 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+  </model>
+</sbml>
+
