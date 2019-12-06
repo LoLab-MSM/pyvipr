@@ -10,7 +10,7 @@ jobs:
       max-parallel: 4
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
-        python-version: [3.5, 3.6]
+        python-version: [3.6]
 
     steps:
     - uses: actions/checkout@master
@@ -22,11 +22,19 @@ jobs:
         conda-channels: anaconda, conda-forge
     - run: conda env create -f test-environment.yml
     - if: matrix.os == 'windows-latest'
-      run: |
-        activate.bat pyvipr-test 
+      run: activate.bat pyvipr-test 
     - if: matrix.os == 'ubuntu-latest'
-      run: |
-        source activate pyvipr-test 
+      run: source activate pyvipr-test 
     - if: matrix.os == 'macOS-latest'
+      run: source activate pyvipr-test 
+    - name: Test with pytest
       run: |
-        source activate pyvipr-test 
+        python -m pip install --upgrade pip
+        pip install .
+        pytest --nbval --cov=pyvipr
+    - name: Publish package
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_password }}
