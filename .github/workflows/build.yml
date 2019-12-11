@@ -33,7 +33,7 @@ jobs:
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       run: python setup.py sdist bdist_wheel
     - name: Publish package
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == macOS-latest
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'macOS-latest'
       uses: ortega2247/pypi-upload-action@master
       with:
         user: __token__
