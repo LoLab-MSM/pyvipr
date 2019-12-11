@@ -38,7 +38,7 @@ jobs:
         user: __token__
         password: ${{ secrets.pypi_password }}
     - name: Publish package to Anaconda
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'macOS-latest'
+      if: github.event_name == 'push' && matrix.os == 'ubuntu-latest'
       uses: ortega2247/conda-package-publish-action@master
       with:
         subDir: '.'
