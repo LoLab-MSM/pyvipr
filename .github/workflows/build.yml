@@ -32,9 +32,15 @@ jobs:
     - name: Create distribution
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       run: python setup.py sdist bdist_wheel
-    - name: Publish package
+    - name: Publish package to PyPI
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'macOS-latest'
       uses: ortega2247/pypi-upload-action@master
       with:
         user: __token__
         password: ${{ secrets.pypi_password }}
+    - name: Publish package to Anaconda
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'macOS-latest'
+      uses: ortega2247/conda-package-publish-action@master
+      with:
+        subDir: '.'
+        AnacondaToken: ${{ secrets.ANACONDA_TOKEN }}
