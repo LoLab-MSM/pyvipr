@@ -1,5 +1,4 @@
-name: Python package
-
+name: build
 on: [push]
 
 jobs:
