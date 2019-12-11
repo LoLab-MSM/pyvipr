@@ -1,5 +1,4 @@
-name: build and release on tags
-
+name: build
 on: [push]
 
 jobs:
