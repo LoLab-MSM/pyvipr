@@ -129,6 +129,7 @@ setup_args = {
     'version': version_ns['__version__'],
     'description': 'Widget to visualize PySB models in Jupyter Notebook',
     'long_description': LONG_DESCRIPTION,
+    'long_description_content_type': 'text/markdown',
     'include_package_data': True,
     'data_files': [
         ('share/jupyter/nbextensions/pyvipr', [
