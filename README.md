@@ -2,7 +2,7 @@
 
 
 [![Documentation Status](https://readthedocs.org/projects/pyvipr/badge/?version=latest)](https://pyvipr.readthedocs.io/en/latest/?badge=latest)
-[![Build Status](https://travis-ci.org/LoLab-VU/pyvipr.svg?branch=master)](https://travis-ci.org/LoLab-VU/pyvipr)
+![](https://github.com/Lolab-VU/pyvipr/workflows/build/badge.svg)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/LoLab-VU/pyvipr/master?filepath=binder) 
 [![Greenkeeper badge](https://badges.greenkeeper.io/LoLab-VU/pyvipr.svg)](https://greenkeeper.io/)
 [![Gitter](https://badges.gitter.im/LoLab-VU/pyvipr.svg)](https://gitter.im/LoLab-VU/pyvipr?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
