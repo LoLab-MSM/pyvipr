@@ -1,4 +1,4 @@
-name: Python package
+name: build and release on tags
 
 on: [push]
 
