@@ -43,7 +43,7 @@
         "cytoscape-dagre": "^2.2.2",
         "cytoscape-expand-collapse": "^3.1.2",
         "cytoscape-klay": "^3.1.2",
-        "cytoscape-popper": "^1.0.4",
+        "cytoscape-popper": "^1.0.6",
         "cytoscape-sbgn-stylesheet": "^4.0.1",
         "cytoscape-grid-guide": "^2.3.0",
         "cytoscape-cola": "^2.3.0",
