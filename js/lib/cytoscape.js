@@ -1,7 +1,8 @@
 const widgets = require('@jupyter-widgets/base');
 const _ = require('lodash');
 const cytoscape = require('cytoscape');
-const tippy = require('tippy.js/umd/index.all.js');
+const tippy = require('tippy.js/dist/tippy-bundle.cjs').default;
+const sticky = require('tippy.js/dist/tippy.cjs').sticky;
 const popper = require('cytoscape-popper');
 const coseBilkent = require('cytoscape-cose-bilkent');
 const dagre = require('cytoscape-dagre');
@@ -117,7 +118,7 @@ const DEF_MODELS_STYLE = [
     },
     {
 
-        selector: 'edge[source_arrow_shape]',
+        selector: 'edge',
         style: {
             'curve-style': 'bezier',
             'target-arrow-shape': 'data(target_arrow_shape)',
@@ -127,7 +128,7 @@ const DEF_MODELS_STYLE = [
     },
     {
 
-        selector: 'edge[target_arrow_shape]',
+        selector: 'edge[target_arrow_fill]',
         style: {
             'curve-style': 'bezier',
             'target-arrow-shape': 'data(target_arrow_shape)',
@@ -467,45 +468,25 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
             that.callback_sim(parseInt(this.value))
         });
 
-        let allEles = cy.elements().filter(function(ele){
-            let n;
-            n = !(ele.isParent());
-            return n
-        });
         // Make tip function
-        let makeTippy = function(target, text){
-            return tippy( target.popperRef(), {
-                content: (function(){
-                    let div = document.createElement('div');
-                    div.innerHTML = text;
-                    return div;
-                })(),
-                // appendTo: that.el,
-//                        offset: '0, 450',
-                trigger: 'manual',
-                arrow: true,
-                placement: 'bottom',
-                hideOnClick: false,
-                interactive: true,
-                multiple: true,
-                sticky: true
-            } );
-        };
-        // Adding empty tips to nodes and edges in advanced so they
-        // can be updated later on
-        allEles.forEach(function(ele){
-            ele.data()['tip'] = makeTippy(ele, '');
-        });
-
-        // Show tip on tap
-        cy.on('taphold', 'node, edge',  function(evt){
-            let ele = evt.target;
-            if (ele.data()['tip']['state']['isVisible']){
-                ele.data()['tip'].hide();
-            } else {
-                ele.data()['tip'].show();
-            }
-        });
+//         let makeTippy = function(target, text){
+//             return tippy( target.popperRef(), {
+//                 content: (function(){
+//                     let div = document.createElement('div');
+//                     div.innerHTML = text;
+//                     return div;
+//                 })(),
+//                 // appendTo: that.el,
+// //                        offset: '0, 450',
+//                 trigger: 'manual',
+//                 arrow: true,
+//                 placement: 'bottom',
+//                 hideOnClick: false,
+//                 interactive: true,
+//                 multiple: true,
+//                 sticky: true
+//             } );
+//         };
 
     },
 
@@ -582,15 +563,9 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
         function animateAllEles(time, onetime){
             let playQueue = function(ele, queue, position){
                 if (position < queue.length){
-                    if (ele.isEdge()){
-                        let qtip = ele.data('edge_qtip')[position];
-                        ele.data()['tip']['popper'].querySelector('.tippy-content').textContent = qtip.toExponential(2).toString();
-
-                    }
-                    else {
-                        let qtip = ele.data('abs_value')[position];
-                        ele.data()['tip']['popper'].querySelector('.tippy-content').textContent = qtip.toExponential(2).toString();
-
+                    if (ele.hasOwnProperty('tippy')){
+                        let qtip = ele.data('qtip')[position];
+                        ele.tippy.setContent(qtip.toExponential(2).toString());
                     }
                     currentTime = position;
                     that.$slider.val(currentTime);
@@ -645,13 +620,56 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
                 let dNode = cy.filter("node[name=" + "\""+node.data.name+"\"" +"]");
                 let is_compound = compound_nodes_names.includes(node.data.NodeType);
                 if (!is_compound && dNode.length > 0){
-                    let ele = cy.nodes().filter(function(ele){
-                        return ele.data('name') === node.data.name && ele.isParent() === false
-                    });
+                    let ele = cy.nodes().getElementById(node.data.id);
                     let animationQueueNodes = animateAll(ele, node.data);
                     playQueue(ele, animationQueueNodes, time)}
             })
         }
+        // Show tip on tap
+        let makeTippy = function(node, text){
+            let ref = node.popperRef();
+            // unfortunately, a dummy element must be passed
+            // as tippy only accepts a dom element as the target
+            // https://github.com/atomiks/tippyjs/issues/661
+            let dummyDomEle = document.createElement('div');
+            node.tippy = tippy( dummyDomEle, {
+                onCreate: function(instance){ // mandatory
+                    // patch the tippy's popper reference so positioning works
+                    // https://atomiks.github.io/tippyjs/misc/#custom-position
+                    instance.popperInstance.reference = ref;
+                },
+                lazy: false, // mandatory
+                trigger: 'manual', // mandatory
+                // dom element inside the tippy:
+                content: function(){ // function can be better for performance
+                    let div = document.createElement('div');
+                    div.innerHTML = text;
+                    return div;
+                },
+                // your own preferences:
+                arrow: true,
+                placement: 'bottom',
+                hideOnClick: false,
+                multiple: true,
+                sticky: true,
+                plugins: [sticky]
+            } );
+        };
+
+        cy.on('taphold', 'node[NodeType = "species"], edge',  function(evt){
+            let ele = evt.target;
+            let qtip = ele.data('qtip')[currentTime].toExponential(2).toString();
+
+            if (ele.hasOwnProperty('tippy')){
+                ele.tippy.destroy();
+                delete ele.tippy;
+            }
+            else {
+                makeTippy(ele, qtip);
+                ele.tippy.show();
+            }
+        });
+
         cy.nodes().on("expandcollapse.beforecollapse", function(event) {
             pauseSlideshow();
         });
