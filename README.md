@@ -148,6 +148,15 @@ To get started with using `PyViPR`, check out the full documentation
 
 https://pyvipr.readthedocs.io/
 
+## Citation
+To cite PyViPR, please cite the iScience paper:
+
+[Interactive Multiresolution Visualization of Cellular Network Processes](https://www.cell.com/iscience/fulltext/S2589-0042(19)30493-6)
+
+Ortega O and Lopez C
+
+
+
 ## License
 
 [MIT](https://opensource.org/licenses/MIT)
