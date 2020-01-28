@@ -22,8 +22,8 @@ jobs:
     - name: Install dependencies
       run: |
            conda install --yes pip traitlets traittypes jupyter pysb atomizer matplotlib networkx coveralls pytest nbval pytest-cov 'coverage<5'
-           pip install tellurium
-           pip install python-louvain
+           pip install -v tellurium
+           pip install -v python-louvain
     - name: Install PyViPR and Test with pytest
       run: |
         pip install .
