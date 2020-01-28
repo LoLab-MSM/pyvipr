@@ -32,8 +32,8 @@ class TelluriumDynamicViz(object):
         else:
             raise Exception('Model must be a roadrunner instance')
 
-        required_selections = ['time'] + [s.getId() for s in self.model.species] + \
-                              [r.getId() for r in self.model.reactions]
+        required_selections = ['time'] + [s.getId() for s in self.model.getListOfSpecies()] + \
+                              [r.getId() for r in self.model.getListOfReactions()]
         sim_selections = sim_model.selections
 
         # Check that the simulation selections include all species and reactions rate values
@@ -69,10 +69,10 @@ class TelluriumDynamicViz(object):
         return data
 
     def matrix_reaction_rates(self):
-        rxns_matrix = np.zeros((len(self.model.reactions), len(self.y['time'])))
+        rxns_matrix = np.zeros((len(self.model.getListOfReactions()), len(self.y['time'])))
 
         # Calculates matrix of bidirectional reaction rates
-        for idx, reac in enumerate(self.model.reactions):
+        for idx, reac in enumerate(self.model.getListOfReactions()):
             rxns_matrix[idx] = self.y[reac.getId()]
         return rxns_matrix
 
@@ -95,10 +95,10 @@ class TelluriumDynamicViz(object):
         all_rate_abs_val = {}
 
         rxns_matrix = self.matrix_reaction_rates()
-        all_products = [[s.getSpecies() for s in rx.getListOfProducts()] for rx in self.model.reactions]
-        all_reactants = [[s.getSpecies() for s in rx.getListOfReactants()] for rx in self.model.reactions]
+        all_products = [[s.getSpecies() for s in rx.getListOfProducts()] for rx in self.model.getListOfReactions()]
+        all_reactants = [[s.getSpecies() for s in rx.getListOfReactants()] for rx in self.model.getListOfReactions()]
 
-        for sp in self.model.species:
+        for sp in self.model.getListOfSpecies():
             rxns_idx_reactant = [i for i, rx in enumerate(all_reactants) if sp.getId() in rx]
             rxns_idx_product = [i for i, rx in enumerate(all_products) if sp.getId() in rx]
             repeated_rxn = set(rxns_idx_reactant) & set(rxns_idx_product)
@@ -216,7 +216,7 @@ class TelluriumDynamicViz(object):
         """
         node_absolute = {}
         node_relative = {}
-        for sp in self.model.species:
+        for sp in self.model.getListOfSpecies():
             sp_absolute = np.absolute(self.y[sp.getId()])
             sp_relative = (sp_absolute / sp_absolute.max()) * 100
             node_absolute[sp.getId()] = sp_absolute.tolist()
