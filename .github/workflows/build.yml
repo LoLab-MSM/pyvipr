@@ -25,7 +25,7 @@ jobs:
            python -m pip install tellurium
     - name: Install PyViPR and Test with pytest
       run: |
-        pip uninstall pyzmq
+        pip uninstall pyzmq -y
         pip install pyzmq
         python -m pip install .
         pytest --nbval --cov=pyvipr
