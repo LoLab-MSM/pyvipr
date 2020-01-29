@@ -21,7 +21,6 @@ jobs:
         conda-channels: anaconda, conda-forge, alubbock
     - name: Install dependencies
       run: |
-           python -m pip install tellurium
            conda install --yes pip traitlets traittypes jupyter pysb atomizer matplotlib networkx coveralls pytest nbval pytest-cov 'coverage<5' python-louvain
     - name: Install PyViPR and Test with pytest
       run: |
