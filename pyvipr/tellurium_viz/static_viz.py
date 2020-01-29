@@ -42,7 +42,7 @@ class TelluriumStaticViz(object):
             Graph that has the information for the visualization of the model
         """
         sp_graph = nx.DiGraph(name='Tellurium model')
-        for s in self.model.species:
+        for s in self.model.getListOfSpecies():
             if s.getName():
                 label = s.getName()
             else:
@@ -59,15 +59,15 @@ class TelluriumStaticViz(object):
                              spInitial=s.getInitialConcentration())
             sp_graph.add_node(s.getId(), **node_data)
 
-        for r in self.model.reactions:
+        for r in self.model.getListOfReactions():
             if r.getReversible():
                 attr_edge = {'source_arrow_shape': 'triangle', 'target_arrow_shape': 'triangle',
                              'source_arrow_fill': 'hollow', 'arrowhead': 'normal'}
             else:
                 attr_edge = {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle',
                              'source_arrow_fill': 'filled', 'arrowhead': 'normal'}
-            for s in r.reactants:
-                for p in r.products:
+            for s in r.getListOfReactants():
+                for p in r.getListOfProducts():
                     sp_graph.add_edge(s.getSpecies(), p.getSpecies(), **attr_edge)
 
         return sp_graph
@@ -83,7 +83,7 @@ class TelluriumStaticViz(object):
             Graph that has the information for the visualization of the model
         """
         graph = nx.DiGraph(name='Tellurium model')
-        for s in self.model.species:
+        for s in self.model.getListOfSpecies():
             if s.getName():
                 label = s.getName()
             else:
@@ -101,7 +101,7 @@ class TelluriumStaticViz(object):
                              bipartite=0)
             graph.add_node(s.getId(), **node_data)
 
-        for r in self.model.reactions:
+        for r in self.model.getListOfReactions():
             # reaction nodes
             if r.getName():
                 label = r.getName()
@@ -125,11 +125,11 @@ class TelluriumStaticViz(object):
                              'source_arrow_fill': 'filled', 'arrowhead': 'normal'}
             attr_modifiers = {'source_arrow_shape': 'diamond', 'target_arrow_shape': 'diamond',
                               'source_arrow_fill': 'filled'}
-            for s in r.reactants:
+            for s in r.getListOfReactants():
                 graph.add_edge(s.getSpecies(), r.getId(), **attr_edge)
-            for s in r.products:
+            for s in r.getListOfProducts():
                 graph.add_edge(r.getId(), s.getSpecies(), **attr_edge)
-            for s in r.modifiers:
+            for s in r.getListOfModifiers():
                 graph.add_edge(s.getSpecies(), r.getId(), **attr_modifiers)
 
         return graph
