@@ -29,10 +29,11 @@ jobs:
         python -m pip install .
         pytest --nbval --cov=pyvipr
     - name: Create distribution
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'macOS-latest' && matrix.python-version == 3.7
+      shell: bash -l {0}
       run: python setup.py sdist bdist_wheel
     - name: Publish package to PyPI
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'macOS-latest'
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'macOS-latest' && matrix.python-version == 3.7
       uses: ortega2247/pypi-upload-action@master
       with:
         user: __token__
