@@ -22,11 +22,11 @@ jobs:
     - name: Install dependencies
       run: |
            conda install --yes pip traitlets traittypes jupyter pysb atomizer matplotlib networkx coveralls pytest nbval pytest-cov 'coverage<5'
-           pip install -v tellurium
-           pip install -v python-louvain
+           python -m pip install -v tellurium
+           python -m pip install -v python-louvain
     - name: Install PyViPR and Test with pytest
       run: |
-        pip install .
+        python -m pip install .
         pytest --nbval --cov=pyvipr
     - name: Create distribution
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
