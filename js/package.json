@@ -37,7 +37,7 @@
         "webpack-cli": "^3.3.2"
     },
     "dependencies": {
-        "@jupyter-widgets/base": "^1.2.5 || ^2.0.0",
+        "@jupyter-widgets/base": "^3.0.0",
         "cytoscape": "^3.4.0",
         "cytoscape-cose-bilkent": "^4.0.0",
         "cytoscape-dagre": "^2.2.2",
