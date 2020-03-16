@@ -27,7 +27,7 @@ jobs:
       shell: bash -l {0}
       run: |
         python -m pip install .
-        pytest --nbval --sanitize-with doc/pytest-sanitize.ini --cov=pyvipr
+        pytest --nbval --sanitize-with docs/pytest-sanitize.ini --cov=pyvipr
     - name: Create distribution
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'macOS-latest' && matrix.python-version == 3.7
       shell: bash -l {0}
