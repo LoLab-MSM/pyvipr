@@ -241,12 +241,12 @@ def network_dynamic_data(network, tspan, node_rel=None, node_tip=None, edge_colo
                          'equal length')
 
     nx.set_node_attributes(network, node_rel_default, 'rel_value')
-    nx.set_node_attributes(network, node_tip_default, 'abs_value')
+    nx.set_node_attributes(network, node_tip_default, 'qtip')
     nx.set_node_attributes(network, 'ellipse', 'shape')
     nx.set_node_attributes(network, '#2b913a', 'background_color')
     nx.set_edge_attributes(network, edge_colors_default, 'edge_color')
     nx.set_edge_attributes(network, edge_sizes_default, 'edge_size')
-    nx.set_edge_attributes(network, edge_tips_default, 'edge_qtip')
+    nx.set_edge_attributes(network, edge_tips_default, 'qtip')
 
     network.graph['name'] = ''
     network.graph['view'] = 'dynamic'

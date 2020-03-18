@@ -145,10 +145,10 @@ class PysbDynamicViz(object):
         edge_sizes, edge_colors, edge_qtips = self.edges_colors_sizes()
         nx.set_edge_attributes(self.sp_graph, edge_colors, 'edge_color')
         nx.set_edge_attributes(self.sp_graph, edge_sizes, 'edge_size')
-        nx.set_edge_attributes(self.sp_graph, edge_qtips, 'edge_qtip')
+        nx.set_edge_attributes(self.sp_graph, edge_qtips, 'qtip')
 
         node_abs, node_rel = self.node_data()
-        nx.set_node_attributes(self.sp_graph, node_abs, 'abs_value')
+        nx.set_node_attributes(self.sp_graph, node_abs, 'qtip')
         nx.set_node_attributes(self.sp_graph, node_rel, 'rel_value')
 
     def matrix_bidirectional_rates(self, rxns_idxs=None):

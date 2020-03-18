@@ -8,31 +8,33 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
-        python-version: [3.6]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: [3.6, 3.7]
 
     steps:
     - uses: actions/checkout@master
     - name: Setup conda
-      uses: s-weigand/setup-conda@master
+      uses: goanpeca/setup-miniconda@v1
       with:
-        update-conda: true
+        auto-update-conda: true
         python-version: ${{ matrix.python-version }}
-        conda-channels: anaconda, conda-forge, alubbock
     - name: Install dependencies
+      shell: bash -l {0}
       run: |
-           conda install --yes pip traitlets traittypes jupyter pysb atomizer matplotlib networkx coveralls pytest nbval pytest-cov 'coverage<5'
+           conda install --yes pip traitlets traittypes jupyter pysb atomizer matplotlib networkx coveralls pytest nbval pytest-cov 'coverage<5' python-louvain -c alubbock -c conda-forge
            pip install tellurium
-           pip install python-louvain
     - name: Install PyViPR and Test with pytest
+      if: matrix.os != 'windows-latest' && matrix.python-version != 3.6
+      shell: bash -l {0}
       run: |
-        pip install .
-        pytest --nbval --cov=pyvipr
+        python -m pip install .
+        pytest --nbval --sanitize-with docs/pytest-sanitize.ini --cov=pyvipr
     - name: Create distribution
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'macOS-latest' && matrix.python-version == 3.7
+      shell: bash -l {0}
       run: python setup.py sdist bdist_wheel
     - name: Publish package to PyPI
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'macOS-latest'
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'macOS-latest' && matrix.python-version == 3.7
       uses: ortega2247/pypi-upload-action@master
       with:
         user: __token__
