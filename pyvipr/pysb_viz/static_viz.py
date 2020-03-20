@@ -1292,7 +1292,7 @@ class PysbStaticViz(object):
             node_labels[node[0]] = node[1]['label']
 
         layout_ftn = NETWORKX_LAYOUTS[layout]
-        pos = layout_ftn(graph)
+        pos = layout_ftn(graph, **kwds)
         fig, ax = plt.subplots()
 
         node_collection = nx.draw_networkx_nodes(graph, pos, node_color=node_colors, ax=ax)
