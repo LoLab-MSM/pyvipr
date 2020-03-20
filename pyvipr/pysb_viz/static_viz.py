@@ -1,5 +1,5 @@
 import networkx as nx
-from pyvipr.util_networkx import from_networkx, map_edge_data_gml, map_node_data_gml
+from pyvipr.util_networkx import from_networkx, map_edge_data_gml, map_node_data_gml, draw_networkx_edges
 import pysb
 from pysb.bng import generate_equations
 from pysb.pattern import match_complex_pattern
@@ -1238,6 +1238,80 @@ class PysbStaticViz(object):
         # attrs.setdefault('arrowhead', 'normal')
         graph.add_edge(*nodes, **attrs)
 
+    def networkx_draw(self, type_graph='species', with_labels=True, layout='spring_layout', save_path='',
+                      dpi=None, **kwds):
+        """
+        Plot networks using NetowkrX and Matplotlib
+
+        Parameters
+        ----------
+        type_graph : str
+            Type of graph to plot: `species`, `species_reactions`, `species_rules`, `rules`, `reactions`
+        with_labels : bool
+            Weather to plot the species, rules, reactions labels in the network
+        layout : str
+            NetworkX layout to use to assign node positions.
+            See https://networkx.github.io/documentation/stable/reference/drawing.html#module-networkx.drawing.layout
+        save_path : str
+            File path to save network
+        dpi : The resolution in dots per inch
+        kwds
+
+        Returns
+        -------
+
+        """
+        import matplotlib.pyplot as plt
+        if type_graph == 'species':
+            graph = self.species_graph()
+        elif type_graph == 'species_reactions':
+            graph = self.sp_rxns_graph()
+        elif type_graph == 'species_rules':
+            graph = self.sp_rules_graph()
+        elif type_graph == 'rules':
+            sp_rules_graph = self.sp_rules_graph()
+            graph = self.projected_graph(sp_rules_graph, 'rules')
+        elif type_graph == 'reactions':
+            bigraph = self.sp_rxns_bidirectional_graph(two_edges=True)
+            graph = self.projected_graph(bigraph, 'bireactions')
+        else:
+            raise ValueError('Type of graph not supported')
+        edge_list = graph.edges
+        arrow_style = [0] * len(edge_list)
+        for idx, edge in enumerate(edge_list):
+            edge_data = graph.get_edge_data(*edge)
+            if edge_data['source_arrow_shape'] == 'triangle' and edge_data['target_arrow_shape'] == 'triangle':
+                arrow_style[idx] = '<|-|>'
+            else:
+                arrow_style[idx] = '-|>'
+
+        node_list = graph.nodes(data=True)
+        node_colors, node_labels = [0] * len(node_list), {}
+        for idx, node in enumerate(node_list):
+            node_colors[idx] = node[1]['background_color']
+            node_labels[node[0]] = node[1]['label']
+
+        layout_ftn = NETWORKX_LAYOUTS[layout]
+        pos = layout_ftn(graph)
+        fig, ax = plt.subplots()
+
+        node_collection = nx.draw_networkx_nodes(graph, pos, node_color=node_colors, ax=ax)
+        edge_collection = draw_networkx_edges(graph, pos, edgelist=edge_list, arrows=True, arrowstyle=arrow_style, ax=ax)
+        if with_labels:
+            nx.draw_networkx_labels(graph, pos, labels=node_labels, ax=ax, **kwds)
+        else:
+            nx.draw_networkx_labels(graph, pos, labels=None, ax=ax, **kwds)
+        if save_path:
+            fig.savefig(save_path, dpi=dpi)
+        else:
+            plt.draw_if_interactive()
+
+
+NETWORKX_LAYOUTS = {'spring_layout': nx.drawing.spring_layout, 'bipartite_layout': nx.drawing.bipartite_layout,
+                    'circular_layout': nx.drawing.circular_layout, 'kamada_kawai_layout': nx.drawing.kamada_kawai_layout,
+                    'planar_layout': nx.drawing.planar_layout, 'random_layout': nx.drawing.random_layout,
+                    'shell_layout': nx.drawing.shell_layout, 'spectral_layout': nx.drawing.spectral_layout,
+                    'spiral_layout': nx.drawing.spiral_layout}
 
 def in_cp_list(cp, cp_list):
     if [s for s in cp_list if match_complex_pattern(s, cp, exact=False)]:
