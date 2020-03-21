@@ -1238,8 +1238,8 @@ class PysbStaticViz(object):
         # attrs.setdefault('arrowhead', 'normal')
         graph.add_edge(*nodes, **attrs)
 
-    def networkx_draw(self, type_graph='species', with_labels=True, layout='spring_layout', save_path='',
-                      dpi=None, **kwds):
+    def networkx_draw(self, type_graph='species', with_labels=True, layout='spring_layout', figsize=None,
+                      save_path='', dpi=None, **kwds):
         """
         Plot networks using NetowkrX and Matplotlib
 
@@ -1293,7 +1293,7 @@ class PysbStaticViz(object):
 
         layout_ftn = NETWORKX_LAYOUTS[layout]
         pos = layout_ftn(graph, **kwds)
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=figsize)
 
         node_collection = nx.draw_networkx_nodes(graph, pos, node_color=node_colors, ax=ax)
         edge_collection = draw_networkx_edges(graph, pos, edgelist=edge_list, arrows=True, arrowstyle=arrow_style, ax=ax)
@@ -1307,11 +1307,21 @@ class PysbStaticViz(object):
             plt.draw_if_interactive()
 
 
-NETWORKX_LAYOUTS = {'spring_layout': nx.drawing.spring_layout, 'bipartite_layout': nx.drawing.bipartite_layout,
-                    'circular_layout': nx.drawing.circular_layout, 'kamada_kawai_layout': nx.drawing.kamada_kawai_layout,
-                    'planar_layout': nx.drawing.planar_layout, 'random_layout': nx.drawing.random_layout,
-                    'shell_layout': nx.drawing.shell_layout, 'spectral_layout': nx.drawing.spectral_layout,
-                    'spiral_layout': nx.drawing.spiral_layout}
+def dot_layout(sp_graph):
+    """
+    Parameters
+    ----------
+    sp_graph : nx.Digraph graph
+        Graph to layout
+    Returns
+    -------
+    An OrderedDict containing the node position according to the dot layout
+    """
+
+    pos = nx.nx_pydot.graphviz_layout(sp_graph, prog='dot')
+    ordered_pos = {node: pos[node] for node in sp_graph.nodes()}
+    return ordered_pos
+
 
 def in_cp_list(cp, cp_list):
     if [s for s in cp_list if match_complex_pattern(s, cp, exact=False)]:
@@ -1371,3 +1381,10 @@ def parse_name(spec):
         else:
             parsed_name += str(counts) + sp + '-'
     return parsed_name[:len(parsed_name) - 1]
+
+
+NETWORKX_LAYOUTS = {'spring_layout': nx.drawing.spring_layout, 'bipartite_layout': nx.drawing.bipartite_layout,
+                    'circular_layout': nx.drawing.circular_layout, 'kamada_kawai_layout': nx.drawing.kamada_kawai_layout,
+                    'planar_layout': nx.drawing.planar_layout, 'random_layout': nx.drawing.random_layout,
+                    'shell_layout': nx.drawing.shell_layout, 'spectral_layout': nx.drawing.spectral_layout,
+                    'spiral_layout': nx.drawing.spiral_layout, 'dot_layout': dot_layout}
