@@ -47,7 +47,7 @@
         "cytoscape-sbgn-stylesheet": "^4.0.1",
         "cytoscape-grid-guide": "^2.3.0",
         "cytoscape-cola": "^2.3.0",
-        "cytoscape-fcose": "^1.2.0",
+        "cytoscape-fcose": "^1.2.1",
         "cytoscape-graphml": "^1.0.6",
         "sbgnml-to-cytoscape": "^4.0.4",
         "jquery": ">=3.4.1",
