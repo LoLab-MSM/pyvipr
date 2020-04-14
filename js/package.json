@@ -50,7 +50,7 @@
         "cytoscape-fcose": "^1.2.1",
         "cytoscape-graphml": "^1.0.6",
         "sbgnml-to-cytoscape": "^4.0.4",
-        "jquery": ">=3.4.1",
+        "jquery": ">=3.5.0",
         "lodash": "^4.17.15",
         "tippy.js": "^5.2.1",
         "typeahead.js": "^0.11.1"
