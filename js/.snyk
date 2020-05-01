@@ -1,0 +1,14 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.14.1
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  SNYK-JS-LODASH-567746:
+    - lodash:
+        patched: '2020-05-01T04:07:03.740Z'
+    - '@jupyter-widgets/base > lodash':
+        patched: '2020-05-01T04:07:03.740Z'
+    - cytoscape-dagre > dagre > lodash:
+        patched: '2020-05-01T04:07:03.740Z'
+    - cytoscape-dagre > dagre > graphlib > lodash:
+        patched: '2020-05-01T04:07:03.740Z'
