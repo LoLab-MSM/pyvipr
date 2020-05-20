@@ -14,6 +14,7 @@ const graphml = require('cytoscape-graphml');
 const convert = require('sbgnml-to-cytoscape');
 const SIFJS = require('./sif.js');
 const sbgnStylesheet = require('cytoscape-sbgn-stylesheet');
+const cxtmenu = require('cytoscape-cxtmenu');
 const typeahead = require('typeahead.js');
 const $ = require('jquery');
 const semver_range = "^" + require("../package.json").version;
@@ -23,6 +24,7 @@ cytoscape.use(popper);
 cytoscape.use(coseBilkent);
 cytoscape.use(dagre);
 cytoscape.use(klay);
+cytoscape.use( cxtmenu );
 expandCollapse( cytoscape, $ ); // register extension
 graphml( cytoscape, $ );
 
@@ -809,6 +811,21 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
 
         // Initialize Expand collapse compound nodes extension
         let api = cy.expandCollapse({undoable:false, animate:true, fisheye:false});
+        // Initialize cytoscape-context-menu
+        cy.cxtmenu({
+            selector: 'node',
+
+            commands: [
+                {
+                    content: 'Rename',
+                    select: function(ele){
+                        let new_name= prompt("New name", "my name");
+                        ele.css({content: new_name});
+                    }
+                }
+            ]
+        });
+
         // Name community nodes with the highest degree node
         let communities = cy.nodes('[NodeType = "community"]');
         if (communities.nonempty()){
