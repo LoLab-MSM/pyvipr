@@ -8,6 +8,7 @@ import re
 import pyvipr.util as hf
 from pysb.bng import BngFileInterface
 from pysb.logging import EXTENDED_DEBUG
+from pysb.tools.render_reactions import sp_from_expression
 
 
 class PysbStaticViz(object):
@@ -754,6 +755,11 @@ class PysbStaticViz(object):
                            spInitial=sp_initial,
                            bipartite=0)
 
+        # Attributes for edges of reactions with expressions and modifiers
+        attr_modifiers = {'source_arrow_shape': 'diamond', 'target_arrow_shape': 'diamond',
+                          'source_arrow_fill': 'filled'}
+        attr_expr = {'source_arrow_shape': 'none', 'target_arrow_shape': 'square',
+                     'source_arrow_fill': 'filled'}
         for j, reaction in enumerate(self.model.reactions_bidirectional):
             reaction_node = 'r%d' % j
             rule = self.model.rules.get(reaction['rule'][0])
@@ -762,10 +768,10 @@ class PysbStaticViz(object):
                            shape="roundrectangle",
                            background_color="#d3d3d3",
                            NodeType='reaction',
-                           kf=rule.rate_forward.value if isinstance(rule.rate_forward,
-                                                                    pysb.Parameter) else 'None',
-                           kr=rule.rate_reverse.value if isinstance(rule.rate_reverse,
-                                                                    pysb.Parameter) else 'None',
+                           kf=str(rule.rate_forward.get_value()) if isinstance(rule.rate_forward,
+                                                                               (pysb.Parameter, pysb.Expression)) else 'None',
+                           kr=str(rule.rate_reverse.get_value()) if isinstance(rule.rate_reverse,
+                                                                               (pysb.Parameter, pysb.Expression)) else 'None',
                            bipartite=1)
             reactants = set(reaction['reactants'])
             products = set(reaction['products'])
@@ -775,20 +781,16 @@ class PysbStaticViz(object):
 
             sps_forward = set()
             if isinstance(rule.rate_forward, pysb.Expression):
-                sps_forward = hf.sp_from_expression(rule.rate_forward)
+                sps_forward = sp_from_expression(rule.rate_forward)
                 for s in sps_forward:
                     self._r_link_bipartite(graph, s, j, **attr_expr)
 
             if isinstance(rule.rate_reverse, pysb.Expression):
-                sps_reverse = hf.sp_from_expression(rule.rate_reverse)
+                sps_reverse = sp_from_expression(rule.rate_reverse)
                 sps_reverse = set(sps_reverse) - set(sps_forward)
                 for s in sps_reverse:
                     self._r_link_bipartite(graph, s, j, **attr_expr)
 
-            attr_modifiers = {'source_arrow_shape': 'diamond', 'target_arrow_shape': 'diamond',
-                              'source_arrow_fill': 'filled'}
-            attr_expr = {'source_arrow_shape': 'none', 'target_arrow_shape': 'square',
-                         'source_arrow_fill': 'filled'}
             attr_edge = {'source_arrow_shape': 'none', 'target_arrow_shape': 'triangle',
                          'source_arrow_fill': 'filled'}
             if reaction['reversible'] and two_edges:
@@ -865,8 +867,8 @@ class PysbStaticViz(object):
                            shape="roundrectangle",
                            background_color="#d3d3d3",
                            NodeType='reaction',
-                           kf=rule.rate_forward.value if not reaction['reverse'][0] else 'None',
-                           kr=rule.rate_reverse.value if reaction['reverse'][0] else 'None',
+                           kf=str(rule.rate_forward.get_value()) if not reaction['reverse'][0] else 'None',
+                           kr=str(rule.rate_reverse.get_value()) if reaction['reverse'][0] else 'None',
                            bipartite=1)
             reactants = set(reaction['reactants'])
             products = set(reaction['products'])
@@ -1184,8 +1186,8 @@ class PysbStaticViz(object):
                       'NodeType': 'rule', 'bipartite': 1}
         for rule_info, rxns in rxn_per_rule.items():
             rule = self.model.rules.get(rule_info[0])
-            node_attrs['kf'] = rule.rate_forward.value
-            node_attrs['kr'] = rule.rate_reverse.value if rule.rate_reverse else 'None'
+            node_attrs['kf'] = str(rule.rate_forward.get_value())
+            node_attrs['kr'] = str(rule.rate_reverse.get_value()) if rule.rate_reverse else 'None'
             node_attrs['label'] = rule_info[0]
             node_attrs['index'] = 'rule' + str(rule_info[1])
             self.merge_nodes(graph, rxns, rule_info[0], **node_attrs)
