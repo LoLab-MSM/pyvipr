@@ -52,7 +52,7 @@
         "cytoscape-cxtmenu": "^3.1.2",
         "sbgnml-to-cytoscape": "^4.0.4",
         "jquery": ">=3.5.1",
-        "lodash": "^4.17.15",
+        "lodash": "^4.17.17",
         "tippy.js": "^5.2.1",
         "typeahead.js": "^0.11.1"
     },
