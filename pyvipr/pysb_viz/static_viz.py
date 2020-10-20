@@ -527,8 +527,8 @@ class PysbStaticViz(object):
             output = bngfile.base_filename + file_name
             try:
                 g = nx.read_gml(output, label='id')
-            except nx.NetworkXError as e:
-                if 'multigraph' in str(e):
+            except nx.exception.NetworkXError as e:
+                if 'duplicated' in str(e):
                     with open(output, "r") as f:
                         contents = f.readlines()
                     contents[1] = '[multigraph 1\n'
@@ -652,7 +652,7 @@ class PysbStaticViz(object):
         sp_compartment = {}
         for idx, sp in enumerate(self.model.species):
             monomers = sp.monomer_patterns
-            monomers_comp = {m.compartment.name: m.compartment.size for m in monomers}
+            monomers_comp = {m.compartment.name: m.compartment.dimension for m in monomers}
             smallest_comp = min(monomers_comp, key=monomers_comp.get)
             sp_compartment['s{0}'.format(idx)] = smallest_comp
         nx.set_node_attributes(graph, sp_compartment, 'parent')
