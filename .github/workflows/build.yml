@@ -22,7 +22,7 @@ jobs:
       shell: bash -l {0}
       run: |
            conda install --yes pip traitlets traittypes jupyter pysb atomizer matplotlib networkx coveralls pytest nbval pytest-cov 'coverage<5' python-louvain -c alubbock -c conda-forge
-           pip install tellurium
+           pip install 'tellurium==2.1.5'
     - name: Install PyViPR and Test with pytest
       if: (matrix.os == 'windows-latest' && matrix.python-version == 3.6) != true
       shell: bash -l {0}
