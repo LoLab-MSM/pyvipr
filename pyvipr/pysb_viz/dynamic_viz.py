@@ -34,6 +34,10 @@ class PysbDynamicViz(object):
         self.tspan = simulation.tout[sim_idx]
         param_values = simulation.param_values[sim_idx]
         self.param_dict = dict((p.name, param_values[i]) for i, p in enumerate(self.model.parameters))
+        # Add expressions with constant value to dictionary of parameter values
+        if self.model.expressions:
+            for expr in self.model.expressions:
+                self.param_dict[expr.name] = expr.get_value()
         self.sp_graph = None
         self.type_viz = ''
         self.cmap = cmap
