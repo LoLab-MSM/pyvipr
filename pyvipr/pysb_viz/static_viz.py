@@ -1,5 +1,5 @@
 import networkx as nx
-from pyvipr.util_networkx import from_networkx, map_edge_data_gml, map_node_data_gml
+from pyvipr.util_networkx import from_networkx, map_edge_data_rn_gml, map_node_data_gml, map_edge_data_contactmap_gml
 import pysb
 from pysb.bng import generate_equations
 from pysb.pattern import match_complex_pattern
@@ -449,7 +449,6 @@ class PysbStaticViz(object):
             * `conventional` => Conventional rule visualization
             * `compact` => Compact rule visualization (using graph operation nodes)
             * `regulatory` => Rule-derived regulatory graph
-            * `opts` => Options template for regulatory graph
             * `contactmap` => Contact map
             * `reaction_network` => Reaction network
           -  `suffix`
@@ -461,7 +460,7 @@ class PysbStaticViz(object):
             * 0 => Show all rules  the same GML file.
           - `opts`
 
-            * file path => import options from file
+            * file path => import options from file. Options template for regulatory graph
           - `background`
 
             * 1 => Enable background
@@ -538,7 +537,10 @@ class PysbStaticViz(object):
 
         g.graph['name'] = self.model.name
         g.graph['style'] = 'atom'
-        data = from_networkx(g, map_node_data=map_node_data_gml, map_edge_data=map_edge_data_gml)
+        if visualize_args['type'] == 'contactmap':
+            data = from_networkx(g, map_node_data=map_node_data_gml, map_edge_data=map_edge_data_contactmap_gml)
+        else:
+            data = from_networkx(g, map_node_data=map_node_data_gml, map_edge_data=map_edge_data_rn_gml)
         return data
 
     def sbgn_view(self):

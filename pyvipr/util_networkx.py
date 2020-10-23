@@ -40,8 +40,10 @@ def __map_table_data(columns, graph_obj):
 def map_node_data_gml(columns, graph_obj):
     data = {}
 
-    if graph_obj['gid'] != '':
+    try:
         data['parent'] = graph_obj['gid']
+    except KeyError:
+        pass
 
     shape = graph_obj['graphics']['type']
 
@@ -53,13 +55,19 @@ def map_node_data_gml(columns, graph_obj):
     return data
 
 
-def map_edge_data_gml(edge_data):
+def map_edge_data_rn_gml(edge_data):
     line_style = edge_data['graphics']['style']
     source_arrow = edge_data['graphics']['sourceArrow']
     target_arrow = edge_data['graphics']['targetArrow']
     line_color = edge_data['graphics']['fill']
     data = {'line_style': CY_GML_LINE_STYLE[line_style], 'line_color': line_color,
             'source_arrow_shape': CY_GML_ARROWS[source_arrow], 'target_arrow_shape': CY_GML_ARROWS[target_arrow]}
+    return data
+
+
+def map_edge_data_contactmap_gml(edge_data):
+    line_color = edge_data['graphics']['fill']
+    data = {'line_color': line_color}
     return data
 
 
