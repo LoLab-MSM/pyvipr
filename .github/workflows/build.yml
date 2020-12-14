@@ -22,12 +22,18 @@ jobs:
       shell: bash -l {0}
       run: |
            conda install --yes pip traitlets traittypes jupyter pysb atomizer matplotlib networkx coveralls pytest nbval pytest-cov 'coverage<5' python-louvain -c alubbock -c conda-forge
-           pip install 'tellurium==2.1.5'
-    - name: Install PyViPR and Test with pytest
-      if: (matrix.os == 'windows-latest' && matrix.python-version == 3.6) != true
+    - name: Install tellurium
+      if: matrix.os == 'windows-latest' || matrix.os == ubuntu-latest
+      shell: bash -l {0}
+      run: pip install tellurium
+    - name: Install PyViPR
       shell: bash -l {0}
       run: |
         python -m pip install .
+    - name: Test with pytest
+      if: (matrix.os == 'macos-latest' && matrix.python-version == 3.7) != true
+      shell: bash -l {0}
+      run: |
         pytest --nbval --sanitize-with docs/pytest-sanitize.ini --cov=pyvipr
     - name: Create distribution
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'macOS-latest' && matrix.python-version == 3.7
