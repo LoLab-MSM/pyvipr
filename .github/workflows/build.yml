@@ -37,7 +37,7 @@ jobs:
         pytest --nbval --sanitize-with docs/pytest-sanitize.ini --cov=pyvipr --ignore=docs/tellurium_examples.ipynb \
         --ignore=binder/tellurium_example.ipynb
     - name: Test with pytest in ubuntu and windows
-      if: matrix.os == 'ubuntu-latest' || 'windows-latest'
+      if: matrix.os == 'ubuntu-latest' || matrix.os == 'windows-latest'
       shell: bash -l {0}
       run: |
         pytest --nbval --sanitize-with docs/pytest-sanitize.ini --cov=pyvipr
