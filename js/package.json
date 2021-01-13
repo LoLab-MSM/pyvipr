@@ -37,7 +37,7 @@
         "webpack-cli": "^3.3.2"
     },
     "dependencies": {
-        "@jupyter-widgets/base": "^3.0.0",
+        "@jupyter-widgets/base": "^4.0.0",
         "cytoscape": "^3.16.2",
         "cytoscape-cose-bilkent": "^4.1.0",
         "cytoscape-dagre": "^2.3.0",
@@ -49,7 +49,7 @@
         "cytoscape-cola": "^2.4.0",
         "cytoscape-fcose": "^1.2.3",
         "cytoscape-graphml": "^1.0.6",
-        "cytoscape-cxtmenu": "^3.2.0",
+        "cytoscape-cxtmenu": "^3.3.1",
         "sbgnml-to-cytoscape": "^4.0.4",
         "jquery": ">=3.5.1",
         "lodash": "^4.17.20",
