@@ -12,3 +12,4 @@ updates:
     directory: "/js"
     schedule:
       interval: "daily"
+    versioning-strategy: auto
