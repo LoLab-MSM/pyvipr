@@ -245,7 +245,7 @@ def network_dynamic_data(network, tspan, node_rel=None, node_tip=None, edge_colo
                             edge_sizes_default, edge_tips_default]
 
     for prop in node_edge_properties:
-        it = iter(prop)
+        it = iter(prop.values())
         the_len = len(next(it))
         if not all(len(l) == the_len for l in it):
             raise ValueError('All edge and node properties must have '
