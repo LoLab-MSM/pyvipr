@@ -244,9 +244,12 @@ def network_dynamic_data(network, tspan, node_rel=None, node_tip=None, edge_colo
     node_edge_properties = [node_rel_default, node_tip_default, edge_colors_default,
                             edge_sizes_default, edge_tips_default]
 
-    if [idx for idx in node_edge_properties if len(idx) != len(tspan)]:
-        raise ValueError('All edge and node properties must be '
-                         'equal length')
+    for prop in node_edge_properties:
+        it = iter(prop)
+        the_len = len(next(it))
+        if not all(len(l) == the_len for l in it):
+            raise ValueError('All edge and node properties must have '
+                             'same length')
 
     nx.set_node_attributes(network, node_rel_default, 'rel_value')
     nx.set_node_attributes(network, node_tip_default, 'qtip')
