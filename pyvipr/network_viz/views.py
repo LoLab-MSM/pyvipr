@@ -245,5 +245,6 @@ def yaml_view(file, layout_name='fcose'):
         import yaml
     except ImportError as e:
         raise ImportError("yaml_view() requires PyYAML: http://pyyaml.org/") from e
-    graph = yaml.load(file, Loader=yaml.Loader)
+    with open(file, 'r') as f:
+        graph = yaml.load(f, Loader=yaml.Loader)
     return Viz(data=graph, type_of_viz='network_static_view', layout_name=layout_name)
