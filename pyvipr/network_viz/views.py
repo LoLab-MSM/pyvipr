@@ -241,5 +241,10 @@ def yaml_view(file, layout_name='fcose'):
     -------
 
     """
-    graph = nx.read_yaml(file)
+    try:
+        import yaml
+    except ImportError as e:
+        raise ImportError("yaml_view() requires PyYAML: http://pyyaml.org/") from e
+    with open(file, 'r') as f:
+        graph = yaml.load(f, Loader=yaml.Loader)
     return Viz(data=graph, type_of_viz='network_static_view', layout_name=layout_name)
