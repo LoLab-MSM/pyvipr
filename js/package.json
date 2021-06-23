@@ -44,7 +44,7 @@
         "cytoscape-expand-collapse": "^4.1.0",
         "cytoscape-klay": "^3.1.4",
         "cytoscape-popper": "^1.0.7",
-        "cytoscape-sbgn-stylesheet": "^4.0.1",
+        "cytoscape-sbgn-stylesheet": "^4.0.2",
         "cytoscape-grid-guide": "^2.3.3",
         "cytoscape-cola": "^2.4.0",
         "cytoscape-fcose": "^1.2.3",
