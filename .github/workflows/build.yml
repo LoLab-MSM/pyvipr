@@ -21,7 +21,7 @@ jobs:
     - name: Install dependencies
       shell: bash -l {0}
       run: |
-           conda install --yes pyyaml pip traitlets traittypes jupyter pysb atomizer matplotlib networkx coveralls pytest nbval pytest-cov 'coverage<5' python-louvain -c alubbock -c conda-forge
+           conda install --yes pyyaml pip traitlets traittypes jupyter pysb atomizer matplotlib networkx coveralls pytest nbval pytest-cov coverage python-louvain -c alubbock -c conda-forge
     - name: Install tellurium
       if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'
       shell: bash -l {0}
