@@ -3,7 +3,7 @@ import matplotlib.colors as colors
 import numpy as np
 import networkx as nx
 import networkx.algorithms.community as nx_community
-from community import best_partition, generate_dendrogram
+from community import community_louvain
 
 
 class MidpointNormalize(colors.Normalize):
@@ -81,7 +81,7 @@ def add_louvain_communities(graph, all_levels=False, random_state=None):
     if all_levels:
         # We add the first communities detected, The dendrogram at level 0 contains the nodes as keys
         # and the clusters they belong to as values.
-        dendrogram = generate_dendrogram(graph_communities, random_state=random_state)
+        dendrogram = community_louvain.generate_dendrogram(graph_communities, random_state=random_state)
         partition = dendrogram[0]
         cnodes = set(partition.values())
         graph.add_nodes_from(cnodes, NodeType='subcommunity')
@@ -108,7 +108,7 @@ def add_louvain_communities(graph, all_levels=False, random_state=None):
             nx.set_node_attributes(graph, cluster_child_parent2, 'parent')
             # Update nodes clusters
     else:
-        communities = best_partition(graph_communities, random_state=random_state)
+        communities = community_louvain.best_partition(graph_communities, random_state=random_state)
         # compound nodes to add to hold communities
         cnodes = set(communities.values())
         graph.add_nodes_from(cnodes, NodeType='community')
