@@ -4,7 +4,7 @@
     margin: 0.5em;
     top: 0;
     z-index: 9999;
-    right: 6.4em;
+    right: 6.8em;
     height: 1.8em;
 }
 
@@ -44,6 +44,7 @@
     margin: 0;
     padding: 0;
     cursor: pointer;
+    color: black;
 }
 
 .tt-suggestion + .tt-suggestion {
@@ -109,6 +110,14 @@
     top: 1.5em;
     z-index: 9999;
     margin: 0.5em;
+    width: 11em;
+}
+
+#pyviprid {
+    position: absolute;
+    left: 0;
+    top: 0em;
+    z-index: 9999;
     width: 11em;
 }
 

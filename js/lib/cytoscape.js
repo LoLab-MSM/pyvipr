@@ -34,7 +34,7 @@ require('./elements_style.css');
 
 const DEF_BG = '#FFFFFF';
 const DEF_LAYOUT = 'cose';
-const DEF_HEIGHT = '500px';
+const DEF_HEIGHT = '700px';
 
 const DEF_STYLE = [{
     selector: 'node',
@@ -302,14 +302,13 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
             .css({'font-size': '16px', 'margin-top': '10px'});
 
         that.$pyvipr = $("<h1>PyViPR</h1>")
-            .css({'font-size': '1.3em', 'margin-top': '10px', 'color': 'gray',
+            .css({'font-size': '1.3em', 'color': 'gray', 'margin': '0',
                 'font-family': "\'Lucida console\', Lucida, monospace", 'font-weight': 'bold'});
 
         that.$title = $("<div id='title'></div>")
             .append(that.$model_title);
 
         that.$pyviprdiv = $("<div id='pyviprid'></div>")
-            .css({'position': 'absolute', 'left': '0.6em', 'bottom': '2em'})
             .append(that.$pyvipr);
 
         // Searchbox elements
@@ -318,7 +317,8 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
         that.$search_wrapper = $("<div id='searchDiv'></div>")
             .append(that.$search);
 
-        that.$info = $("<div id='info'></div>");
+        that.$info = $("<div id='info'></div>")
+            .css({'color': 'black'})
 
         // Fit button to fit network to cell space
         that.$fitButton = $("<button id='fitbuttonid'><i class=\"fa fa-arrows-h\"></i></button>");
@@ -328,10 +328,11 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
             .css({
                 "width": "100%",
                 "height": "5em",
-                "bottom": "500px",
-                "position": "relative",
                 "border": "medium solid grey",
-                "border-radius": "10px"
+                "border-radius": "10px",
+                "background-color": "#FFFFFF",
+                "position": "relative",
+                "bottom": "700px"
             })
             .append(that.$downloadButton)
             .append(that.$fitButton)
@@ -431,7 +432,8 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
                     "width": "100%",
                     "height": "50px",
                     "bottom": "0px",
-                    "position": "relative"
+                    "position": "relative",
+                    "background-color": "white"
                 })
                 .append(that.$playButton)
                 .append(that.$slider)
@@ -635,18 +637,14 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
             // https://github.com/atomiks/tippyjs/issues/661
             let dummyDomEle = document.createElement('div');
             node.tippy = tippy( dummyDomEle, {
-                onCreate: function(instance){ // mandatory
-                    // patch the tippy's popper reference so positioning works
-                    // https://atomiks.github.io/tippyjs/misc/#custom-position
-                    instance.popperInstance.reference = ref;
-                },
+                getReferenceClientRect: ref.getBoundingClientRect,
                 lazy: false, // mandatory
                 trigger: 'manual', // mandatory
                 // dom element inside the tippy:
                 content: function(){ // function can be better for performance
-                    let div = document.createElement('div');
-                    div.innerHTML = text;
-                    return div;
+                    let content = document.createElement('div');
+                    content.innerHTML = text;
+                    return content;
                 },
                 // your own preferences:
                 arrow: true,
@@ -910,7 +908,7 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
             that.groupSelected = $("<button id='groupSel'>Group</button>")
                 .css({
                     'position': 'absolute',
-                    'right': '9.4em',
+                    'right': '11em',
                     'top': '0',
                     'zIndex': '999',
                     'height': '1.8em',
@@ -987,7 +985,8 @@ let CytoscapeView = widgets.DOMWidgetView.extend({
 
                 that.$popup = $("<div class='fragment'>" +
                     "</div>")
-                    .css({'border': '1px solid #ccc','background': '#FF7F7F'})
+                    .css({'border': '1px solid #ccc','background': '#FF7F7F',
+                          'position': 'relative', 'bottom':'0', 'z-index': '999'})
                     .append(that.$close)
                     .append(that.$message)
                     .appendTo(that.el.parentElement);
