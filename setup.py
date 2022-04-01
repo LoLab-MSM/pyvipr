@@ -6,6 +6,11 @@ from subprocess import check_call
 import os
 import sys
 import platform
+from pathlib import Path
+
+from jupyter_packaging import (
+    create_cmdclass,
+)
 
 here = os.path.dirname(os.path.abspath(__file__))
 node_root = os.path.join(here, 'js')
@@ -13,10 +18,11 @@ is_repo = os.path.exists(os.path.join(here, '.git'))
 
 npm_path = os.pathsep.join([
     os.path.join(node_root, 'node_modules', '.bin'),
-                os.environ.get('PATH', os.defpath),
+    os.environ.get('PATH', os.defpath),
 ])
 
 from distutils import log
+
 log.set_verbosity(log.DEBUG)
 log.info('setup.py entered')
 log.info('$PATH=%s' % os.environ['PATH'])
@@ -24,8 +30,10 @@ log.info('$PATH=%s' % os.environ['PATH'])
 with open(os.path.join(here, 'README.md'), 'r') as f:
     LONG_DESCRIPTION = f.read()
 
+
 def js_prerelease(command, strict=False):
     """decorator for building minified js/css prior to another command"""
+
     class DecoratedCommand(command):
         def run(self):
             jsdeps = self.distribution.get_command_obj('jsdeps')
@@ -48,7 +56,9 @@ def js_prerelease(command, strict=False):
                     log.warn(str(e))
             command.run(self)
             update_package_data(self.distribution)
+
     return DecoratedCommand
+
 
 def update_package_data(distribution):
     """update package_data to catch changes during setup"""
@@ -80,9 +90,9 @@ class NPM(Command):
         npmName = 'npm';
         if platform.system() == 'Windows':
             npmName = 'npm.cmd';
-            
+
         return npmName;
-    
+
     def has_npm(self):
         npmName = self.get_npm_name();
         try:
@@ -99,7 +109,8 @@ class NPM(Command):
     def run(self):
         has_npm = self.has_npm()
         if not has_npm:
-            log.error("`npm` unavailable.  If you're running this command using sudo, make sure `npm` is available to sudo")
+            log.error(
+                "`npm` unavailable.  If you're running this command using sudo, make sure `npm` is available to sudo")
 
         env = os.environ.copy()
         env['PATH'] = npm_path
@@ -120,9 +131,32 @@ class NPM(Command):
         # update package data in case this created new files
         update_package_data(self.distribution)
 
+
+HERE = Path(__file__).parent.resolve()
+# The name of the project
+name = "pyvipr"
+lab_path = (HERE / "pyvipr" / "staticlab")
+package_data_spec = {
+    name: ["*"],
+}
+
+labext_name = "pyvipr"
+data_files_spec = [
+    ("share/jupyter/labextensions/%s" % labext_name, str(lab_path), "**"),
+]
+
 version_ns = {}
 with open(os.path.join(here, 'pyvipr', '_version.py')) as f:
     exec(f.read(), {}, version_ns)
+
+cmdclass = create_cmdclass("jsdeps",
+    package_data_spec=package_data_spec,
+    data_files_spec=data_files_spec
+)
+cmdclass['jsdeps'] = NPM
+cmdclass['build_py'] = js_prerelease(build_py)
+cmdclass['sdist'] = js_prerelease(sdist, strict=True)
+cmdclass['egg_info'] = js_prerelease(egg_info)
 
 setup_args = {
     'name': 'pyvipr',
@@ -137,7 +171,7 @@ setup_args = {
             'pyvipr/static/index.js',
             'pyvipr/static/index.js.map',
         ],),
-        ('etc/jupyter/nbconfig/notebook.d' ,['pyvipr.json'])
+        ('etc/jupyter/nbconfig/notebook.d', ['pyvipr.json'])
     ],
     'install_requires': [
         'ipywidgets>=7.0.0',
@@ -149,12 +183,7 @@ setup_args = {
     ],
     'packages': find_packages(),
     'zip_safe': False,
-    'cmdclass': {
-        'build_py': js_prerelease(build_py),
-        'egg_info': js_prerelease(egg_info),
-        'sdist': js_prerelease(sdist, strict=True),
-        'jsdeps': NPM,
-    },
+    'cmdclass': cmdclass,
 
     'author': 'Oscar Ortega',
     'author_email': 'oscar.ortega@vanderbilt.edu',
