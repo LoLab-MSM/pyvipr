@@ -1,76 +1,80 @@
 {
-    "name": "pyvipr",
-    "version": "1.0.5",
-    "description": "Dynamic and static visualizations of systems biology models written in SBML, BNGL, and PySB",
-    "author": "Oscar Ortega",
-    "main": "lib/index.js",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/LoLab-VU/pyvipr.git"
-    },
-    "keywords": [
-        "PySB",
-        "systems-biology",
-        "visualization",
-        "jupyter",
-        "widgets",
-        "ipython",
-        "ipywidgets",
-        "jupyterlab-extension"
-    ],
-    "files": [
-        "lib/**/*.js",
-        "lib/*.css",
-        "dist/*.js"
-    ],
-    "scripts": {
-        "prepublish": "jlpm build:prod && webpack && jlpm run copy:labextension",
-        "copy:labextension": "cp -r pyvipr/labextension/* ../pyvipr/staticlab/",
-        "build:prod": "jlpm run build:labextension",
-        "build:labextension": "jupyter labextension build .",
-        "clean": "jlpm run clean:lib",
-        "clean:lib": "rimraf dist/",
-        "clean:labextension": "rimraf myextension/labextension",
-        "clean:all": "jlpm run clean:lib && jlpm run clean:labextension",
-        "install:extension": "jupyter labextension develop --overwrite .",
-        "prepare": "jlpm run clean && jlpm run build:prod",
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "devDependencies": {
-        "css-loader": "^6.0.0",
-        "file-loader": "^6.2.0",
-        "rimraf": "^3.0.2",
-        "style-loader": "^3.1.0",
-        "webpack": "^5.41.0",
-        "webpack-cli": "^4.7.2",
-        "@jupyterlab/builder": "^3.2.8"
-    },
-    "dependencies": {
-        "@jupyter-widgets/base": "^4.0.0",
-        "cytoscape": "^3.19.0",
-        "cytoscape-cose-bilkent": "^4.1.0",
-        "cytoscape-dagre": "^2.3.2",
-        "cytoscape-expand-collapse": "^4.1.0",
-        "cytoscape-klay": "^3.1.4",
-        "cytoscape-popper": "^2.0.0",
-        "cytoscape-sbgn-stylesheet": "^4.0.2",
-        "cytoscape-grid-guide": "^2.3.3",
-        "cytoscape-cola": "^2.4.0",
-        "cytoscape-fcose": "^2.1.0",
-        "cytoscape-graphml": "^1.0.6",
-        "cytoscape-cxtmenu": "^3.4.0",
-        "sbgnml-to-cytoscape": "^4.0.4",
-        "jquery": ">=3.6.0",
-        "lodash": "^4.17.21",
-        "tippy.js": "^6.3.1",
-        "typeahead.js": "^0.11.1"
-    },
-    "jupyterlab": {
-        "extension": "lib/labplugin",
-        "outputDir": "pyvipr/labextension"
-    },
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/LoLab-VU/pyvipr/issues"
+  "name": "pyvipr",
+  "version": "1.0.5",
+  "description": "Dynamic and static visualizations of systems biology models written in SBML, BNGL, and PySB",
+  "author": "Oscar Ortega",
+  "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LoLab-VU/pyvipr.git"
+  },
+  "keywords": [
+    "PySB",
+    "systems-biology",
+    "visualization",
+    "jupyter",
+    "widgets",
+    "ipython",
+    "ipywidgets",
+    "jupyterlab-extension"
+  ],
+  "files": [
+    "lib/**/*.js",
+    "lib/*.css",
+    "dist/*.js"
+  ],
+  "scripts": {
+    "prepublish": "jlpm build:prod && webpack && jlpm run copy:labextension",
+    "copy:labextension": "cp -r pyvipr/labextension/* ../pyvipr/staticlab/",
+    "build:prod": "jlpm run build:labextension",
+    "build:labextension": "jupyter labextension build .",
+    "clean": "jlpm run clean:lib",
+    "clean:lib": "rimraf dist/",
+    "clean:labextension": "rimraf myextension/labextension",
+    "clean:all": "jlpm run clean:lib && jlpm run clean:labextension",
+    "install:extension": "jupyter labextension develop --overwrite .",
+    "prepare": "jlpm run clean && jlpm run build:prod",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "css-loader": "^6.0.0",
+    "file-loader": "^6.2.0",
+    "rimraf": "^3.0.2",
+    "style-loader": "^3.1.0",
+    "webpack": "^5.41.0",
+    "webpack-cli": "^4.7.2",
+    "@jupyterlab/builder": "^3.2.8"
+  },
+  "dependencies": {
+    "@jupyter-widgets/base": "^4.0.0",
+    "cytoscape": "^3.19.0",
+    "cytoscape-cose-bilkent": "^4.1.0",
+    "cytoscape-dagre": "^2.3.2",
+    "cytoscape-expand-collapse": "^4.1.0",
+    "cytoscape-klay": "^3.1.4",
+    "cytoscape-popper": "^2.0.0",
+    "cytoscape-sbgn-stylesheet": "^4.0.2",
+    "cytoscape-grid-guide": "^2.3.3",
+    "cytoscape-cola": "^2.4.0",
+    "cytoscape-fcose": "^2.1.0",
+    "cytoscape-graphml": "^1.0.6",
+    "cytoscape-cxtmenu": "^3.4.0",
+    "sbgnml-to-cytoscape": "^4.0.4",
+    "jquery": ">=3.6.0",
+    "lodash": "^4.17.21",
+    "tippy.js": "^6.3.1",
+    "typeahead.js": "^0.11.1"
+  },
+  "jupyterlab": {
+    "extension": "lib/labplugin",
+    "outputDir": "pyvipr/labextension",
+    "_build": {
+      "load": "static/remoteEntry.2cae8d4de9ba835006cc.js",
+      "extension": "./extension"
     }
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/LoLab-VU/pyvipr/issues"
+  }
 }

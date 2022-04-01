@@ -1,0 +1,1 @@
+(self.webpackChunkpyvipr=self.webpackChunkpyvipr||[]).push([[261],{6261:(e,r,i)=>{var p=i(1568),t=i(7708);e.exports={id:"pyvipr",requires:[t.IJupyterWidgetRegistry],activate:function(e,r){r.registerWidget({name:"pyvipr",version:p.version,exports:p})},autoStart:!0}}}]);
