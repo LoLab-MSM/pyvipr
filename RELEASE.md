@@ -12,6 +12,7 @@ pip install wheel
 - To release a new version of pyvipr on PyPI:
 
 * Update version_info and frontend_version in _version.py (set release version, remove 'dev')
+* Update frontend version in js/package.json and pyvipr/staticlab/package.json
 * git add the _version.py file and git commit
 * Build the distribution (both )
 
