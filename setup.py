@@ -165,6 +165,10 @@ setup_args = {
     'long_description': LONG_DESCRIPTION,
     'long_description_content_type': 'text/markdown',
     'include_package_data': True,
+    'package_data': {
+        "pyvipr.static": ["*"],
+        "pyvipr.staticlab": ["*"],
+    },
     'data_files': [
         ('share/jupyter/nbextensions/pyvipr', [
             'pyvipr/static/extension.js',
